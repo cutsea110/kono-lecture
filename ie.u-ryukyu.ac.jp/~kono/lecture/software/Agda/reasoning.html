@@ -1,0 +1,345 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Reasoning in Agda</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Reasoning in Agda</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content144">Agda での式の変形</a></h2>
+Agda では等式の推論規則、反射律、推移律、合同律などの変形を行う方法があり、便利に使うことができます。Reasoning 自体も Agda で記述されているので、それを再現しながら実際に使ってみましょう。
+<p>
+<a href="examples/list-nat.agda"> list-nad.agda </a>
+自分で _==_ という等号を用意してみましょう。これは、_≡_ 同じであり、実際、変換することも可能です。あくまでも練習のために用意したものです。
+<p>
+
+<pre>
+    data _==_  {A : Set } :  List A -&gt; List A -&gt; Set  where
+          reflection  : {x : List A} -&gt; x == x
+    cong1 :  {A : Set  }  { B : Set  } -&gt;
+       ( f : List A -&gt; List B ) -&gt; {x : List A } -&gt; {y : List A} -&gt; x == y -&gt; f x == f y
+    cong1 f reflection = reflection
+    eq-cons :   {A : Set } {x y : List A} ( a : A ) -&gt; x ==  y -&gt; ( a :: x ) == ( a :: y )
+    eq-cons a z = cong1 ( \x -&gt; ( a :: x) ) z
+    trans-list :   {A : Set } {x y z : List A}  -&gt; x ==  y -&gt; y == z -&gt; x == z
+    trans-list reflection reflection = reflection
+
+</pre>
+名前が衝突しないように変えてあります。Agda では module で名前を隠したり変更したりすることができますが、同時に使おうとした時に名前が重なっていると厄介です。これは、Agda の monomorphism だとも言えますが、その代わり、記号が決まれば型が決まるのは単純でわかりやすいはずです。
+<p>
+cong1 や eq-cons は、すべてここで証明しています。つまり、data _==_ がもともと持っている性質です。これは、x == x という公理から、すべて導かれると思っても良いです。
+<p>
+これらは証明の short cut として使うことができます。実際、List の [] の単位元としての性質や、結合律を以下のように証明できます。
+<p>
+
+<pre>
+    list-id-l : { A : Set } -&gt; { x : List A} -&gt;  [] ++ x == x
+    list-id-l = reflection
+    list-id-r : { A : Set } -&gt; ( x : List A ) -&gt;  x ++ [] == x
+    list-id-r [] =   reflection
+    list-id-r (x :: xs) =  eq-cons x ( list-id-r xs )
+    list-assoc : {A : Set } -&gt; ( xs ys zs : List A ) -&gt;
+         ( ( xs ++ ys ) ++ zs ) == ( xs ++ ( ys ++ zs ) )
+    list-assoc  [] ys zs = reflection
+    list-assoc  (x :: xs)  ys zs = eq-cons x ( list-assoc xs ys zs )
+
+</pre>
+命題の型が証明するべき式で、値の関数が推論の組み合わせに対応するのが、Curry-Howard 対応でした。
+<p>
+残念ながら、 eq-cons x ( list-assoc xs ys zs ) が ( ( xs ++ ys ) ++ zs ) == ( xs ++ ( ys ++ zs ) ) の証明であることはひと目ではわかりません。
+<p>
+Reasoning を使うことにより、以下のように式の変形を追うことができます。
+<p>
+
+<pre>
+    ++-assoc :  (L : Set ) ( xs ys zs : List L ) -&gt; (xs ++ ys) ++ zs  == xs ++ (ys ++ zs)
+    ++-assoc A [] ys zs = let open ==-Reasoning A in
+      begin -- to prove ([] ++ ys) ++ zs  == [] ++ (ys ++ zs)
+       ( [] ++ ys ) ++ zs
+      ==⟨ reflection ⟩
+        ys ++ zs
+      ==⟨ reflection ⟩
+        [] ++ ( ys ++ zs )
+      ∎
+    ++-assoc A (x :: xs) ys zs = let open  ==-Reasoning A in
+      begin -- to prove ((x :: xs) ++ ys) ++ zs == (x :: xs) ++ (ys ++ zs)
+        ((x :: xs) ++ ys) ++ zs
+      ==⟨ reflection ⟩
+         (x :: (xs ++ ys)) ++ zs
+      ==⟨ reflection ⟩
+        x :: ((xs ++ ys) ++ zs)
+      ==⟨ cong1 (_::_ x) (++-assoc A xs ys zs) ⟩
+        x :: (xs ++ (ys ++ zs))
+      ==⟨ reflection ⟩
+        (x :: xs) ++ (ys ++ zs)
+      ∎
+
+</pre>
+==⟨ reflection ⟩ は、 ==⟨⟩ と書くこともできます。begin で始めて、∎ で終わる。同じ推論要素が含まれてるので、結局は同じことをやっているのですが、関数適応の各段階で型を目で見れるのはうれしいことです。
+<p>
+indent は正確でなければなりません。begin や ==⟨ reflection ⟩ 、 ∎ は、すべて Agda の演算子だからです。
+<p>
+==⟨ ??  ⟩ の ?? に書くことができるのは、
+<p>
+
+<pre>
+      a == b
+
+</pre>
+という形をした型を生成する関数です。== に関する推論規則は必ず、この形をしています。その他の推論は、cong 合同規則を使って行います。つまり、
+<p>
+　　式の任意の部分に勝手に代入できますわけではありません
+<p>
+そういうことをしたいのならば、そういう推論規則を証明して使う必要があります。
+<p>
+reflection は x == x を返すので、基本的に変形前と後では式は同じはずです。でも、見かけは異なります。Agda は normalization を行なってから比較を行うので、同じ normal form を持つ式は「まったく同じもの」です。例えば、関数適用などは変形に入りません。しかし、人は、それを明示しないとわからないものです。
+<p>
+後で、Reasoning の、もう少し便利な(複雑な)使い方について話す機会もあるでしょう。
+<p>
+以下では、Reasoning の Agda での実装について触れますが、ここは必須でないので飛ばしても構いません。
+<p>
+
+<hr/>
+<h2><a name="content146">Reasoning の実装</a></h2>
+Reasoning は以下のように実装されています。これは Agda のプログラムです。
+<p>
+
+<pre>
+    module ==-Reasoning  (A : Set  ) where
+      infixr  2 _∎
+      infixr 2 _==⟨_⟩_ _==⟨⟩_
+      infix  1 begin_
+      data _IsRelatedTo_ (x y : List A) :
+                         Set  where
+        relTo : (x≈y : x  == y  ) → x IsRelatedTo y
+      begin_ : {x : List A } {y : List A} →
+               x IsRelatedTo y →  x ==  y
+      begin relTo x≈y = x≈y
+      _==⟨_⟩_ : (x : List A ) {y z : List A} →
+                x == y  → y IsRelatedTo z → x IsRelatedTo z
+      _ ==⟨ x≈y ⟩ relTo y≈z = relTo (trans-list x≈y y≈z)
+      _==⟨⟩_ : (x : List A ) {y : List A}
+                → x IsRelatedTo y → x IsRelatedTo y
+      _ ==⟨⟩ x≈y = x≈y
+      _∎ : (x : List A ) → x IsRelatedTo x
+      _∎ _ = relTo reflection
+
+</pre>
+最初に演算子の優先順位が記述されています。_==⟨_⟩_ は三項演算子であり、カッコを含んでいます。
+<p>
+data _IsRelatedTo_ (x y : List A) は、x == y を格納するデータ型です。relTo は related to であり Constructor です。ここでは、等式 _==_ の data 型を受け取って、_IsRelatedTo_ に変換しています。
+<p>
+x≈y  は空白が入ってないので単なる変数です。Agda では、x ≈ y と x≈y が異なります。
+<p>
+
+<hr/>
+<h2><a name="content147">Reasoning の動作</a></h2>
+この構文は後ろから読んでいきます。証明は x == x から推論規則を適用して変形していくからです。
+<p>
+
+<pre>
+      _∎ : (x : List A ) → x IsRelatedTo x
+      _∎ _ = relTo reflection
+
+</pre>
+は最後の証明すべき等式の右辺、つまり List の型 (x :: xs) ++ (ys ++ zs) を受け取る。reflection は _==_ の constructor で、 X == X を作成します。それを relTo で _IsRelaedTo_ にさらに変換します。
+<p>
+
+<pre>
+    ((x :: xs) ++ (ys ++ zs) )  isRelatedTo ((x :: xs) ++ (ys ++ zs) )
+
+</pre>
+いうのが _∎ _ の戻り値の型です。X は、まだ決まってない型です。受け取った引数は _ で無視されています。_∎  が演算子であり、その後の単独の _ が無視された引数です。重要なのは型なので値はどうでも良いというわけです。
+<p>
+その一つ上、
+<p>
+
+<pre>
+      ==⟨ reflection ⟩
+
+</pre>
+は、何もしません。この前後は「まったく同じもの」です。 ここでは、
+<p>
+
+<pre>
+    x :: (xs ++ (ys ++ zs))
+
+</pre>
+は、(x :: xs) ++ ys = x :: (xs ++ ys) という関数適用によって変形されて、
+<p>
+
+<pre>
+    (x :: xs) ++ (ys ++ zs)
+
+</pre>
+これになっています。二つは同じものなので、どちらからどちらへでも変形できます。 ==⟨⟩ でがんがん変形して、できなかったら、何かを呼び出すことを考えます。 実際、
+<p>
+
+<pre>
+      _ ==⟨⟩ x≈y = x≈y
+
+</pre>
+なので何もしていません。結果、(Agda の中では同じだが、人の頭の中では)
+<p>
+
+<pre>
+      x :: (xs ++ (ys ++ zs)) IsRelateTo (x :: (xs ++ (ys ++ zs))) 
+
+</pre>
+となりました。 問題は、
+<p>
+
+<pre>
+        x :: ((xs ++ ys) ++ zs)
+      ==⟨ cong1 (_::_ x) (++-assoc A xs ys zs) ⟩
+        x :: (xs ++ (ys ++ zs))
+
+</pre>
+この部分です。ここでは、cong1 (_::_ x) (++-assoc A xs ys zs) を使って式を変形しています。cong1 は、
+<p>
+
+<pre>
+    cong1 :  {A : Set  }  { B : Set  } -&gt;
+       ( f : List A -&gt; List B ) -&gt; {x : List A } -&gt; {y : List A} -&gt; x == y -&gt; f x == f y
+    cong1 f reflection = reflection
+
+</pre>
+なので、f を受け取って、
+<p>
+
+<pre>
+      f x == f y
+
+</pre>
+を生成します。ここでの f は (_::_ x) です。つまり「先頭に x を付け加える関数」です。C-c C-n で (_::_ a ) [] を試してみましょう。
+<p>
+逆順にたどっているので、f x == f y に相当するのが、
+<p>
+
+<pre>
+        x :: (xs ++ (ys ++ zs)) isRelatedTo ((x :: xs) ++ (ys ++ zs) )
+
+</pre>
+です。確かに、右辺は x が先頭に付いています。 
+<p>
+++-assoc A xs ys zs は、証明すべき式と同じですが、ここでは、
+<p>
+
+<pre>
+     (xs ++ ys) ++ zs  == xs ++ (ys ++ zs)
+
+</pre>
+という型を返すはずです。これが x == y です。つまり、cong1 は、
+<p>
+
+<pre>
+     x :: ((xs ++ ys) ++ zs)  == x :: (xs ++ (ys ++ zs))         ... (1)
+     --------- x ------------    -------- y ------------
+
+</pre>
+を返します。これが、以下の (二つ目の) x≈y という変数に入って  _==⟨_⟩_  が呼び出されます。
+<p>
+
+<pre>
+      _==⟨_⟩_ : (x : List A ) {y z : List A} →
+                x == y  → y IsRelatedTo z → x IsRelatedTo z
+      _ ==⟨ x≈y ⟩ relTo y≈z = relTo (trans-list x≈y y≈z)
+
+</pre>
+最初の引数は、これまでの推論だが _ で無視されています。重要なのは値ではなくて型だからです。最後の引数は relTo y≈z  というパターンで分解されます。relTo の引数は _==_ というパターンなので、結局、y≈z  に
+<p>
+
+<pre>
+        x :: (xs ++ (ys ++ zs)) == ((x :: xs) ++ (ys ++ zs) )    ... (2)
+        ----------y -----------     --------- z  ------------
+
+</pre>
+が入ることになります。この二つの式を trans-list という関数、
+<p>
+
+<pre>
+    trans-list :   {A : Set } {x y z : List A}  -&gt; x ==  y -&gt; y == z -&gt; x == z
+    trans-list reflection reflection = reflection
+
+</pre>
+で変形すると、trans-list は、
+<p>
+
+<pre>
+        x :: ((xs ++ ys) ++ zs) == ((x :: xs) ++ (ys ++ zs) )    ... (3)
+        --------- x ------------   --------- z  ------------
+
+</pre>
+を返します。これを relTo で、
+<p>
+
+<pre>
+        (x :: ((xs ++ ys) ++ zs)) isRelatedTo (((x :: xs) ++ (ys ++ zs) ))    ... (4)
+
+</pre>
+を構築しています。
+<p>
+_==_ のままでもできそうですが、_==_ では必ず x == x でなければなりません。一方で、_isRelatedTo_ は定義では左右が異なっても大丈夫です。最終的には同じになるにしても。今は、終わりから辿っているので、_isRelatedTo_ の両辺は必ず == になっています。
+<p>
+あとは reflection で変形するだけです。最後に、
+<p>
+
+<pre>
+      begin_ : {x : List A } {y : List A} →
+               x IsRelatedTo y →  x ==  y
+      begin relTo x≈y = x≈y
+
+</pre>
+で、x == y に戻しています。この段階で正しく両辺は(_==_ の意味で)等しいはずです。最終的に _==_ の左右は異なる normal form を持つことになります。
+<p>
+集合レベルに対応するためには適切な変更が必要になりますが、ここでは A の型だけが問題で、それは module の引数で渡してしまえば良いわけです。
+<p>
+つまり、Reasoning は特定の型の要素を持つ List に対して行われて、これを混ぜることはできません。同じ module を入れ子で呼び出すことは Agda では面倒です。そういう場合は、一つ Lemma (補助命題) をはさむことで解決します。
+<p>
+ここでは、わざと自分で Reasoning を作成しましたが、 Relation.Binary.PropositionalEquality に既に ≡-Reasoning が用意されています。この場合は、≡ に対して定義されている refl や cong を使います。
+<p>
+<a href="category.html"> Next : Caategory module と圏の入門 </a>
+</div>
+<ol class="side" id="menu">
+Reasoning in Agda
+<li><a href="#content143">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content144">  Agda での式の変形</a>
+<li><a href="#content145">   * <a href="examples/list-nat.agda"> list-nad.agda </a>
+</a>
+<li><a href="#content146">  Reasoning の実装</a>
+<li><a href="#content147">  Reasoning の動作</a>
+<li><a href="#content148">   * <a href="category.html"> Next : Caategory module と圏の入門 </a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 06:04:55 2013
+</body></html>

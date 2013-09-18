@@ -1,0 +1,246 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Agda による List の結合律 ( association law ) の証明</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Agda による List の結合律 ( association law ) の証明</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="http://www2.tcs.ifi.lmu.de/~abel/Equality.pdf"> Agda: Equality </a> を参考に。
+<a href="list.agda"> list.agda </a>
+
+<hr/>
+<h2><a name="content426">List の定義</a></h2>
+
+<pre>
+    nfixr 40 _::_
+    data  List (A : Set) : Set where
+       [] : List A
+       _::_ : A -&gt; List A -&gt; List A
+    infixl 30 _++_
+    _++_ : {A : Set} -&gt; List A -&gt; List A -&gt; List A
+    []        ++ ys = ys
+    (x :: xs) ++ ys = x :: (xs ++ ys)
+
+</pre>
+:: は、cons (constructor )。List のhead(先頭の要素) と tail (残り) 。
+<p>
+
+<pre>
+   ::    ----&gt;    ::   -----&gt;  []
+   |              |
+   a              b
+
+</pre>
+これで、[a,b] という List を表す。
+<p>
+infixl は、 a :: b :: [] は a :: (b :: []) を意味するという宣言。数字は結合の強さ。
+<p>
+
+<hr/>
+<h2><a name="content427">これで良さそうだが... (集合のレベルを増やす)</a></h2>
+
+<pre>
+    postulate a : Set
+    postulate b : Set
+    postulate c : Set
+    l1 = a :: []
+    l2 = a :: b :: a :: c ::  []
+    l3 = l1 ++ l2
+
+</pre>
+Set_1 != Set とか言われる。 Set_1 とかにも List も定義しないといけない。
+<p>
+
+<pre>
+    infixr 40 _::_
+    data  List {a} (A : Set a) : Set a where
+       [] : List A
+       _::_ : A -&gt; List A -&gt; List A
+    infixl 30 _++_
+    _++_ : ∀ {a} {A : Set a} -&gt; List A -&gt; List A -&gt; List A
+    []        ++ ys = ys
+    (x :: xs) ++ ys = x :: (xs ++ ys)
+
+</pre>
+としよう。
+<p>
+{ a } は隠れた仮定。この場合はある Set のレベル。型は自動的に推論されている。
+<p>
+∀{ a } すべてのSet のレベル。emacs の中では \forall と入力する。
+<p>
+C-C C-N で l1, l2, l3　そして、 a :: [] などを normalize してみよう。
+<p>
+
+<hr/>
+<h2><a name="content428">等さの定義</a></h2>
+
+<pre>
+    nfixr 20  _==_
+    data _==_ {A : Set} :  List A -&gt; List A -&gt; Set where
+          reflection  : {x : List A} -&gt; x == x
+          eq-cons : {x y : List A} { a : A } -&gt; x ==  y -&gt; ( a :: x ) == ( a :: y )
+
+</pre>
+ここでは data を使って等号を定義する。推論は二つ。
+<p>
+
+<pre>
+    reflection 同じものは等しい
+    eq-cons    等しい List に同じ物を cons しても同じ
+
+</pre>
+Curry Howard 対応により、推論はλ式つまり、Agda の関数で表される。x == y という関係を導入しているので、== introduction に相当する。
+<p>
+
+<hr/>
+<h2><a name="content429"> [] が単位元に相当すること</a></h2>
+[] を結合しても、元の List と同じになる。それを証明しよう。
+<p>
+
+<pre>
+    list-id-l : { A : Set } -&gt; { x : List A} -&gt;  [] ++ x == x
+    list-id-l = ?
+    list-id-r : { A : Set } -&gt; ( x : List A ) -&gt;  x ++ [] == x
+    list-id-r [] =   ?
+    list-id-r (x :: xs) =  ?
+
+</pre>
+? には、上で定義した推論規則を表す関数が来る。reflection か eq-cons かのどちらかである。 eq-cons は引数(推論の仮定)を取る。
+<p>
+引数に ( list-id-r xs ) を使ってみよう。
+<p>
+
+<hr/>
+<h2><a name="content430"> 結合律の証明</a></h2>
+
+<pre>
+    list-assoc : {A : Set } -&gt; ( xs ys zs : List A ) -&gt;
+         ( ( xs ++ ys ) ++ zs ) == ( xs ++ ( ys ++ zs ) )
+    list-assoc  [] ys zs = ?
+    list-assoc  (x :: xs)  ys zs = ?
+
+</pre>
+引数に ( list-assoc xs ys zs ) を使ってみよう。
+<p>
+以上の証明を Haskell の型で表すことができるだろうか?
+<p>
+
+<hr/>
+<h2><a name="content431">Agda Standard library</a></h2>
+Agda の Standard library を使うと、もう少し visual に証明を書くことができる。
+<p>
+<a href="http://wiki.portal.chalmers.se/agda/pmwiki.php?n=Libraries.StandardLibrary"> Standard Library </a> から手に入れる。mkdir ~/Library/Agda2 して、その下に展開する。ln -s を使って Java のように Current versin を定義しよう。
+その path を ~/.emacs に定義すれば良い。
+<p>
+
+<pre>
+    (1)  (agda2-include-dirs (quote ("." "/Users/kono/Library/Agda2/Current/src")))
+
+</pre>
+などとする。あるいは、URL に書いてあるように、
+<p>
+
+<pre>
+   M-x load-library RET agda2-mode RET
+   M-x customize-group RET agda2 RET
+
+</pre>
+から設定する。
+<p>
+
+<hr/>
+<h2><a name="content433">式の変形による説明</a></h2>
+
+<pre>
+    open  import  Relation.Binary.PropositionalEquality
+    open ≡-Reasoning
+    cong1 : {A : Set } { B : Set } -&gt;
+       ( f : A -&gt; B ) -&gt; {x : A } -&gt; {y : A} -&gt; x ≡ y -&gt; f x ≡ f y
+    cong1 f refl = refl
+    ++-assoc : {A : Set} ( xs ys zs : List A ) -&gt; (xs ++ ys) ++ zs ≡ xs ++ (ys ++ zs)
+    ++-assoc [] ys zs = begin -- to prove ([] ++ ys) ++ zs ≡ [] ++ (ys ++ zs)                                                                                                                     
+       ( [] ++ ys ) ++ zs
+      ≡⟨ refl ⟩
+        ys ++ zs
+      ≡⟨ refl ⟩
+        [] ++ ( ys ++ zs )
+      ∎
+    ++-assoc (x :: xs) ys zs = begin -- to prove ((x :: xs) ++ ys) ++ zs ≡ (x :: xs) ++ (ys ++ zs)                                                                                                
+        ((x :: xs) ++ ys) ++ zs
+      ≡⟨ refl ⟩
+         (x :: (xs ++ ys)) ++ zs
+      ≡⟨ refl ⟩
+        x :: ((xs ++ ys) ++ zs)
+      ≡⟨ cong1 (_::_ x) (++-assoc xs ys zs) ⟩
+        x :: (xs ++ (ys ++ zs))
+      ≡⟨ refl ⟩
+        (x :: xs) ++ (ys ++ zs)
+      ∎
+
+</pre>
+記号の入れ方と indent に注意しよう。変形は説明のためだけなので省略できる。証明したい式へ変形していることに注意しよう。
+<p>
+
+<hr/>
+<h2><a name="content434">Standard library の中身</a></h2>
+
+<pre>
+    Relation.Binary.PropositionalEquality
+
+</pre>
+と
+<p>
+
+<pre>
+    Data.List
+
+</pre>
+がどこにあるか探して、中身を見てみよう。
+<p>
+</div>
+<ol class="side" id="menu">
+Agda による List の結合律 ( association law ) の証明
+<li><a href="#content424">   * <a href="http://www2.tcs.ifi.lmu.de/~abel/Equality.pdf"> Agda: Equality </a> を参考に。
+</a>
+<li><a href="#content425">   * <a href="list.agda"> list.agda </a>
+</a>
+<li><a href="#content426">  List の定義</a>
+<li><a href="#content427">  これで良さそうだが... (集合のレベルを増やす)</a>
+<li><a href="#content428">  等さの定義</a>
+<li><a href="#content429">   [] が単位元に相当すること</a>
+<li><a href="#content430">   結合律の証明</a>
+<li><a href="#content431">  Agda Standard library</a>
+<li><a href="#content432">   * <a href="http://wiki.portal.chalmers.se/agda/pmwiki.php?n=Libraries.StandardLibrary"> Standard Library </a> から手に入れる。mkdir ~/Library/Agda2 して、その下に展開する。ln -s を使って Java のように Current versin を定義しよう。
+</a>
+<li><a href="#content433">  式の変形による説明</a>
+<li><a href="#content434">  Standard library の中身</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Tue Jun 25 10:15:32 2013
+</body></html>

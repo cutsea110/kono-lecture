@@ -1,0 +1,449 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Yoneda Rennma</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Yoneda Rennma</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content001"></a></h2>
+<a href="examples/yoneda.agda"> yoneda.agda </a>
+圏Aの対象は集合のことが多いわけですが、対象から対象の間には射の集合があります。この集合を対象とする圏Set
+<sup>op A</sup>を考えます。
+<p>
+この対象は、元の圏の反変 A op から集合の圏Sets へのFunctor だと考えられます。これを Contra variant functor 反変関手と言います。 すると、射は反変関手の間の自然変換です。
+<p>
+
+<pre>
+    YObj = Functor (Category.op A) (Sets {c₂})
+    YHom = λ (f : YObj ) → λ (g : YObj ) → NTrans (Category.op A) (Sets {c₂}) f g
+
+</pre>
+これが Category を作ることをまず確認します。圏の圏 Cat から作っても良いのですが、Sub category にする必要があり、Sub category を作る手間はほとんど変わりません。
+<p>
+
+<hr/>
+<h2><a name="content003">SetAop を作る</a></h2>
+まず、id
+<p>
+
+<pre>
+    Yid : {a : YObj} → YHom a a
+    Yid {a} = record { TMap = \a -&gt; \x -&gt; x ; isNTrans = isNTrans1 {a} } where
+       isNTrans1 : {a : YObj } → IsNTrans (Category.op A) (Sets {c₂}) a a (\a -&gt; \x -&gt; x )
+       isNTrans1 {a} = record { commute = refl  }
+
+</pre>
+そして、結合。
+<p>
+
+<pre>
+    _+_ : {a b c : YObj} → YHom b c → YHom a b → YHom a c
+    _+_{a} {b} {c} f g  = record { TMap = λ x → Sets [ TMap f x o TMap g x ] ; isNTrans = isNTrans1  } where
+       commute1 :  (a b c : YObj ) (f : YHom  b c)  (g : YHom a b ) 
+                (a₁ b₁ : Obj (Category.op A)) (h : Hom (Category.op A) a₁ b₁) →
+                            Sets [ Sets [ FMap c h o Sets [ TMap f a₁ o TMap g a₁ ] ] ≈
+                            Sets [ Sets [ TMap f b₁ o TMap g b₁ ] o FMap a h ] ]
+       commute1  a b c f g a₁ b₁ h =   let open ≈-Reasoning (Sets {c₂})in begin
+                    Sets [ FMap c h o Sets [ TMap f a₁ o TMap g a₁ ] ]
+                 ≈⟨ assoc {_} {_} {_} {_} {FMap c h } {TMap f a₁} {TMap g a₁} ⟩
+                    Sets [ Sets [ FMap c h o TMap f a₁ ] o TMap g a₁ ] 
+                 ≈⟨ car (nat f) ⟩
+                    Sets [ Sets [ TMap f b₁ o FMap b h ] o TMap g a₁ ] 
+                 ≈↑⟨ assoc {_} {_} {_} {_} { TMap f b₁} {FMap b h } {TMap g a₁}⟩
+                    Sets [ TMap f b₁ o Sets [ FMap b h  o TMap g a₁ ]  ]
+                 ≈⟨ cdr {_} {_} {_} {_} {_} { TMap f b₁} (nat g) ⟩
+                    Sets [ TMap f b₁ o Sets [ TMap g b₁  o FMap a h ]  ]
+                 ≈↑⟨ assoc  {_} {_} {_} {_} {TMap f b₁} {TMap g b₁} { FMap a h}  ⟩
+                    Sets [ Sets [ TMap f b₁ o TMap g b₁ ] o FMap a h ] 
+                 ∎ 
+       isNTrans1 : IsNTrans (Category.op A) (Sets {c₂}) a c (λ x → Sets [ TMap f x o TMap g x ]) 
+       isNTrans1 = record { commute = λ {a₁ b₁ h} → commute1 a b c f g a₁ b₁ h }
+
+</pre>
+そして、射の等号は、自然変換の変換の等しさです。
+<p>
+
+<pre>
+    _==_  :  {a b : YObj} → YHom a b → YHom a b → Set (c₂ ⊔ c₁)
+    _==_  f g = ∀{x : Obj (Category.op A)} → (Sets {c₂}) [ TMap f x ≈ TMap g x ]
+
+</pre>
+そして、圏の性質を確認します。
+<p>
+
+<pre>
+    infix  4 _==_
+    isSetsAop :  IsCategory YObj YHom _==_ _+_ Yid
+    isSetsAop  =  
+      record  { isEquivalence =  record {refl = refl ; trans = \{i j k} → trans1 {_} {_} {i} {j} {k} ; sym = \{i j} → sym1  {_} {_} {i} {j}}
+            ; identityL = refl
+            ; identityR = refl
+            ; o-resp-≈ =  λ{a b c f g h i } → o-resp-≈      {a} {b} {c} {f} {g} {h} {i}
+            ; associative = refl
+            } where
+                sym1 : {a b : YObj } {i j : YHom a b } → i == j → j == i
+                sym1 {a} {b} {i} {j} eq {x} = let open ≈-Reasoning (Sets {c₂}) in begin
+                     TMap j x
+                 ≈⟨ sym eq ⟩
+                     TMap i x
+                 ∎ 
+                trans1 : {a b : YObj } {i j k : YHom a b} → i == j → j == k → i == k
+                trans1 {a} {b} {i} {j} {k} i=j j=k {x} =  let open ≈-Reasoning (Sets {c₂}) in begin
+                     TMap i x
+                 ≈⟨ i=j ⟩
+                     TMap j x
+                 ≈⟨ j=k ⟩
+                     TMap k x
+                 ∎
+                o-resp-≈ : {A₁ B C : YObj} {f g : YHom A₁ B} {h i : YHom B C} → 
+                    f == g → h == i → h + f == i + g
+                o-resp-≈ {a} {b} {c} {f} {g} {h} {i} f=g h=i {x} = let open ≈-Reasoning (Sets {c₂}) in begin
+                     (Sets {c₂}) [ TMap h x  o TMap f x ]
+                 ≈⟨ resp f=g h=i ⟩
+                     (Sets {c₂}) [ TMap i x  o TMap g x ]
+                 ∎
+    SetsAop : Category (suc ℓ ⊔ (suc (suc c₂) ⊔ suc c₁))  (suc ℓ ⊔ (suc (suc c₂) ⊔ suc c₁)) (c₂ ⊔ c₁)
+    SetsAop =
+      record { Obj = YObj
+             ; Hom = YHom
+             ; _o_ = _+_
+             ; _≈_ = _==_
+             ; Id  = Yid
+             ; isCategory = isSetsAop
+             }
+
+</pre>
+これで圏 Sets
+<sup>op A</sup> = SetAop
+はできあがりです。
+<p>
+
+<hr/>
+<h2><a name="content004">米田関手を作る</a></h2>
+そして、A の射の集合 Hom A から、この圏Sets
+<sup>op A</sup>への関手が米田関手です。ここでは、locally small つまり、射の集合が普通の集合であることを仮定します。つまり、射の等しさを、Agda の要素の等しさ ≡ として使うことができるとします。こうすると、cong を全面的に使うことができるようになります。Sets を使うので、Extensionality も仮定します。
+<p>
+
+<pre>
+    -- A is Locally small
+    postulate ≈-≡ : {a b : Obj A } { x y : Hom A a b } →  (x≈y : A [ x ≈ y  ]) → x ≡ y
+    import Relation.Binary.PropositionalEquality
+    -- Extensionality a b = {A : Set a} {B : A → Set b} {f g : (x : A) → B x} → (∀ x → f x ≡ g x) → f ≡ g → ( λ x → f x ≡ λ x → g x )
+    postulate extensionality : Relation.Binary.PropositionalEquality.Extensionality c₂ c₂
+
+</pre>
+関手なので、最初に対象の写像を定義します。と言っても、 λ b → Hom (Category.op A) a b  だけです。a から、与えられた行き先 b への射集合自体を返しています。この関手のFMap は、aからbへの射f を、集合から集合への写像に変換する必要があります。
+<p>
+
+<pre>
+            FMap =   λ {b c : Obj A } → λ ( f : Hom  A c b ) → λ (g : Hom  A b a ) →  (Category.op A) [ f o g ] ;
+
+</pre>
+写像はλ式です。射から射への変換ですが、f o g と結合するだけです。写像先の対象自体が関手なので、関手の性質を証明する必要があります。
+<p>
+
+<pre>
+    y-obj : (a : Obj A) → Functor (Category.op A) (Sets {c₂})
+    y-obj a = record {
+            FObj = λ b → Hom (Category.op A) a b  ;
+            FMap =   λ {b c : Obj A } → λ ( f : Hom  A c b ) → λ (g : Hom  A b a ) →  (Category.op A) [ f o g ] ;
+            isFunctor = record {
+                 identity =  \{b} → extensionality ( λ x → lemma-y-obj1 {b} x ) ;
+                 distr = λ {a} {b} {c} {f} {g} → extensionality ( λ x → lemma-y-obj2 a b c f g x ) ;
+                 ≈-cong = λ eq → extensionality ( λ x →  lemma-y-obj3 x eq ) 
+            } 
+        }  where
+            lemma-y-obj1 : {b : Obj A } → (x : Hom A b a) →  (Category.op A) [ id1 A b o x ] ≡ x
+            lemma-y-obj1 {b} x = let open ≈-Reasoning (Category.op A) in ≈-≡ idL
+            lemma-y-obj2 :  (a₁ b c : Obj A) (f : Hom A b a₁) (g : Hom A c b ) → (x : Hom A a₁ a )→ 
+                   Category.op A [ Category.op A [ g o f ] o x ] ≡ (Sets [ _[_o_] (Category.op A) g o _[_o_] (Category.op A) f ]) x
+            lemma-y-obj2 a₁ b c f g x = let open ≈-Reasoning (Category.op A) in ≈-≡ ( begin
+                   Category.op A [ Category.op A [ g o f ] o x ]
+                 ≈↑⟨ assoc ⟩
+                   Category.op A [ g o Category.op A [ f o x ] ]
+                 ≈⟨⟩
+                   ( λ x →  Category.op A [ g o x  ]  ) ( ( λ x → Category.op A [ f o x ] ) x )
+                 ∎ )
+            lemma-y-obj3 :  {b c : Obj A} {f g : Hom A c b } → (x : Hom A b a ) → A [ f ≈ g ] →  Category.op A [ f o x ] ≡ Category.op A [ g o x ]
+            lemma-y-obj3 {_} {_} {f} {g} x eq =  let open ≈-Reasoning (Category.op A) in ≈-≡   ( begin
+                    Category.op A [ f o x ]
+                 ≈⟨ resp refl-hom eq ⟩
+                    Category.op A [ g o x ]
+                 ∎ )
+
+</pre>
+行き先が Sets なので、≡ がたくさん出てきます。複数の圏が絡むので、演算子を_そのまままとめて使っていたりします。
+<p>
+
+<hr/>
+<h2><a name="content005">米田関手をの射の写像作る</a></h2>
+射の写像の方は自然変換を構成する必要があります。
+<p>
+
+<pre>
+    y-tmap :  ( a b : Obj A ) → (f : Hom A a b ) → (x : Obj (Category.op A)) → FObj (y-obj a) x → FObj (y-obj b ) x 
+    y-tmap  a b f x = λ ( g : Hom A x a ) → A [ f o g ]  --  ( h : Hom A x b ) 
+    y-map : {a b : Obj A } → (f : Hom A a b ) → YHom (y-obj a) (y-obj b) 
+    y-map {a} {b} f = record { TMap =  y-tmap  a b f ; isNTrans = isNTrans1 {a} {b} f } where
+       lemma-y-obj4 : {a₁ b₁ : Obj (Category.op A)} {g : Hom (Category.op A) a₁ b₁} → {a b : Obj A } → (f : Hom A a b ) →
+            Sets [ Sets [ FMap (y-obj b) g o y-tmap a b f a₁ ] ≈
+            Sets [ y-tmap a b f b₁ o FMap (y-obj a) g ] ]
+       lemma-y-obj4 {a₁} {b₁} {g} {a} {b} f = let open ≈-Reasoning A in extensionality ( λ x →  ≈-≡ ( begin
+                    A [ A [ f o x ] o g ]
+                 ≈↑⟨ assoc ⟩
+                    A [ f o A [ x  o g ] ]
+                 ∎ ) )
+       isNTrans1 : {a b : Obj A } →  (f : Hom A a b ) → IsNTrans (Category.op A) (Sets {c₂}) (y-obj a) (y-obj b) (y-tmap a b f )
+       isNTrans1 {a} {b} f = record { commute = λ{a₁ b₁ g } → lemma-y-obj4 {a₁} {b₁} {g} {a} {b} f } 
+
+</pre>
+対象の写像の方よりはわかりやすい感じがします。A の射 f を受け取って、Sets
+<sup>op A</sup> の自然変換を返すわけです。自然変換はSets
+<sup>op A</sup> の対象を引数に持ちますが、これは射の集合です。つまり、そこから一つ g を取ってきて、f o g を作れば良いわけです。
+<p>
+結局、米田関手の写像は対象も射も f o g というわけです。
+<p>
+米田関手の性質を確認して終わりです。
+<p>
+
+<pre>
+    -----
+    --
+    -- Yoneda Functor itself
+    --
+    -----
+    YonedaFunctor : Functor A SetsAop
+    YonedaFunctor = record {
+             FObj = λ a → y-obj a
+           ; FMap = λ f → y-map f
+           ; isFunctor = record {
+                 identity =  identity
+                 ; distr = distr1
+                 ; ≈-cong = ≈-cong
+            } 
+      } where
+            ≈-cong : {a b : Obj A} {f g : Hom A a b} → A [ f ≈ g ] → SetsAop [ y-map f ≈ y-map g ]
+            ≈-cong {a} {b} {f} {g} eq  =  let open ≈-Reasoning (A) in  -- (λ x g₁ → A [ f o g₁ ] ) ≡ (λ x g₁ → A [  g o  g₁ ] )
+                 extensionality ( λ h → ≈-≡  ( begin
+                    A [ f o h ]
+                 ≈⟨ resp refl-hom eq ⟩
+                    A [ g o h ]
+                 ∎
+              ) ) 
+            identity : {a : Obj A} → SetsAop [ y-map (id1 A a) ≈ id1 SetsAop (y-obj a )  ]
+            identity  {a} =  let open ≈-Reasoning (A) in -- (λ x g → A [ id1 A a o g ] ) ≡ (λ a₁ x → x)
+                 extensionality ( λ g →  ≈-≡  ( begin
+                    A [ id1 A a o g ] 
+                 ≈⟨ idL ⟩
+                    g
+                 ∎
+              ) )  
+            distr1 : {a b c : Obj A} {f : Hom A a b} {g : Hom A b c} → SetsAop [ y-map (A [ g o f ]) ≈ SetsAop [ y-map g o y-map f ] ]
+            distr1 {a} {b} {c} {f} {g} = let open ≈-Reasoning (A) in -- (λ x g₁ → (A [  (A [ g o f]  o g₁ ]))) ≡ (λ x x₁ → A [  g o A [ f o x₁ ] ] )
+               extensionality ( λ h →  ≈-≡  ( begin
+                    A [ A [ g o f ]  o h ]
+                 ≈↑⟨ assoc  ⟩
+                    A [  g o A [ f o h ] ]
+                 ∎
+              ) )  
+
+</pre>
+
+<hr/>
+<h2><a name="content006">米田レンマ</a></h2>
+
+<p>
+米田のレンマは、この米田関手が
+<pre>
+     Full                     射の写像が一意
+     Faithfull                Full かつ射の写像が一対一
+     Full Embedding           対象の写像も一意  f a = f b なら a = b 
+
+</pre>
+であることです。
+<p>
+まず、SetsAop の対象からSets上の自然変換を対応させる自然変換 F2Nat を作ります。
+<p>
+
+<pre>
+    ------
+    --
+    --  F : A → Sets  ∈ Obj SetsAop
+    --
+    --  F(a) -&gt; Nat(h_a,F)
+    --      x ∈ F(a) , (g : Hom A b a)  → ( FMap F g ) x
+    ------
+    F2Natmap :  {a : Obj A} → {F : Obj SetsAop} → {x : FObj F a} → (b : Obj (Category.op A)) → Hom Sets (FObj (y-obj a) b) (FObj F b)
+    F2Natmap {a} {F} {x} b = λ ( g : Hom A b a ) → ( FMap F g ) x
+    F2Nat : {a : Obj A} → {F : Obj SetsAop} →  FObj F a  → Hom SetsAop (y-obj a) F
+    F2Nat {a} {F} x = record { TMap = F2Natmap {a} {F} {x} ; isNTrans = isNTrans1 } where
+       commute1 : {a₁ b : Obj (Category.op A)} {f : Hom (Category.op A) a₁ b} (g : Hom A  a₁ a) →
+                    (Sets [ FMap F f o  FMap F g ]) x ≡ FMap F (A [ g o  f ] ) x
+       commute1 g =  let open ≈-Reasoning (Sets) in
+                cong ( λ f → f x ) ( sym ( distr F )  )
+       commute : {a₁ b : Obj (Category.op A)} {f : Hom (Category.op A) a₁ b} → 
+            Sets [ Sets [ FMap F f o F2Natmap {a} {F} {x} a₁ ] ≈ Sets [ F2Natmap {a} {F} {x} b o FMap (y-obj a) f ] ]
+       commute {a₁} {b} {f} =  let open ≈-Reasoning (Sets) in
+                 begin
+                    Sets [ FMap F f o F2Natmap {a} {F} {x} a₁ ]
+                 ≈⟨⟩
+                    Sets [ FMap F f o (λ ( g : Hom A a₁ a ) → ( FMap F g ) x) ]
+                 ≈⟨ extensionality ( λ (g : Hom A  a₁ a) → commute1 {a₁} {b} {f} g ) ⟩
+                    Sets [  (λ ( g : Hom A b a ) → ( FMap F g ) x) o FMap (y-obj a) f ] 
+                 ≈⟨⟩
+                    Sets [ F2Natmap {a} {F} {x} b o FMap (y-obj a) f ] 
+                 ∎
+       isNTrans1 : IsNTrans (Category.op A) (Sets {c₂}) (y-obj a) F (F2Natmap {a} {F})
+       isNTrans1 = record { commute = λ {a₁ b f}  →  commute {a₁} {b} {f} } 
+
+</pre>
+逆は、作った自然変換の単射の行き先にします。
+<p>
+
+<pre>
+    --  F(a) &lt;- Nat(h_a,F)
+    Nat2F : {a : Obj A} → {F : Obj SetsAop} →  Hom SetsAop (y-obj a) F  → FObj F a 
+    Nat2F {a} {F} ha =  ( TMap ha a ) (id1 A a)
+
+</pre>
+
+<hr/>
+<h2><a name="content007">Full and faithful</a></h2>
+
+<p>
+そして、これが往復で元に戻ることを両側から調べます。
+<p>
+
+<pre>
+    ----
+    --
+    -- Prove  Bijection (as routine exercise ...)
+    --
+    ----
+    F2Nat→Nat2F : {a : Obj A } → {F : Obj SetsAop} → (fa : FObj F a) →  Nat2F {a} {F} (F2Nat {a} {F} fa) ≡ fa 
+    F2Nat→Nat2F {a} {F} fa = let open ≈-Reasoning (Sets) in cong ( λ f → f fa ) (
+                 -- FMap F (Category.Category.Id A) fa ≡ fa
+                 begin
+                   ( FMap F (id1 A _ )) 
+                 ≈⟨ IsFunctor.identity (isFunctor F)    ⟩
+                    id1 Sets (FObj F a)
+                 ∎ )
+    open  import  Relation.Binary.PropositionalEquality
+    ≡-cong = Relation.Binary.PropositionalEquality.cong 
+    --     F :  op A → Sets
+    --     ha : NTrans (op A) Sets (y-obj {a}) F
+    --                FMap F  g  o TMap ha a ≈   TMap ha b  o FMap (y-obj {a}) g
+    Nat2F→F2Nat : {a : Obj A } → {F : Obj SetsAop} → (ha : Hom SetsAop (y-obj a) F) →  SetsAop [ F2Nat {a} {F} (Nat2F {a} {F} ha) ≈ ha ]
+    Nat2F→F2Nat {a} {F} ha {b} = let open ≡-Reasoning in
+                 begin
+                    TMap (F2Nat {a} {F} (Nat2F {a} {F} ha)) b
+                 ≡⟨⟩
+                    (λ g → FMap F g (TMap ha a (Category.Category.Id A)))
+                 ≡⟨  extensionality (λ g → (
+                    begin
+                        FMap F g (TMap ha a (Category.Category.Id A)) 
+                    ≡⟨  ≡-cong (λ f → f (Category.Category.Id A)) (IsNTrans.commute (isNTrans ha)) ⟩
+                        TMap ha b (FMap (y-obj a) g (Category.Category.Id A))
+                    ≡⟨⟩
+                        TMap ha b ( (A Category.o Category.Category.Id A) g )
+                    ≡⟨  ≡-cong ( TMap ha b ) ( ≈-≡ (IsCategory.identityL  ( Category.isCategory A ))) ⟩
+                        TMap ha b g
+                    ∎ 
+                 )) ⟩
+                    TMap ha b
+                 ∎ 
+
+</pre>
+F2Nat は米田関手そのものなので、これで Full and faithfull が示せました。
+<p>
+
+<pre>
+    -- Yoneda's Lemma
+    --    Yoneda Functor is full and faithfull
+    --    that is FMapp Yoneda is injective and surjective
+    --  λ b g → (A Category.o f₁) g
+    YondaLemma1 : {a a' : Obj A } {f : FObj (FObj YonedaFunctor a) a' } → SetsAop [ F2Nat {a'} {FObj YonedaFunctor a} f ≈ FMap YonedaFunctor f ]
+    YondaLemma1 {a} {a'} {f} = refl
+
+</pre>
+
+<hr/>
+<h2><a name="content008">Full embedding</a></h2>
+
+<p>
+Full embedding は、
+<p>
+
+<pre>
+     (FObj (FObj YonedaFunctor a) x)  ≡ (FObj (FObj YonedaFunctor b  ) x)  →  a ≡ b 
+
+</pre>
+を証明したいところですが、Agda では、a ≡ b は、x ≡ x のコンストラクタですから、a b が異なっているものからは証明できません。
+<p>
+なので、逆射があることを証明して終わりにします。この逆を cong に使えば証明できるような気もしますが、cong ? ? で既に文句を言ってきます。
+<p>
+逆射自体は自明で、codomain 射の元を取ればよいだけです。これが米田関手の対象の射を元に戻すこと自体も簡単に証明できます。
+<p>
+
+<pre>
+    inv :  {a x : Obj A} ( f : FObj (FObj YonedaFunctor a) x)  →  Obj A
+    inv {a} f =  Category.cod A f
+    YonedaLemma21 :  {a x : Obj A} ( f : ( FObj (FObj YonedaFunctor a) x) ) →  inv f  ≡ a
+    YonedaLemma21 {a} {x} f = refl
+
+</pre>
+<a href="monad.html"> Next : Equalizer   </a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+</div>
+<ol class="side" id="menu">
+Yoneda Rennma
+<li><a href="#content000"> * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content001">  </a>
+<li><a href="#content002">   * <a href="examples/yoneda.agda"> yoneda.agda </a>
+</a>
+<li><a href="#content003">  SetAop を作る</a>
+<li><a href="#content004">  米田関手を作る</a>
+<li><a href="#content005">  米田関手をの射の写像作る</a>
+<li><a href="#content006">  米田レンマ</a>
+<li><a href="#content007">  Full and faithful</a>
+<li><a href="#content008">  Full embedding</a>
+<li><a href="#content009">   * <a href="monad.html"> Next : Equalizer   </a>
+</a>
+<li><a href="#content010">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Mon Sep  9 21:24:59 2013
+</body></html>

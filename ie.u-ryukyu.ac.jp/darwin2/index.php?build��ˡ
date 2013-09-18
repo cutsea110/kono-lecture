@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="EUC-JP" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja">
+<head>
+ <meta http-equiv="content-type" content="application/xhtml+xml; charset=EUC-JP" />
+ <meta http-equiv="content-style-type" content="text/css" />
+
+ <title>build方法 - EasyPackage for Mac OS X</title>
+
+ <link rel="SHORTCUT ICON" href="" />
+ <link rel="stylesheet" type="text/css" media="screen" href="skin/pukiwiki.css.php?charset=Shift_JIS" charset="Shift_JIS" />
+ <link rel="stylesheet" type="text/css" media="print"  href="skin/pukiwiki.css.php?charset=Shift_JIS&amp;media=print" charset="Shift_JIS" />
+ <link rel="alternate" type="application/rss+xml" title="RSS" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=rss" />
+
+<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+</script>
+<script type="text/javascript">
+_uacct = "UA-165039-2";
+urchinTracker();
+</script>
+</head>
+<body>
+
+<div id="header">
+ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FrontPage"><img id="logo" src="image/epkg.png" width="80" height="80" alt="[PukiWiki]" title="[PukiWiki]" /></a>
+
+ <h1 class="title"><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=related&amp;page=build%CA%FD%CB%A1">build方法</a> </h1>
+
+    <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1"><span class="small">http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1</span></a>
+ 
+</div>
+
+<div id="navigator">
+ [ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FrontPage" >トップ</a> ] &nbsp;
+
+ [
+ 	<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=edit&amp;page=build%CA%FD%CB%A1" >編集</a> |
+			<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=freeze&amp;page=build%CA%FD%CB%A1" >凍結</a> |
+	  <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=diff&amp;page=build%CA%FD%CB%A1" >差分</a> 	| <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=backup&amp;page=build%CA%FD%CB%A1" >バックアップ</a>  	| <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;pcmd=upload&amp;page=build%CA%FD%CB%A1" >添付</a>  | <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1" >リロード</a> ] &nbsp;
+
+ [
+ 	<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=newpage&amp;refer=build%CA%FD%CB%A1" >新規</a> |
+    <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=list" >一覧</a>  | <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=search" >単語検索</a> | <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?RecentChanges" >最終更新</a> | <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?Help" >ヘルプ</a> ]
+
+ &nbsp;
+ [ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=tb&amp;__mode=view&amp;tb_id=14ab145b8ee16c0f6d41fe7f24ce3f7e" >Trackback(148)</a> ]
+ &nbsp;
+ [ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=referer&amp;page=build%CA%FD%CB%A1" >リンク元</a> ]
+</div>
+
+<hr class="full_hr" />
+<table border="0" style="width:100%">
+ <tr>
+  <td class="menubar">
+   <div id="menubar"><h2 id="content_2_0">Menu</h2>
+<ul><li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FrontPage" title="FrontPage (249d)">トップ</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?EasyPackage%A4%C3%A4%C6%A1%A9" title="EasyPackageって？ (249d)">epkgとは？</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%EA%A5%F3%A5%AF%A1%A6%BD%F1%C0%D2%B7%C7%BA%DC" title="リンク・書籍掲載 (783d)">リンク・書籍掲載</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" title="インストール方法 (555d)">インストール</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%D1%A5%C3%A5%B1%A1%BC%A5%B8%B0%EC%CD%F7" title="パッケージ一覧 (249d)">パッケージ</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1" title="build方法 (249d)">ビルド方法</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD" title="メンテ日記 (249d)">メンテ日記</a></li></ul>
+<hr class="full_hr" />
+<ul><li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?MailingList" title="MailingList (783d)">MailingList</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%C9%D4%B6%F1%B9%E7%CA%F3%B9%F0" title="不具合報告 (249d)">不具合報告</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%B7%C7%BC%A8%C8%C4" title="掲示板 (249d)">掲示板</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%BC%AB%BA%EE%A5%D1%A5%C3%A5%B1%A1%BC%A5%B8" title="自作パッケージ (783d)">自作パッケージ</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?Tips" title="Tips (783d)">Tips</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FAQ" title="FAQ (783d)">FAQ</a></li></ul>
+<h5>最新の20件</h5>
+<div><strong>2012-03-12</strong>
+<ul>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FrontPage" title="FrontPage (554d)">FrontPage</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" title="インストール方法 (555d)">インストール方法</a></li>
+</ul>
+<strong>2009-10-13</strong>
+<ul>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?RecentDeleted" title="RecentDeleted (1435d)">RecentDeleted</a></li>
+</ul>
+<strong>2008-11-24</strong>
+<ul>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%C9%D4%B6%F1%B9%E7%CA%F3%B9%F0%2F72" title="不具合報告/72 (1758d)">不具合報告/72</a></li>
+</ul>
+<strong>2008-11-16</strong>
+<ul>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2007-03-24" title="メンテ日記/2007-03-24 (1767d)">メンテ日記/2007-03-24</a></li>
+</ul>
+<strong>2008-11-15</strong>
+<ul>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%C9%D4%B6%F1%B9%E7%CA%F3%B9%F0" title="不具合報告 (1767d)">不具合報告</a></li>
+</ul>
+<strong>2008-06-16</strong>
+<ul>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2006-05-11" title="メンテ日記/2006-05-11 (1920d)">メンテ日記/2006-05-11</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2005-02-20" title="メンテ日記/2005-02-20 (1920d)">メンテ日記/2005-02-20</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2007-03-16" title="メンテ日記/2007-03-16 (1920d)">メンテ日記/2007-03-16</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2007-03-18" title="メンテ日記/2007-03-18 (1920d)">メンテ日記/2007-03-18</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2Ftemplate" title="メンテ日記/template (1920d)">メンテ日記/template</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2005-01-14" title="メンテ日記/2005-01-14 (1920d)">メンテ日記/2005-01-14</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-11-12" title="メンテ日記/2004-11-12 (1920d)">メンテ日記/2004-11-12</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-06-14" title="メンテ日記/2004-06-14 (1920d)">メンテ日記/2004-06-14</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-06-08" title="メンテ日記/2004-06-08 (1920d)">メンテ日記/2004-06-08</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-06-24" title="メンテ日記/2004-06-24 (1920d)">メンテ日記/2004-06-24</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-07-10" title="メンテ日記/2004-07-10 (1920d)">メンテ日記/2004-07-10</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-11-13" title="メンテ日記/2004-11-13 (1920d)">メンテ日記/2004-11-13</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%EA%A5%F3%A5%AF%A1%A6%BD%F1%C0%D2%B7%C7%BA%DC" title="リンク・書籍掲載 (1920d)">リンク・書籍掲載</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-11-29" title="メンテ日記/2004-11-29 (1920d)">メンテ日記/2004-11-29</a></li>
+</ul>
+</div>
+<h5>今日の20件</h5><div><ul>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FrontPage" title="FrontPage (249d)">FrontPage<span class="counter">(48)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?EasyPackage%A4%C3%A4%C6%A1%A9" title="EasyPackageって？ (249d)">EasyPackageって？<span class="counter">(7)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?print%2FXANO-mincho" title="print/XANO-mincho (783d)">print/XANO-mincho<span class="counter">(7)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?Tips%2FOpenOffice.org" title="Tips/OpenOffice.org (783d)">Tips/OpenOffice.org<span class="counter">(7)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?japanese%2Fdvipdfmx" title="japanese/dvipdfmx (249d)">japanese/dvipdfmx<span class="counter">(6)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?mail" title="mail (249d)">mail<span class="counter">(6)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2003-12-11" title="メンテ日記/2003-12-11 (249d)">メンテ日記/2003-12-11<span class="counter">(6)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?math%2Fgnuplot" title="math/gnuplot (249d)">math/gnuplot<span class="counter">(5)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%B7%C7%BC%A8%C8%C4" title="掲示板 (249d)">掲示板<span class="counter">(5)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FAQ" title="FAQ (783d)">FAQ<span class="counter">(5)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-11-13" title="メンテ日記/2004-11-13 (783d)">メンテ日記/2004-11-13<span class="counter">(5)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?mail%2Fsylpheed" title="mail/sylpheed (249d)">mail/sylpheed<span class="counter">(5)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?japanese%2Ftgif" title="japanese/tgif (249d)">japanese/tgif<span class="counter">(5)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" title="インストール方法 (555d)">インストール方法<span class="counter">(5)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-01-12" title="メンテ日記/2004-01-12 (249d)">メンテ日記/2004-01-12<span class="counter">(4)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2003-10-23" title="メンテ日記/2003-10-23 (249d)">メンテ日記/2003-10-23<span class="counter">(4)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%BC%AB%BA%EE%A5%D1%A5%C3%A5%B1%A1%BC%A5%B8%2F5" title="自作パッケージ/5 (783d)">自作パッケージ/5<span class="counter">(4)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?elisp%2Fapel" title="elisp/apel (249d)">elisp/apel<span class="counter">(4)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?Tips%2FOpenOffice%20%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB" title="Tips/OpenOffice インストール (783d)">Tips/OpenOffice インストール<span class="counter">(4)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?print%2Fpsutils" title="print/psutils (249d)">print/psutils<span class="counter">(4)</span></a></li>
+</ul>
+</div>
+4
+</div>
+  </td>
+  <td valign="top">
+   <div id="body"><h2 id="content_1_0">EasyPackage の作り方(Universal Binary 対応版)  <a class="anchor_super" id="gf7b67fe" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#gf7b67fe" title="gf7b67fe">&amp;dagger;</a></h2>
+<div class="contents">
+<a id="contents_1"></a>
+<ul class="list1" style="padding-left:16px;margin-left:16px"><li><a href="#gf7b67fe"> EasyPackage の作り方(Universal Binary 対応版) </a>
+<ul class="list2" style="padding-left:16px;margin-left:16px"><li><a href="#m1bd1626"> 必要なもの </a></li>
+<li><a href="#we0c0998"> Makefile の記述形式 </a>
+<ul class="list3" style="padding-left:16px;margin-left:16px"><li><a href="#u2defc00"> 基本定義部分について </a></li>
+<li><a href="#r10ba016"> Architecture </a></li>
+<li><a href="#d6959268"> Source の展開 </a></li>
+<li><a href="#jf1e3af6"> Patch の適用 </a></li>
+<li><a href="#h9087fef"> Configure の実行 </a></li>
+<li><a href="#v2003d15"> make の実行 </a></li>
+<li><a href="#m338b02e"> Package list(plist)の作成 </a></li>
+<li><a href="#l517163e"> Package の Install </a></li>
+<li><a href="#h3116448"> Package の作成 </a></li></ul></li>
+<li><a href="#a23bcd54"> plist の記述形式 </a></li>
+<li><a href="#te52a7a5"> EPKGINFOの記述形式 </a></li>
+<li><a href="#h04a7d6d"> EPKGDESCの記述形式 </a></li></ul></li>
+<li><a href="#s15b54cd"> 実際の build 手順 </a>
+<ul class="list2" style="padding-left:16px;margin-left:16px"><li><a href="#k113c391">  パッケージのアップロード方法 </a></li></ul></li></ul>
+</div>
+
+<p>ここでは、EasyPackage のパッケージを build する手順を記します。</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h3 id="content_1_1">必要なもの  <a class="anchor_super" id="m1bd1626" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#m1bd1626" title="m1bd1626">&amp;dagger;</a></h3>
+<p>EasyPackage を作るために必要なファイルとして以下のものがあります。</p>
+<ul class="list1" style="padding-left:16px;margin-left:16px"><li>Makefile</li>
+<li>plist</li>
+<li>EPKGDINFO</li>
+<li>EPKGDESC*</li>
+<li>post-install.Makefile*</li>
+<li>local patch(ex. patch-a[a-z])*</li></ul>
+<p>(*)必須ではありません．
+<a href="http://ie.u-ryukyu.ac.jp/darwin4u/epkg-skel.tar.gz" rel="nofollow">ここ</a> から雛形が取得できます。</p>
+<pre>% tar zvfx epkg-skel.tar.gz -C /usr/epkg</pre>
+<p>として，展開しておくと良いでしょう．</p>
+<p>また，Xcode は Universal Binary に対応した，最新版 2.4.1 以降をインストールしておく必要があります．</p>
+<p>以下ではこの雛形ファイルを例に説明します。</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h3 id="content_1_2">Makefile の記述形式  <a class="anchor_super" id="we0c0998" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#we0c0998" title="we0c0998">&amp;dagger;</a></h3>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h4 id="content_1_3">基本定義部分について  <a class="anchor_super" id="u2defc00" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#u2defc00" title="u2defc00">&amp;dagger;</a></h4>
+<pre>CATEGORY = 
+NAME     = 
+VERSION  = 
+PKGNAME  = ${NAME}-${VERSION}-`epkg arch`.epkg
+BUILDDEP =
+
+SOURCE1 = ${NAME}-${VERSION}.tar.gz
+PATCH1 = 
+SRCS = ${SOURCE1} ${PATCH1}
+MASTERSITE = ftp://ftp.gnu.org/pub/${NAME}
+PATCHSITE = 
+WORKDIR  = ${NAME}-${VERSION}</pre>
+<p>CATEGORY, NAME, VERSION は target package にあわせて，例えば以下の様に記述します．</p>
+<pre>CATEGORY = japanse
+NAME     = jless
+VERSION  = 358</pre>
+<p>BUILDDEP は build 時に必要となる package を category/name(ex. devel/gettext) の形式で記述します．
+SOUCE/PATCH は <strong>1</strong> から順に必要なだけ記述し，SRCS に全て列記しておきます．
+MASTERSITE/PATCHSITE は各source を取得するサイト名を記述します．</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h4 id="content_1_4">Architecture  <a class="anchor_super" id="r10ba016" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#r10ba016" title="r10ba016">&amp;dagger;</a></h4>
+<pre>ARCH1 = i386
+ARCH2 = ppc
+ARCHS = ${ARCH1} ${ARCH2}
+UBDIR = ub-root</pre>
+<p>基本的に変更する必要は有りませんが，ppc 環境で build する場合は， ARCH1 に ppc を指定した方が良いケースが有るかもしれません．</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h4 id="content_1_5">Source の展開  <a class="anchor_super" id="d6959268" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#d6959268" title="d6959268">&amp;dagger;</a></h4>
+<pre>.EXTRACT: .FETCH
+	tar xvzf ${DSTDIR}/${SOURCE1}
+	touch $@</pre>
+<p>.EXTRACT では .FETCH で取得したソースを展開します．基本的には上記のように <strong>tar</strong> コマンドで展開するだけで良いかと思います．</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h4 id="content_1_6">Patch の適用  <a class="anchor_super" id="jf1e3af6" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#jf1e3af6" title="jf1e3af6">&amp;dagger;</a></h4>
+<pre> .PATCH: .EXTRACT
+	@for dep in ${BUILDDEP}; do \
+	  if [ ! -f /var/db/epkg/$${dep} ]; then \
+	    echo &quot;ERROR: Please install - $${dep}&quot;; \
+	    exit 1; \
+	  fi; \
+	done
+	cd ${WORKDIR} ; zcat ${DSTDIR}/${PATCH1} | patch -p1
+	touch $@ </pre>
+<p>.PATCH ではbuild依存関係チェックと patch を適用します．</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h4 id="content_1_7">Configure の実行  <a class="anchor_super" id="h9087fef" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#h9087fef" title="h9087fef">&amp;dagger;</a></h4>
+<p>ここからが，いよいよ Universal Binary 用に変更した部分です．</p>
+<pre>UBFLAG=-isysroot /Developer/SDKs/MacOSX10.4u.sdk
+.CONFIG: .PATCH
+       @for arch in ${ARCHS}; do \
+         mkdir ${WORKDIR}-$${arch} ; \
+         cd ${WORKDIR}-$${arch} ; env CPPFLAGS=-no-cpp-precomp \
+         CFLAGS=&quot;-arch $${arch} ${UBFLAG}&quot; \
+         CXXFLAGS=&quot;-arch $${arch} ${UBFLAG}&quot; \
+         ../${WORKDIR}/configure ;\
+         libtools=`find ./ -name 'libtool'`; \
+         for f in $${libtools} ; do \
+           perl -pi -e \
+           &quot;s@-dynamiclib@-dynamiclib -arch $${arch} ${UBFLAG}@g&quot; $${f} ; \
+           perl -pi -e \
+           &quot;s@-bundle@-bundle -arch $${arch} ${UBFLAG}@g&quot; $${f} ; \
+         done ; \
+         cd .. ; \
+       done;
+       touch $@</pre>
+<p>.CONFIG では主に configure を実行させます．古めのソースコードでは /usr/share/libtool/config.* を事前にコピーしておかないと os/host type の自動判別ができない場合があります．また，CPPFLAGS を上記のように指定した方が無難なことが多いです．</p>
+<p>Universal Bianry を作るには二通りの方法があって，CFLAGS に複数のアーキテクチャを指定する方法(ex. -arch i386 -arch ppc)と別個にコンパイルして後でマージする方法がありますが，生成されるバイナリが異なるようで，試した感じでは後者の手法を用いて生成する方が失敗が少ないようです（前者の方法を使うと，-M オプションなどで機種依存コンパイルをする際に転けてしまいます)</p>
+<p>また，</p>
+<pre>         for f in $${libtools} ; do \</pre>
+<p>以下では configure 時に生成される libtool でのダイナミックライブラリ生成オプションとして，-arch を追加しています．</p>
+<p>尚，WORKDIR として，ソースを展開したディレクトリとは別のディレクトリを生成し，そこで configure を実行しているため，一部ソースではソースを展開したディレクトリでしか configure できない場合がありますので，その場合は適宜修正してください．</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h4 id="content_1_8">make の実行  <a class="anchor_super" id="v2003d15" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#v2003d15" title="v2003d15">&amp;dagger;</a></h4>
+<pre>.MAKE: .CONFIG
+       @for arch in ${ARCHS}; do \
+         cd ${WORKDIR}-$${arch} ; make ; cd ..; \
+       done
+       touch $@</pre>
+<p>各 WORKDIR に移動して make します．</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h4 id="content_1_9">Package list(plist)の作成  <a class="anchor_super" id="m338b02e" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#m338b02e" title="m338b02e">&amp;dagger;</a></h4>
+<p>ここも，Universal Bianry 対応用に大幅に手直ししています．</p>
+<pre>plist: .MAKE
+       rm -rf ${TMPDIR}/* ; 
+         @for arch in ${ARCHS} ; do \
+           cd ${WORKDIR}-$${arch}; make DESTDIR=${TMPDIR}/$${arch} install ; \
+           cd .. ; \
+           find ${TMPDIR}/$${arch} | xargs file | \
+             grep -E \(Mach-O\)\|\(ar\ archive\) | \
+             sed -e &quot;s^${TMPDIR}/$${arch}^^&quot; -e's/:.*//' &gt; $@-$${arch}; \
+         done;
+       @echo &quot;Checking UniversalBinaries list..&quot; ;
+       cmp -s $@-${ARCH1} $@-${ARCH2};
+       if [ ! -d ${UBDIR} ] ; then mkdir ${UBDIR} ; fi ;
+       @for f in `cat $@-${ARCH1}`; do \
+         dir=`dirname $${f}`; \
+         if [ ! -d ${UBDIR}/$${dir} ] ; then mkdir -p ${UBDIR}/$${dir} ; fi; \
+         lipo -create ${TMPDIR}/${ARCH1}/$${f} ${TMPDIR}/${ARCH2}/$${f} \
+           -output ${UBDIR}/$${f} ; \
+       done ;
+       find ${TMPDIR}/${ARCH1} | sed -e 's^${TMPDIR}/${ARCH1}^^'  &gt; $@; 
+       rm -rf ${TMPDIR}/* ;</pre>
+<p>大抵のシステムでは Makefile 中に DESTDIR が定義してあるので DESTDIR を ${TMPDIR} にすることで，仮想ルート上にパッケージをインストールすることができるかと思います．一部のソースでは DESTDIR ではなく，prefix などの形式で書かれている場合がありますが，その辺りは適当に．．</p>
+<p>また，i386, ppc それぞれの生成バイナリを make install して，両者のイメージツリーからバイナリファイルを抜き出して，i386/ppc で一致するかを確認後，lipo を使ってマージしています．</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h4 id="content_1_10">Package の Install  <a class="anchor_super" id="l517163e" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#l517163e" title="l517163e">&amp;dagger;</a></h4>
+<pre>.INSTALL: .MAKE
+       cd ${WORKDIR}-${ARCH1}; make install 
+       @if [ -f plist-${ARCH1} ] ; then \
+         for f in `cat plist-${ARCH1}`; do \
+           cp ${UBDIR}/$${f} $${f} ; \
+         done; \
+       fi;
+       mkdir -p ${CATDIR}
+       cp EPKGINFO ${PINFO}
+       if [ -f EPKGDESC ] ; then \
+         cp EPKGDESC ${PDESC} ; \
+       fi
+       if [ -f postdel.sh ] ; then \
+         cp postdel.sh ${PINFO}.postdel ; \
+       fi
+       if [ -f predel.sh ] ; then \
+         cp predel.sh ${PINFO}.predel ; \
+       fi
+       cp plist ${PLIST}
+       epkg mkdbidx ${CATEGORY}
+       touch $@</pre>
+<p>Package を実際にインストールし，パッケージ記述ファイル (EPKGINFO/EPKGDESC)を指定ディレクトリにインストールし，index ファイルを更新します．</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h4 id="content_1_11">Package の作成  <a class="anchor_super" id="h3116448" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#h3116448" title="h3116448">&amp;dagger;</a></h4>
+<pre>package: .INSTALL
+       if [ -f post-install.Makefile ] ; then  \
+         cp post-install.Makefile ${TMPDIR}/Makefile ; \
+         cp EPKGINFO ${TMPDIR} ; \
+       fi
+       env mkepkg ${CATEGORY}/${NAME}
+       </pre>
+<p>plist に記述されたファイルをパッケージングします．</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h3 id="content_1_12">plist の記述形式  <a class="anchor_super" id="a23bcd54" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#a23bcd54" title="a23bcd54">&amp;dagger;</a></h3>
+<p>基本的には 上記の Makefile 中で自動生成しますが，特殊なファイル構成である場合，手動で記述することもできます．</p>
+<pre>/usr
+/usr/local
+/usr/local/bin
+/usr/local/bin/less
+/usr/local/bin/lessecho
+/usr/local/bin/lesskey
+/usr/local/man
+/usr/local/man/man1
+/usr/local/man/man1/less.1
+/usr/local/man/man1/lesskey.1</pre>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h3 id="content_1_13">EPKGINFOの記述形式  <a class="anchor_super" id="te52a7a5" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#te52a7a5" title="te52a7a5">&amp;dagger;</a></h3>
+<p>EPKGINFO はパッケージ管理用のXML 形式ファイルとなっています．
+これは実際のファイルを見てもらう方が分かり易いかと思います</p>
+<pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+
+&lt;epkg version=&quot;0.2&quot;&gt;
+&lt;category&gt;japanese&lt;/category&gt;
+&lt;name&gt;jless&lt;/name&gt;
+&lt;version&gt;358_2&lt;/version&gt;
+&lt;desc&gt;A pager prgram&lt;/desc&gt;
+&lt;url&gt;http://www.greenwoodsoftware.com/less/&lt;/url&gt;
+&lt;maintain&gt;sira@ie.u-ryukyu.ac.jp&lt;/maintain&gt;
+&lt;/epkg&gt;</pre>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h3 id="content_1_14">EPKGDESCの記述形式  <a class="anchor_super" id="h04a7d6d" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#h04a7d6d" title="h04a7d6d">&amp;dagger;</a></h3>
+<p>EPKGDESC にはパッケージ利用時の注意点やパッケージの説明を記述します．
+utf-8 の plan text 形式で記述します．</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h2 id="content_1_15">実際の build 手順  <a class="anchor_super" id="s15b54cd" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#s15b54cd" title="s15b54cd">&amp;dagger;</a></h2>
+<p>ここでは，jless を例に build 手順を記します．
+まずは epkg コマンドを使って souce package を取得します</p>
+<pre>% epkg getsklx jless</pre>
+<p>次に，作業ディレクトリに移動し build してみます．</p>
+<pre>% cd /usr/epkg/japanese/jless
+% make</pre>
+<p>すると，source file 取得後，build されるかと思います．
+次に，plist を作成します</p>
+<pre>% sudo make plist</pre>
+<p>plist が作成できたらインストールし，パッケージを作成します．</p>
+<pre>% sudo make install
+% sudo make package</pre>
+<p>作成されたパッケージは /usr/epkg/EPKG/ 以下に配置されます．</p>
+<pre>% sudo epkg mkpkg japanese/jless</pre>
+<p>で、src.epkg を作ります。</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h3 id="content_1_16">パッケージのアップロード方法  <a class="anchor_super" id="k113c391" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1#k113c391" title="k113c391">&amp;dagger;</a></h3>
+<p>作成したパッケージをサーバにアップロードするには</p>
+<pre>% epkg upload jless</pre>
+<p>のようにします．
+アップロードするには EasyPackage のサイトにアップロードユーザ登録されている必要があります．
+(ssh の public key を <a href="mailto:kono@ie.u-ryukyu.ac.jp" rel="nofollow">kono@ie.u-ryukyu.ac.jp</a> まで、投げてくれれば登録します)
+アカウントをお持ちでない場合，<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%BC%AB%BA%EE%A5%D1%A5%C3%A5%B1%A1%BC%A5%B8" title="自作パッケージ (783d)">自作パッケージ</a>から投稿お願いします．</p>
+<pre>% sudo epkg sync
+% sudo epkg list</pre>
+<p>で、upload されていることを確認します。</p>
+<hr class="full_hr" />
+<!--
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+ <rdf:Description
+   rdf:about="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1"
+   dc:identifier="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1"
+   dc:title="build方法"
+   trackback:ping="http://ie.u-ryukyu.ac.jp/darwin2/index.php?tb_id=14ab145b8ee16c0f6d41fe7f24ce3f7e" />
+</rdf:RDF>
+--></div>
+  </td>
+ </tr>
+</table>
+
+
+
+<hr class="full_hr" />
+<!-- Toolbar -->
+<div id="toolbar">
+ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FrontPage"><img src="image/top.png" width="20" height="20" alt="トップ" title="トップ" /></a>
+ &nbsp;
+ 	<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=edit&amp;page=build%CA%FD%CB%A1"><img src="image/edit.png" width="20" height="20" alt="編集" title="編集" /></a>			<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=freeze&amp;page=build%CA%FD%CB%A1"><img src="image/freeze.png" width="20" height="20" alt="凍結" title="凍結" /></a>	  <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=diff&amp;page=build%CA%FD%CB%A1"><img src="image/diff.png" width="20" height="20" alt="差分" title="差分" /></a>	<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=backup&amp;page=build%CA%FD%CB%A1"><img src="image/backup.png" width="20" height="20" alt="バックアップ" title="バックアップ" /></a>			<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;pcmd=upload&amp;page=build%CA%FD%CB%A1"><img src="image/file.png" width="20" height="20" alt="添付" title="添付" /></a>		<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=template&amp;refer=build%CA%FD%CB%A1"><img src="image/copy.png" width="20" height="20" alt="複製" title="複製" /></a>	<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=rename&amp;refer=build%CA%FD%CB%A1"><img src="image/rename.png" width="20" height="20" alt="名前変更" title="名前変更" /></a> <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1"><img src="image/reload.png" width="20" height="20" alt="リロード" title="リロード" /></a> &nbsp;
+	<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=newpage&amp;refer=build%CA%FD%CB%A1"><img src="image/new.png" width="20" height="20" alt="新規" title="新規" /></a> <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=list"><img src="image/list.png" width="20" height="20" alt="一覧" title="一覧" /></a> <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=search"><img src="image/search.png" width="20" height="20" alt="単語検索" title="単語検索" /></a> <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?RecentChanges"><img src="image/recentchanges.png" width="20" height="20" alt="最終更新" title="最終更新" /></a> &nbsp; <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?Help"><img src="image/help.png" width="20" height="20" alt="ヘルプ" title="ヘルプ" /></a> &nbsp; <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=rss&amp;ver=1.0"><img src="image/rss.png" width="36" height="14" alt="最終更新のRSS" title="最終更新のRSS" /></a></div>
+
+<div id="lastmodified">Last-modified: 2013-01-11 (金) 14:23:03  (249d)</div>
+
+<div id="related">Link: <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%BC%AB%BA%EE%A5%D1%A5%C3%A5%B1%A1%BC%A5%B8">自作パッケージ</a>(783d)</div>
+
+<div id="footer">
+ Site admin: <a href="http://www.iis.elec.fuk.kindai.ac.jp/~sira/">Hiroshi SHIRATSUCHI</a>
+ <div class="counter">
+Counter:   4277,
+today:     3,
+yesterday: 0
+</div>
+ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=analyze&amp;page=build%CA%FD%CB%A1&amp;ago=0">analyze</a><br>
+<p />
+ <strong>PukiWiki 1.4.7</strong> Copyright &copy; 2001-2006 <a href="http://pukiwiki.sourceforge.jp/">PukiWiki Developers Team</a>. License is <a href="http://www.gnu.org/licenses/gpl.html">GPL</a>.<br /> Based on "PukiWiki" 1.3 by <a href="http://factage.com/yu-ji/">yu-ji</a>.
+ Powered by PHP 5.3.3. HTML convert time: 0.031 sec.
+</div>
+
+</body>
+</html>

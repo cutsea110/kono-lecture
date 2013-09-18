@@ -1,0 +1,546 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Agda の入門の要約</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Agda の入門の要約</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content087">Agda の install の方法</a></h2>
+まず、<a href="http://www.haskell.org/haskellwiki/Haskell"> lHaskell </a>
+を入れてください。 gchi が入っていれば、cabal を使って Agda を入れるのがのが簡単です。
+<p>
+
+<pre>
+    cabal install agda
+
+</pre>
+install 先がどこかは、
+<p>
+
+<pre>
+     ~/.cabal/config
+
+</pre>
+の中の prefix を見るとわかります。~/.cabal/bin あたりにはいっているので、これを path に入れよう。~/.zshenv で、
+<p>
+
+<pre>
+    path=($HOME/.cabal/bin $path)
+
+</pre>
+などとすると良いでしょう。(zsh 使ってない? なんて、もったいない!!) path を通せば、
+<p>
+
+<pre>
+    agda
+
+</pre>
+で起動しますが、Emacs から使うのが普通だそうです。
+<p>
+
+<pre>
+    agda-mode setup
+
+</pre>
+とすると、~/.emacs を書きなおしてくれます。
+<p>
+<a href="http://www.ie.u-ryukyu.ac.jp/%7Ekono/howto/mule.html"> Emacs の使い方 </a>
+Emacs から使うので、Emacs も勉強しよう。
+<p>
+
+<pre>
+  C-C  control と C を同時に押す
+  M-X  esc を押してから X を押す
+
+</pre>
+C-X C-F で、Agda1.agda file を開けよう。
+<p>
+M-X help-for-help M で、Agda のコマンドの一覧が出ます。C-X o で buffer を切り替えて読もう。
+<p>
+
+<hr/>
+<h2><a name="content090">起動方法</a></h2>
+emacs から agda1.agda というファイルを開けます。
+<p>
+
+<pre>
+    module agda1 where
+
+</pre>
+と先頭に書きます。ファイル名と同じでないとだめです。
+<p>
+
+<hr/>
+<h2><a name="content091">プログラムを書く</a></h2>
+Haskell と似たような、それでいて少し違う。そういうもので記述していきます。
+<p>
+注意
+<pre>
+    :  の前後は空白を開ける
+    全角スペースが入らないように気を付ける。
+
+</pre>
+　　indent には意味があります。
+<pre>
+    -&gt; の前後にも空白が必要
+
+</pre>
+C-C C-L で構文チェック。親切なエラーメッセージに従って直そう。
+<p>
+
+<pre>
+     ex. Parse Error
+
+</pre>
+
+<hr/>
+<h2><a name="content092">Agda 入門</a></h2>
+
+<p>
+<a href="http://www.cs.swan.ac.uk/~csetzer/lectures/intertheo/07/intertheodraft2.pdf"> Agda 入門 Interactive Theorem Proving for Agda Users </a> <br>
+これが良いようですが、λ計算全体の講義なので、結構大きいし、Agda のことは相対的に少ない感じです。
+<p>
+<a href="http://www.cse.chalmers.se/~ulfn/papers/afp08/tutorial.pdf"> Dependently Typed Programming in Ag </a>
+こちらは比較的短いのですが Emacs の操作とか ? の扱いが載ってません。ここの例題は、これから持ってきています。
+<p>
+
+<hr/>
+<h2><a name="content095">Goal</a></h2>
+Agda の特徴のこれから埋めていく部分です。
+<p>
+{!   !}
+<p>
+? でも良い。
+<p>
+
+<hr/>
+<h2><a name="content096">Nat の例題</a></h2>
+<a href="Agda1.agda"> Agda1.agda </a>
+Agda は indent に厳しいので注意が必要です。空白を開けるところと開けないところをチェック。
+<p>
+=&gt; や -&gt; の前後には空白を開ける。空白を開けないところは開けない。
+<p>
+
+<pre>
+    module Agda1 where
+    infixl 60 _*_
+    infixl 40 _+_
+    infixr 20 _or_
+    -- infix ø 5 if_then_else_
+    data Bool : Set where
+       true : Bool
+       false : Bool
+    not : Bool -&gt; Bool
+    not true = false
+    not false = true
+
+</pre>
+まず、C-C C-C で、色が変わることをチェックします。エラーメッセージが出たら、構文を調べましょう。
+<p>
+
+<hr/>
+<h2><a name="content098">型と値</a></h2>
+型は、
+<pre>
+    hoge : Set
+
+</pre>
+
+という形で宣言します。これは型です。 Set という型が基本。Set は最初から定義されています。
+<p>
+Set という型を持つ hoge という変数という意味。
+<p>
+
+<hr/>
+<h2><a name="content099">data 型</a></h2>
+
+<pre>
+    
+    data Bool : Set where
+       true : Bool
+       false : Bool
+
+</pre>
+data 文で、新しい型を定義します。ここでは、Bool という型は、Set の一部で、
+<pre>
+    true 
+    false
+
+</pre>
+
+の二つの値があります。それ以外は Bool 型ではありません。
+<p>
+
+<hr/>
+<h2><a name="content100">関数の定義</a></h2>
+
+<pre>
+    not : Bool -&gt; Bool
+    not true = false
+    not false = true
+
+</pre>
+Haskell と同じように pattern matching で記述します。型宣言を必ず書く必要があります。
+<p>
+上のファイルを読み込んで、
+<p>
+
+<pre>
+    C-C C-N
+
+</pre>
+として、mini buffer 上で、
+<p>
+
+<pre>
+    not true
+
+</pre>
+や
+<p>
+
+<pre>
+    not false
+
+</pre>
+が、正しい値を返すかどうか調べよう。
+<p>
+
+<hr/>
+<h2><a name="content101">Nat</a></h2>
+
+<pre>
+    data Nat : Set where
+       zero : Nat
+       suc  : Nat -&gt; Nat
+    _+_ : Nat -&gt; Nat -&gt; Nat
+    zero + m = m
+    suc n + m = suc (n + m)
+    _*_ : Nat -&gt; Nat -&gt; Nat
+    zero * m = zero
+    suc n * m = m + (n * m)
+
+</pre>
+これは自然数の演算を定義しています。1 は suc zero 、2 は suc suc zero 。
+<p>
+data Nat は、型を定義しているだけで、1 とか 2 は定義してません。ただ、zero が Nat ということと、x が Nat なら、suc x も Nat だということを示しているだけ。
+<p>
+
+<pre>
+    suc zero
+
+</pre>
+を C-C C-N で評価してみよう。
+<p>
+
+<pre>
+    suc suc zero
+
+</pre>
+はエラーになります。suc は引数を一つしか取らないので。
+<p>
+
+<pre>
+    suc (suc zero)
+
+</pre>
+は通るはずです。
+<p>
+
+<pre>
+    (suc (suc (suc zero))) * (suc (suc zero))
+
+</pre>
+や
+<p>
+
+<pre>
+    (suc (suc (suc zero))) + (suc (suc zero))
+
+</pre>
+を C-C C-N で評価してみよう。
+<p>
+
+<pre>
+    zero + (suc zero)
+
+</pre>
+Haskell と違って、+ を普通の関数のように、
+<p>
+
+<pre>
+    + zero (suc zero)
+
+</pre>
+と呼び出すことはできません。
+<p>
+
+<hr/>
+<h2><a name="content102">Lambda 式</a></h2>
+<a href="lambda.agda"> lambda.agda </a>
+
+<pre>
+    module lambda where
+    postulate A : Set
+    postulate B : Set
+    postulate f : A -&gt; B
+    postulate a : A
+
+</pre>
+postulate は仮定みたいなもの。a は集合Aの要素、f は集合Aから集合Bへの関数だと言っています。
+<p>
+
+<pre>
+    b : B
+    b = f a
+
+</pre>
+型と値の両方を定義しなければなりません。b は集合Bの要素。あるいは B という型を持つ変数。b = f a は b の値を定義しています。ここでは、関数 f の値です。f 自体は定義していません。
+<p>
+
+<pre>
+    g : A -&gt; A
+    g = \x -&gt; x
+
+</pre>
+g は、引数をそのまま返す関数です。恒等関数ともいいます。
+<p>
+
+<pre>
+    h : A -&gt; A
+    h a = a
+
+</pre>
+このように書いても良いです。
+<p>
+
+<pre>
+    postulate P : ( A -&gt; A ) -&gt; Set
+
+</pre>
+関数を引数に取って何かを返します。
+<p>
+
+<pre>
+    k : P g -&gt; P h
+    k x = x
+
+</pre>
+そういう型を持つ関数。g と h は、前に定義しました。
+<p>
+
+<pre>
+    A2 : Set
+    A2 = A -&gt; A
+    A3 : Set
+    A3 = A2 -&gt; A2
+    a2 : A2
+    a2 = \x -&gt; x
+
+</pre>
+いろいろな恒等関数の例です。
+<p>
+
+<hr/>
+<h2><a name="content104">命題論理</a></h2>
+<a href="proposition.agda"> proposition.agda </a>
+
+<pre>
+    module proposition where
+    postulate A : Set
+    postulate B : Set
+
+</pre>
+集合であるA,Bを命題変数として使います。
+<p>
+
+<pre>
+    Lemma1 : Set
+    Lemma1 = A -&gt; ( A -&gt; B ) -&gt; B
+
+</pre>
+これが証明すべき命題論理式になります。実際には式に対応する型です。
+<p>
+
+<pre>
+    lemma1 : Lemma1
+
+</pre>
+として、この型を持つ lambda 式を使えば証明したことになります。
+<p>
+以下のどれもが証明となり得ます。
+<p>
+
+<pre>
+    -- lemma1 a a-b = a-b a
+    -- lemma1 = \a a-b -&gt; a-b a
+    -- lemma1 = \a b -&gt; b a
+    -- lemma1  a b = b a
+
+</pre>
+
+<hr/>
+<h2><a name="content106">product</a></h2>
+
+<p>
+∧ は以下の定義を使います。
+<p>
+
+<pre>
+    record _∧_ (A B : Set) : Set where
+       field
+          and1 : A
+          and2 : B
+
+</pre>
+record は、A と B を持つ直積で、and1 と and2 を指定した record が Constructor となる。C の struct に相当します。
+<p>
+
+<pre>
+    lemma4 = \b -&gt; \a -&gt; record { and1 = b ;  and2 = a }
+
+</pre>
+and1 と and2 を accesor として使うことができます。
+<p>
+
+<pre>
+    lemma5 = \b -&gt; _^_.and2 b
+
+</pre>
+これらが、∧ に関する証明(に対応するλ式)を提供します。
+<p>
+
+<hr/>
+<h2><a name="content107">disjunction</a></h2>
+disjunction は排他的和とも呼ばれる。Or のことである。C の union に相当します。
+<p>
+
+<pre>
+    data _∨_  (A B : Set) : Set where
+      or1 : A -&gt; A ∨ B
+      or2 : B -&gt; A ∨ B
+
+</pre>
+record 文と違い、or1 と or2 が Constructor です。
+<p>
+
+<pre>
+    Lemma6  : Set
+    Lemma6 = B -&gt; ( A ∨ B )
+    lemma6 : Lemma6
+    lemma6 = \b -&gt; or2 b
+
+</pre>
+これは、∨ の導入になっていますが、
+<p>
+
+<pre>
+    lemma7: ( A ∨ A ) -&gt; A
+    lemma7 = ?
+
+</pre>
+は、どのように証明すれば良いでしょうか?
+<p>
+
+<hr/>
+<h2><a name="content108">問題4.1</a></h2>
+以下の論理式の証明図に対応する lemma を Agda で作ってください。
+<p>
+
+<pre>
+   (1)  A -&gt; A
+   (2)  A -&gt; (B -&gt; -&gt;A)
+   (3)  (A ∧ (A -&gt; B)) -&gt; B
+   (4)  B -&gt; (B ∧ (A -&gt; B))
+
+</pre>
+(A ∧ B ) -&gt; A  は、\a -&gt; _∧_.and1 a で証明できるが、
+<p>
+
+<pre>
+   (3)  (A ∧ (A -&gt; B)) -&gt; B
+
+</pre>
+は、かなり難しいかも知れません。
+<p>
+_∧_.and1 a と _∧_.and2 b  をいじって、直接構成してもなんとかできるはずですが、
+<p>
+
+<pre>
+   lemma31  (A ∧ (A -&gt; B)) -&gt; (A -&gt; B)
+   lemma32  (A ∧ (A -&gt; B)) -&gt;  A
+   lemma33  A -&gt; ( A -&gt; B ) -&gt; B
+
+</pre>
+の三つに分解すると簡単になります。(3-1) は  (A ∧ B) -&gt; B と同じ。この三つの lemma を組み合わせて証明を作ると良いです。
+<p>
+<a href="agda.html"> Next : Agda の入門　</a>
+</div>
+<ol class="side" id="menu">
+Agda の入門の要約
+<li><a href="#content086">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content087">  Agda の install の方法</a>
+<li><a href="#content088">   * <a href="http://www.haskell.org/haskellwiki/Haskell"> lHaskell </a>
+</a>
+<li><a href="#content089">   * <a href="http://www.ie.u-ryukyu.ac.jp/%7Ekono/howto/mule.html"> Emacs の使い方 </a>
+</a>
+<li><a href="#content090">  起動方法</a>
+<li><a href="#content091">  プログラムを書く</a>
+<li><a href="#content092">  Agda 入門</a>
+<li><a href="#content093">   * <a href="http://www.cs.swan.ac.uk/~csetzer/lectures/intertheo/07/intertheodraft2.pdf"> Agda 入門 Interactive Theorem Proving for Agda Users </a> <br>
+</a>
+<li><a href="#content094">   * <a href="http://www.cse.chalmers.se/~ulfn/papers/afp08/tutorial.pdf"> Dependently Typed Programming in Ag </a>
+</a>
+<li><a href="#content095">  Goal</a>
+<li><a href="#content096">  Nat の例題</a>
+<li><a href="#content097">   * <a href="Agda1.agda"> Agda1.agda </a>
+</a>
+<li><a href="#content098">  型と値</a>
+<li><a href="#content099">  data 型</a>
+<li><a href="#content100">  関数の定義</a>
+<li><a href="#content101">  Nat</a>
+<li><a href="#content102">  Lambda 式</a>
+<li><a href="#content103">   * <a href="lambda.agda"> lambda.agda </a>
+</a>
+<li><a href="#content104">  命題論理</a>
+<li><a href="#content105">   * <a href="proposition.agda"> proposition.agda </a>
+</a>
+<li><a href="#content106">  product</a>
+<li><a href="#content107">  disjunction</a>
+<li><a href="#content108">  問題4.1</a>
+<li><a href="#content109">   * <a href="agda.html"> Next : Agda の入門　</a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 06:24:38 2013
+</body></html>

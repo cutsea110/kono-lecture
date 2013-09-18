@@ -1,0 +1,238 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Easy Package </title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Easy Package </h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+ソフトウェアはコンパイル/インストールが必要だが、それを一つにまとめたもの。
+<p>
+システムを構築する時に、その構築 Know How 自体をシステムとして残しておく。
+<p>
+外から rpm や パッケージを持ってくるだけではなく、自分のシステムに適合したパッケージを持つ。
+<p>
+
+<hr/>
+<h2><a name="content016">Linux の rpm</a></h2>
+Fedora Linux では yum があり、rpm を取得してインストールできる。
+<p>
+rpm は単なる tar だが、spec ファイルに package の中身が記述されている。
+<p>
+rpm command により作成やインストールを行う。
+<p>
+<a href="http://ash.jp/linux/rpm_build.htm"> 簡単なRPMの作り方 </a>
+ソフトウェアだけでなく、設定なども rpm で管理することが可能。
+<p>
+
+<hr/>
+<h2><a name="content018">EasyPackage</a></h2>
+琉球大学情報工学科で管理している Mac OS X 用の Package システム
+<p>
+
+<hr/>
+<h2><a name="content019"> epkg</a></h2>
+Perl script 
+<p>
+
+<pre>
+   sudo epkg sync
+   sudo epkg list
+   sudo epkg install
+
+</pre>
+package の作成/uploadにも使う。
+<p>
+
+<hr/>
+<h2><a name="content020"> epkg のinstall</a></h2>
+<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1"> EasyPackage のインストール </a>
+command line を使う。
+<p>
+
+<hr/>
+<h2><a name="content022"> epkg server</a></h2>
+Mac OS X のversion毎にある。epkg のindexやソースを管理している
+<p>
+
+<hr/>
+<h2><a name="content023"> EasyPackage の作り方</a></h2>
+<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1"> EasyPackage の作り方 </a>
+ad-hoc に自分のマシンにソフトを入れるのではなく、他の人が最利用可能な形で入れる。ちょっとの手間でそれが可能になる。
+<p>
+既に install　されていれば、その know how もわかる。
+<p>
+
+<hr/>
+<h2><a name="content025"> EasyPackage の仕組み</a></h2>
+EasyPackage は、パッケージの記述と、Makefile の組から作成する。
+<p>
+Makefile 内に、
+<p>
+
+<pre>
+    ソフトウェアのダウンロード
+    configure
+    install
+
+</pre>
+の手順を記述する。つまり、インストール手順が Makefile という形で know how になっている。
+<p>
+/usr/epkg で作業をする。
+<p>
+
+<pre>
+    /usr/epkg/SEPKG/lang/mysql.src.epkg 
+
+</pre>
+に package が作られる。src.epkg は tgz 。src.epkg にはバイナリは入ってない。
+<p>
+配布するpackageは
+<p>
+
+<pre>
+    /usr/epkg/EPKG/lang/
+
+</pre>
+に置かれる。.epkg は tgz 。EPKG には Makefile は入ってない。
+<p>
+
+<hr/>
+<h2><a name="content026">簡単なまとめ</a></h2>
+作る人
+<p>
+
+<pre>
+    (1) /usr/epkg に EPKGINFO Makefile を作る
+    (2) package を make する
+    (3) src.epkg を作る
+    (4) upload する
+
+</pre>
+使う人
+<p>
+
+<pre>
+    (1) epkg を使って /usr/epkg に .epkg をdownload
+    (2) epkg が、それを tgz で展開
+    (3) どのpackage が入っているかを管理
+
+</pre>
+
+<hr/>
+<h2><a name="content027"> 実際の build 手順</a></h2>
+
+<p>
+実際の build 手順 ここでは，jless を例に build 手順を記します． まずは epkg コマンドを使って souce package を取得します
+<p>
+
+<pre>
+    % epkg getsklx jless
+
+</pre>
+
+次に，作業ディレクトリに移動し build してみます．
+<p>
+
+<pre>
+    % cd /usr/epkg/japanese/jless
+    % make
+
+</pre>
+
+すると，source file 取得後，build されるかと思います． 次に，plist を作成します
+<p>
+
+<pre>
+    % sudo make plist
+
+</pre>
+
+plist が作成できたらインストールし，パッケージを作成します．
+<p>
+
+<pre>
+    % sudo make install
+    % sudo make package
+
+</pre>
+
+作成されたパッケージは /usr/epkg/EPKG/ 以下に配置されます．
+<p>
+
+<pre>
+    % sudo epkg mkpkg japanese/jless
+
+</pre>
+
+で、src.epkg を作ります。
+<p>
+
+<hr/>
+<h2><a name="content028">パッケージのアップロード方法 </a></h2>
+作成したパッケージをサーバにアップロードするには
+<p>
+
+<pre>
+    % epkg upload jless
+
+</pre>
+のようにします． アップロードするには EasyPackage のサイトにアップロードユーザ登録されている必要があります． (ssh の public key を kono@ie.u-ryukyu.ac.jp まで、投げてくれれば登録します) アカウントをお持ちでない場合，自作パッケージから投稿お願いします．
+<p>
+
+<pre>
+    % sudo epkg sync
+    % sudo epkg list
+
+</pre>
+
+で、upload されていることを確認します。
+<p>
+</div>
+<ol class="side" id="menu">
+Easy Package 
+<li><a href="#content016">  Linux の rpm</a>
+<li><a href="#content017">   * <a href="http://ash.jp/linux/rpm_build.htm"> 簡単なRPMの作り方 </a>
+</a>
+<li><a href="#content018">  EasyPackage</a>
+<li><a href="#content019">   epkg</a>
+<li><a href="#content020">   epkg のinstall</a>
+<li><a href="#content021">   * <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1"> EasyPackage のインストール </a>
+</a>
+<li><a href="#content022">   epkg server</a>
+<li><a href="#content023">   EasyPackage の作り方</a>
+<li><a href="#content024">   * <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1"> EasyPackage の作り方 </a>
+</a>
+<li><a href="#content025">   EasyPackage の仕組み</a>
+<li><a href="#content026">  簡単なまとめ</a>
+<li><a href="#content027">   実際の build 手順</a>
+<li><a href="#content028">  パッケージのアップロード方法 </a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Tue Jun 11 12:36:12 2013
+</body></html>

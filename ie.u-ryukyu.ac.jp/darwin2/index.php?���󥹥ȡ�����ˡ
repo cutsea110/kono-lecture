@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="EUC-JP" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja">
+<head>
+ <meta http-equiv="content-type" content="application/xhtml+xml; charset=EUC-JP" />
+ <meta http-equiv="content-style-type" content="text/css" />
+
+ <title>インストール方法 - EasyPackage for Mac OS X</title>
+
+ <link rel="SHORTCUT ICON" href="" />
+ <link rel="stylesheet" type="text/css" media="screen" href="skin/pukiwiki.css.php?charset=Shift_JIS" charset="Shift_JIS" />
+ <link rel="stylesheet" type="text/css" media="print"  href="skin/pukiwiki.css.php?charset=Shift_JIS&amp;media=print" charset="Shift_JIS" />
+ <link rel="alternate" type="application/rss+xml" title="RSS" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=rss" />
+
+<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+</script>
+<script type="text/javascript">
+_uacct = "UA-165039-2";
+urchinTracker();
+</script>
+</head>
+<body>
+
+<div id="header">
+ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FrontPage"><img id="logo" src="image/epkg.png" width="80" height="80" alt="[PukiWiki]" title="[PukiWiki]" /></a>
+
+ <h1 class="title"><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=related&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1">インストール方法</a> </h1>
+
+    <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1"><span class="small">http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1</span></a>
+ 
+</div>
+
+<div id="navigator">
+ [ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FrontPage" >トップ</a> ] &nbsp;
+
+ [
+ 	<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=edit&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" >編集</a> |
+			<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=freeze&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" >凍結</a> |
+	  <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=diff&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" >差分</a> 	| <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=backup&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" >バックアップ</a>  	| <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;pcmd=upload&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" >添付</a>  | <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" >リロード</a> ] &nbsp;
+
+ [
+ 	<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=newpage&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" >新規</a> |
+    <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=list" >一覧</a>  | <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=search" >単語検索</a> | <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?RecentChanges" >最終更新</a> | <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?Help" >ヘルプ</a> ]
+
+ &nbsp;
+ [ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=tb&amp;__mode=view&amp;tb_id=a2e3103ec54ebc2aab3c2554166b28f6" >Trackback(0)</a> ]
+ &nbsp;
+ [ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=referer&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" >リンク元</a> ]
+</div>
+
+<hr class="full_hr" />
+<table border="0" style="width:100%">
+ <tr>
+  <td class="menubar">
+   <div id="menubar"><h2 id="content_2_0">Menu</h2>
+<ul><li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FrontPage" title="FrontPage (249d)">トップ</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?EasyPackage%A4%C3%A4%C6%A1%A9" title="EasyPackageって？ (249d)">epkgとは？</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%EA%A5%F3%A5%AF%A1%A6%BD%F1%C0%D2%B7%C7%BA%DC" title="リンク・書籍掲載 (783d)">リンク・書籍掲載</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" title="インストール方法 (555d)">インストール</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%D1%A5%C3%A5%B1%A1%BC%A5%B8%B0%EC%CD%F7" title="パッケージ一覧 (249d)">パッケージ</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?build%CA%FD%CB%A1" title="build方法 (249d)">ビルド方法</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD" title="メンテ日記 (249d)">メンテ日記</a></li></ul>
+<hr class="full_hr" />
+<ul><li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?MailingList" title="MailingList (783d)">MailingList</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%C9%D4%B6%F1%B9%E7%CA%F3%B9%F0" title="不具合報告 (249d)">不具合報告</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%B7%C7%BC%A8%C8%C4" title="掲示板 (249d)">掲示板</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%BC%AB%BA%EE%A5%D1%A5%C3%A5%B1%A1%BC%A5%B8" title="自作パッケージ (783d)">自作パッケージ</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?Tips" title="Tips (783d)">Tips</a></li>
+<li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FAQ" title="FAQ (783d)">FAQ</a></li></ul>
+<h5>最新の20件</h5>
+<div><strong>2012-03-12</strong>
+<ul>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FrontPage" title="FrontPage (554d)">FrontPage</a></li>
+ <li>インストール方法</li>
+</ul>
+<strong>2009-10-13</strong>
+<ul>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?RecentDeleted" title="RecentDeleted (1435d)">RecentDeleted</a></li>
+</ul>
+<strong>2008-11-24</strong>
+<ul>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%C9%D4%B6%F1%B9%E7%CA%F3%B9%F0%2F72" title="不具合報告/72 (1758d)">不具合報告/72</a></li>
+</ul>
+<strong>2008-11-16</strong>
+<ul>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2007-03-24" title="メンテ日記/2007-03-24 (1767d)">メンテ日記/2007-03-24</a></li>
+</ul>
+<strong>2008-11-15</strong>
+<ul>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%C9%D4%B6%F1%B9%E7%CA%F3%B9%F0" title="不具合報告 (1767d)">不具合報告</a></li>
+</ul>
+<strong>2008-06-16</strong>
+<ul>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2006-05-11" title="メンテ日記/2006-05-11 (1920d)">メンテ日記/2006-05-11</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2005-02-20" title="メンテ日記/2005-02-20 (1920d)">メンテ日記/2005-02-20</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2007-03-16" title="メンテ日記/2007-03-16 (1920d)">メンテ日記/2007-03-16</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2007-03-18" title="メンテ日記/2007-03-18 (1920d)">メンテ日記/2007-03-18</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2Ftemplate" title="メンテ日記/template (1920d)">メンテ日記/template</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2005-01-14" title="メンテ日記/2005-01-14 (1920d)">メンテ日記/2005-01-14</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-11-12" title="メンテ日記/2004-11-12 (1920d)">メンテ日記/2004-11-12</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-06-14" title="メンテ日記/2004-06-14 (1920d)">メンテ日記/2004-06-14</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-06-08" title="メンテ日記/2004-06-08 (1920d)">メンテ日記/2004-06-08</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-06-24" title="メンテ日記/2004-06-24 (1920d)">メンテ日記/2004-06-24</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-07-10" title="メンテ日記/2004-07-10 (1920d)">メンテ日記/2004-07-10</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-11-13" title="メンテ日記/2004-11-13 (1920d)">メンテ日記/2004-11-13</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%EA%A5%F3%A5%AF%A1%A6%BD%F1%C0%D2%B7%C7%BA%DC" title="リンク・書籍掲載 (1920d)">リンク・書籍掲載</a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-11-29" title="メンテ日記/2004-11-29 (1920d)">メンテ日記/2004-11-29</a></li>
+</ul>
+</div>
+<h5>今日の20件</h5><div><ul>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FrontPage" title="FrontPage (249d)">FrontPage<span class="counter">(48)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?EasyPackage%A4%C3%A4%C6%A1%A9" title="EasyPackageって？ (249d)">EasyPackageって？<span class="counter">(7)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?print%2FXANO-mincho" title="print/XANO-mincho (783d)">print/XANO-mincho<span class="counter">(7)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?Tips%2FOpenOffice.org" title="Tips/OpenOffice.org (783d)">Tips/OpenOffice.org<span class="counter">(7)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?japanese%2Fdvipdfmx" title="japanese/dvipdfmx (249d)">japanese/dvipdfmx<span class="counter">(6)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?mail" title="mail (249d)">mail<span class="counter">(6)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2003-12-11" title="メンテ日記/2003-12-11 (249d)">メンテ日記/2003-12-11<span class="counter">(6)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?math%2Fgnuplot" title="math/gnuplot (249d)">math/gnuplot<span class="counter">(5)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%B7%C7%BC%A8%C8%C4" title="掲示板 (249d)">掲示板<span class="counter">(5)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FAQ" title="FAQ (783d)">FAQ<span class="counter">(5)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-11-13" title="メンテ日記/2004-11-13 (783d)">メンテ日記/2004-11-13<span class="counter">(5)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?mail%2Fsylpheed" title="mail/sylpheed (249d)">mail/sylpheed<span class="counter">(5)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?japanese%2Ftgif" title="japanese/tgif (249d)">japanese/tgif<span class="counter">(5)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2003-10-23" title="メンテ日記/2003-10-23 (249d)">メンテ日記/2003-10-23<span class="counter">(4)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%E1%A5%F3%A5%C6%C6%FC%B5%AD%2F2004-01-12" title="メンテ日記/2004-01-12 (249d)">メンテ日記/2004-01-12<span class="counter">(4)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%BC%AB%BA%EE%A5%D1%A5%C3%A5%B1%A1%BC%A5%B8%2F5" title="自作パッケージ/5 (783d)">自作パッケージ/5<span class="counter">(4)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?print%2Fpsutils" title="print/psutils (249d)">print/psutils<span class="counter">(4)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?elisp%2Fapel" title="elisp/apel (249d)">elisp/apel<span class="counter">(4)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?Tips%2FOpenOffice%20%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB" title="Tips/OpenOffice インストール (783d)">Tips/OpenOffice インストール<span class="counter">(4)</span></a></li>
+ <li><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?graphics%2FImageMagick" title="graphics/ImageMagick (249d)">graphics/ImageMagick<span class="counter">(4)</span></a></li>
+</ul>
+</div>
+4
+</div>
+  </td>
+  <td valign="top">
+   <div id="body"><h2 id="content_1_0">EasyPackage のインストール手順(Universal Binary 版)  <a class="anchor_super" id="tfc90115" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1#tfc90115" title="tfc90115">&amp;dagger;</a></h2>
+<div class="contents">
+<a id="contents_1"></a>
+<ul class="list1" style="padding-left:16px;margin-left:16px"><li><a href="#tfc90115"> EasyPackage のインストール手順(Universal Binary 版) </a></li>
+<li><a href="#a8952089"> パッケージインストーラの取得 </a>
+<ul class="list2" style="padding-left:16px;margin-left:16px"><li><a href="#a49c21d5"> GUI 版インストーラの使い方 </a>
+<ul class="list3" style="padding-left:16px;margin-left:16px"><li><a href="#x6a50955"> インストーラのダウンロードと一覧取得 </a></li>
+<li><a href="#xf869134"> 旨く取得が出来ない場合 </a></li>
+<li><a href="#g4fbfecc"> インストールパッケージの選択 </a></li></ul></li>
+<li><a href="#q38f0d57"> インストール／アンインストール </a></li>
+<li><a href="#y8b872ee"> アップデートについて </a></li>
+<li><a href="#u8f38474"> CUI 版の場合， </a></li></ul></li></ul>
+</div>
+
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h2 id="content_1_1">パッケージインストーラの取得  <a class="anchor_super" id="a8952089" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1#a8952089" title="a8952089">&amp;dagger;</a></h2>
+<p>まず，最初に<a href="http://ie.u-ryukyu.ac.jp/darwin6u/Installer/epkg-0.2.33.zip" rel="nofollow">CUI 版</a> <span style="color:RED">(New for 10.6/ 10.7)</span>か <a href="http://ie.u-ryukyu.ac.jp/darwin6u/Installer/EasyPackage-0.2.33.zip" rel="nofollow">GUI版</a><span style="color:RED">(New for 10.6/ 10.7)</span>のインストーラをダウンロードして展開します．</p>
+<p><span style="color:RED"><strong>追記</strong></span> Panther(10.3.x) では上記インストーラではなく，<a href="http://ie.u-ryukyu.ac.jp/darwin3/Installer/epkg-0.2.23.zip" rel="nofollow">CUI 版</a> か <a href="http://ie.u-ryukyu.ac.jp/darwin3/Installer/EasyPackage-0.2.15.zip" rel="nofollow">GUI版</a>をダウンロードしてください．</p>
+<p><span style="color:RED"><strong>追記：</strong></span> Tiger(10.4) をアップグレードインストールした場合，古い EasyPackage のプログラムが残っている可能性があります．この場合，一覧取得時に失敗してしまいますのでターミナルから以下のコマンドを実行して，古いプログラムを削除したうえで，EasyPackage.app を再度実行することで一覧取得が出来るようになります．</p>
+<pre>% sudo rm /usr/local/bin/epkg</pre>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h3 id="content_1_2">GUI 版インストーラの使い方  <a class="anchor_super" id="a49c21d5" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1#a49c21d5" title="a49c21d5">&amp;dagger;</a></h3>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h4 id="content_1_3">インストーラのダウンロードと一覧取得  <a class="anchor_super" id="x6a50955" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1#x6a50955" title="x6a50955">&amp;dagger;</a></h4>
+<p>インストーラをダウンロードするとデスクトップ上に</p>
+<div class="img_margin" style="text-align:left"><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1&amp;openfile=fig1.png" title="fig1.png"><img src="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=ref&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1&amp;src=fig1.png" alt="fig1.png" title="fig1.png" width="105" height="72" /></a></div>
+
+<p>の様なアイコンが追加されているので、ダブルクリックして起動します。</p>
+<div class="img_margin" style="text-align:left"><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1&amp;openfile=fig2.png" title="fig2.png"><img src="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=ref&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1&amp;src=fig2.png" alt="fig2.png" title="fig2.png" width="561" height="605" /></a></div>
+
+<p>まずはメニューの「パッケージ」→「一覧を取得」でパッケージ一覧を取得します。</p>
+<div class="img_margin" style="text-align:left"><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1&amp;openfile=fig3.png" title="fig3.png"><img src="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=ref&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1&amp;src=fig3.png" alt="fig3.png" title="fig3.png" width="450" height="172" /></a></div>
+
+<p>その際、Log Window の最後に</p>
+<pre>*** NEW EPKG EXISTS ***
+[How to update] sudo epkg upepkg</pre>
+<p>というメッセージが表示されていた場合は、EasyPackage の更新を選択してください。</p>
+<div class="img_margin" style="text-align:left"><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1&amp;openfile=fig4.png" title="fig4.png"><img src="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=ref&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1&amp;src=fig4.png" alt="fig4.png" title="fig4.png" width="567" height="560" /></a></div>
+
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h4 id="content_1_4">旨く取得が出来ない場合  <a class="anchor_super" id="xf869134" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1#xf869134" title="xf869134">&amp;dagger;</a></h4>
+<p><span class="noexists">こちら<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=edit&amp;page=BugTrack%2F27&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1">?</a></span>に報告があるように，まれに，EasyPackage による初期設定が旨くいかず，以下のようなエラーが出るようです．
+その際は，ターミナルを開いて以下のコマンドを入力してください．</p>
+<pre>% sudo mkdir -p /usr/epkg/tmp
+% sudo chmod -R 777 /usr/epkg</pre>
+<p>また，実行時に</p>
+<pre>Dev.Tools are not installed... Please install Apple Dev.Tools.</pre>
+<p>というメッセージが出る場合，インストールCD から Xcode をインストールすることで解決します．
+尚， Xcode の CD が無い場合，<a href="http://developer.apple.com/ja/" rel="nofollow">ADC</a> にアクセス（要ユーザ登録）すれば取得できます．</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h4 id="content_1_5">インストールパッケージの選択  <a class="anchor_super" id="g4fbfecc" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1#g4fbfecc" title="g4fbfecc">&amp;dagger;</a></h4>
+<p>次に、インストールしたいパッケージを分類／パッケージから選択し、ダブルクリックすることでインストールできます。</p>
+<p><del>Panther を使っている場合、標準で X11 のアプリケーションが搭載されているため、一番最初に x11 のカテゴリから <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?x11%2FXFree86-dummy" title="x11/XFree86-dummy (249d)">x11/XFree86-dummy</a> を導入してください．</del></p>
+<p><span style="color:RED">最新版(epkg ver. 0.2.15)ではX11.app のチェックを自動で行うようにしていますので、XFree86-dummy パッケージの導入は不要となりました。</span></p>
+<p>また、初めて使われる方は pkg カテゴリ中のパッケージをインストールされると良いと思います。（現在はテストのため、３つのpkg しかありませんが、順次増やしていきます）</p>
+<dl class="list1" style="padding-left:16px;margin-left:16px"><dt><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?pkg%2Fbase-pkg" title="pkg/base-pkg (249d)">pkg/base-pkg</a></dt>
+<dd>日本語化された基本パッケージ(less, jvim, iTerm, jman, lv, nkf, canna 等)をインストールします。</dd>
+<dt><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?pkg%2Femacs-pkg" title="pkg/emacs-pkg (249d)">pkg/emacs-pkg</a></dt>
+<dd>Juguar / Panther 版の Carbon/X11 両対応の Emacs をインストールします。</dd>
+<dt><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?pkg%2Fptex-euc-pkg" title="pkg/ptex-euc-pkg (249d)">pkg/ptex-euc-pkg</a></dt>
+<dd>日本語 TeX 環境をインストールします。</dd></dl>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h3 id="content_1_6">インストール／アンインストール  <a class="anchor_super" id="q38f0d57" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1#q38f0d57" title="q38f0d57">&amp;dagger;</a></h3>
+<div class="img_margin" style="text-align:left"><a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1&amp;openfile=fig5.png" title="fig5.png"><img src="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=ref&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1&amp;src=fig5.png" alt="fig5.png" title="fig5.png" width="500" height="472" /></a></div>
+
+<p>基本的にパッケージ名のところでダブルクリックするとパッケージのインストール／アンインストール／アップグレードとなります。</p>
+<p>パッケージ一覧画面でパッケージ名の前についているアイコンが「ー」であれば、未インストールパッケージ「↑」ならばインストール済みのパッケージで更新版が存在する場合、表示なければ最新版のパッケージがインストール済みとなっています。上図で言うと、「Ngraph, gnuplot+ 」は未インストール「gnuplot」は既インストールで更新版がリリースされていて、「octave」は最新版がインストール済みとなります。</p>
+<p>また、「情報／詳細／ファイル」ではバージョン情報や利用法が記載されています。</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h3 id="content_1_7">アップデートについて  <a class="anchor_super" id="y8b872ee" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1#y8b872ee" title="y8b872ee">&amp;dagger;</a></h3>
+<p>各パッケージはたまに（？）アップデートされます。時々、EasyPackage を起動し、パッケージ一覧を更新後、アップグレードを選択してみてください。現在インストールされているパッケージの更新版があるかをチェックしてくれます。</p>
+
+<div class="jumpmenu"><a href="#navigator">&uarr;</a></div><h3 id="content_1_8">CUI 版の場合，  <a class="anchor_super" id="u8f38474" href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1#u8f38474" title="u8f38474">&amp;dagger;</a></h3>
+<p>インストーラをダウンロードすると epkg というディレクトリが出来ます。そのディレクトリに移動後、</p>
+<pre>%sudo perl install.pl</pre>
+<p>とすると、必要なファイルをインストールしてくれます。尚、最新版のインストーラを使った場合、path の調整も自動的に実施するので下の方にある path の設定は不要となります。
+そして、まずはパッケージリストの更新です。</p>
+<pre>% sudo epkg sync</pre>
+<p>とし，最新のパッケージリストが取得します．</p>
+<pre>% epkg list</pre>
+<p>とすれば，パッケージリストが表示され，インストールしたい pacakge を</p>
+<pre>% sudo epkg install package1 package2 ...</pre>
+<p>のように列挙すれば，パッケージを取得後，インストールしてくれます．
+また，パッケージをアップデートする際には</p>
+<pre>% epkg update
+% sudo epkg upgrade</pre>
+<p>とすることで，インストール済みのパッケージをアップグレードできます．</p>
+<p>尚，Jaguar/Panther では，環境変数 path に /usr/local/bin や /usr/local/sbin が含まれていません． /etc/csh.login を</p>
+<pre>setenv PATH &quot;/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/local/bin:/usr/bin:/usr/sbin&quot;</pre>
+<p>と書き換える事で，パッケージが優先されるようになります．
+さらに，一部の X11 application は /usr/X11R6/bin 以下に実行ファイルが格納されるため，/usr/X11R6/bin も PATH に追加する方が良いでしょう．</p>
+<p>※ Panther では default shell が tcsh から bash に変更されています。</p>
+<pre>% chsh -s tcsh</pre>
+<p>として、default shell を tcsh に書き換えると良いでしょう。</p>
+<!--
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/">
+ <rdf:Description
+   rdf:about="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1"
+   dc:identifier="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1"
+   dc:title="インストール方法"
+   trackback:ping="http://ie.u-ryukyu.ac.jp/darwin2/index.php?tb_id=a2e3103ec54ebc2aab3c2554166b28f6" />
+</rdf:RDF>
+--></div>
+  </td>
+ </tr>
+</table>
+
+
+<div id="attach">
+<hr class="full_hr" />添付ファイル: <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;pcmd=open&amp;file=fig5.png&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" title="2013/01/11 14:22:58 44.8KB"><img src="image/file.png" width="20" height="20" alt="file" style="border-width:0px" />fig5.png</a> <span class="small">3241件</span>
+<span class="small">[<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;pcmd=info&amp;file=fig5.png&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" title="添付ファイルの情報">詳細</a>]</span>
+ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;pcmd=open&amp;file=fig4.png&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" title="2013/01/11 14:22:57 123.1KB"><img src="image/file.png" width="20" height="20" alt="file" style="border-width:0px" />fig4.png</a> <span class="small">2947件</span>
+<span class="small">[<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;pcmd=info&amp;file=fig4.png&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" title="添付ファイルの情報">詳細</a>]</span>
+ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;pcmd=open&amp;file=fig3.png&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" title="2013/01/11 14:22:57 12.2KB"><img src="image/file.png" width="20" height="20" alt="file" style="border-width:0px" />fig3.png</a> <span class="small">2645件</span>
+<span class="small">[<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;pcmd=info&amp;file=fig3.png&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" title="添付ファイルの情報">詳細</a>]</span>
+ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;pcmd=open&amp;file=fig2.png&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" title="2013/01/11 14:22:57 132.2KB"><img src="image/file.png" width="20" height="20" alt="file" style="border-width:0px" />fig2.png</a> <span class="small">3825件</span>
+<span class="small">[<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;pcmd=info&amp;file=fig2.png&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" title="添付ファイルの情報">詳細</a>]</span>
+ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;pcmd=open&amp;file=fig1.png&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" title="2013/01/11 14:22:57 10.1KB"><img src="image/file.png" width="20" height="20" alt="file" style="border-width:0px" />fig1.png</a> <span class="small">4778件</span>
+<span class="small">[<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;pcmd=info&amp;file=fig1.png&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1" title="添付ファイルの情報">詳細</a>]</span>
+ 
+</div>
+
+<hr class="full_hr" />
+<!-- Toolbar -->
+<div id="toolbar">
+ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FrontPage"><img src="image/top.png" width="20" height="20" alt="トップ" title="トップ" /></a>
+ &nbsp;
+ 	<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=edit&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1"><img src="image/edit.png" width="20" height="20" alt="編集" title="編集" /></a>			<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=freeze&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1"><img src="image/freeze.png" width="20" height="20" alt="凍結" title="凍結" /></a>	  <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=diff&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1"><img src="image/diff.png" width="20" height="20" alt="差分" title="差分" /></a>	<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=backup&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1"><img src="image/backup.png" width="20" height="20" alt="バックアップ" title="バックアップ" /></a>			<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=attach&amp;pcmd=upload&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1"><img src="image/file.png" width="20" height="20" alt="添付" title="添付" /></a>		<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=template&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1"><img src="image/copy.png" width="20" height="20" alt="複製" title="複製" /></a>	<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=rename&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1"><img src="image/rename.png" width="20" height="20" alt="名前変更" title="名前変更" /></a> <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1"><img src="image/reload.png" width="20" height="20" alt="リロード" title="リロード" /></a> &nbsp;
+	<a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?plugin=newpage&amp;refer=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1"><img src="image/new.png" width="20" height="20" alt="新規" title="新規" /></a> <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=list"><img src="image/list.png" width="20" height="20" alt="一覧" title="一覧" /></a> <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=search"><img src="image/search.png" width="20" height="20" alt="単語検索" title="単語検索" /></a> <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?RecentChanges"><img src="image/recentchanges.png" width="20" height="20" alt="最終更新" title="最終更新" /></a> &nbsp; <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?Help"><img src="image/help.png" width="20" height="20" alt="ヘルプ" title="ヘルプ" /></a> &nbsp; <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=rss&amp;ver=1.0"><img src="image/rss.png" width="36" height="14" alt="最終更新のRSS" title="最終更新のRSS" /></a></div>
+
+<div id="lastmodified">Last-modified: 2012-03-12 (月) 09:57:31  (555d)</div>
+
+<div id="related">Link: <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?x11%2FXFree86-dummy">x11/XFree86-dummy</a>(249d)
+ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?FrontPage">FrontPage</a>(249d)
+ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?pkg%2Fptex-euc-pkg">pkg/ptex-euc-pkg</a>(249d)
+ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?pkg%2Femacs-pkg">pkg/emacs-pkg</a>(249d)
+ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?pkg%2Fbase-pkg">pkg/base-pkg</a>(249d)</div>
+
+<div id="footer">
+ Site admin: <a href="http://www.iis.elec.fuk.kindai.ac.jp/~sira/">Hiroshi SHIRATSUCHI</a>
+ <div class="counter">
+Counter:   11517,
+today:     5,
+yesterday: 0
+</div>
+ <a href="http://ie.u-ryukyu.ac.jp/darwin2/index.php?cmd=analyze&amp;page=%A5%A4%A5%F3%A5%B9%A5%C8%A1%BC%A5%EB%CA%FD%CB%A1&amp;ago=0">analyze</a><br>
+<p />
+ <strong>PukiWiki 1.4.7</strong> Copyright &copy; 2001-2006 <a href="http://pukiwiki.sourceforge.jp/">PukiWiki Developers Team</a>. License is <a href="http://www.gnu.org/licenses/gpl.html">GPL</a>.<br /> Based on "PukiWiki" 1.3 by <a href="http://factage.com/yu-ji/">yu-ji</a>.
+ Powered by PHP 5.3.3. HTML convert time: 0.040 sec.
+</div>
+
+</body>
+</html>

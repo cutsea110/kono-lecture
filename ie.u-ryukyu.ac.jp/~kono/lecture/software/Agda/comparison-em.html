@@ -1,0 +1,215 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Elienberg Moore Category の Comparison Functor</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Elienberg Moore Category の Comparison Functor</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content040">Elienberg Moore Category の Comparison Functor</a></h2>
+Kleisli Category 同様に 任意の Resolution の解 U^K, F^K は、Elienberg Moore Category の E  U^T, F^T と Comparison Functor K^T を通して関連します。
+<p>
+
+<pre>
+    module comparison-em
+          { c₁ c₂ ℓ : Level} { A : Category c₁ c₂ ℓ }
+                     { T : Functor A A }
+                     { η : NTrans A A identityFunctor T }
+                     { μ : NTrans A A (T ○ T) T }
+                     { M' : Monad A T η μ }
+          {c₁' c₂' ℓ' : Level} ( B : Category c₁' c₂' ℓ' )
+          { U^K : Functor B A } { F^K : Functor A B }
+          { η^K : NTrans A A identityFunctor ( U^K ○ F^K ) }
+          { ε^K : NTrans B B ( F^K ○ U^K ) identityFunctor }
+          { μ^K : NTrans A A (( U^K ○ F^K ) ○ ( U^K ○ F^K )) ( U^K ○ F^K ) }
+          ( Adj^K : Adjunction A B U^K F^K η^K ε^K )
+          ( RK : MResolution A B T U^K F^K {η^K} {ε^K} {μ^K} Adj^K )
+    where
+    open import adj-monad
+    T^K = U^K ○ F^K
+    μ^K' : NTrans A A (( U^K ○ F^K ) ○ ( U^K ○ F^K )) ( U^K ○ F^K )
+    μ^K'  = UεF A B U^K F^K ε^K
+    M : Monad A (U^K ○ F^K ) η^K μ^K'
+    M =  Adj2Monad A B {U^K} {F^K} {η^K} {ε^K} Adj^K
+    open import em-category {c₁} {c₂} {ℓ} {A} { U^K ○ F^K } { η^K } { μ^K' } { M }
+
+</pre>
+module のパラメータとして道具立てをそろえて、T^K とμ^K' を作り、Adjunction から必要とされる Monad を再構成します。その Monad から Elienberg Moore Category を作ります。元の T とは、MResolution で T = U^K ○ F^K ということになっています。と仮定されているかな? MResolution には、μK' も用意されています。
+<p>
+
+<hr/>
+<h2><a name="content041">Comparison Functor T^K の作成</a></h2>
+Eilenberg Moore Category には Algebra や homomorphism などの制約がたくさんあります。それを構成していくことになります。T^K(b) = U^K(b) ですが、その φ b は U^K(ε^K b) です。
+<p>
+
+<pre>
+    emkobj : Obj B -&gt; EMObj
+    emkobj b = record {
+         a = FObj U^K b ; phi = FMap U^K (TMap ε^K b) ; isAlgebra = record { identity = identity1 b; eval = eval1 b }
+      } where
+          identity1 :  (b : Obj B) -&gt; A [ A [ (FMap U^K (TMap ε^K b))  o TMap η^K (FObj U^K b) ] ≈ id1 A (FObj U^K b) ]
+          identity1 b =  let open ≈-Reasoning (A) in
+               begin
+                    (FMap U^K (TMap ε^K b))  o TMap η^K (FObj U^K b)
+               ≈⟨ IsAdjunction.adjoint1 (isAdjunction Adj^K) ⟩
+                    id1 A (FObj U^K b)
+               ∎
+          eval1 :  (b : Obj B) -&gt; A [ A [ (FMap U^K (TMap ε^K b))  o TMap μ^K' (FObj U^K b) ] 
+                                    ≈ A [ (FMap U^K (TMap ε^K b)) o FMap T^K (FMap U^K (TMap ε^K b)) ] ]
+          eval1 b = let open ≈-Reasoning (A) in
+               begin
+                    (FMap U^K (TMap ε^K b)) o TMap μ^K' (FObj U^K b)
+               ≈⟨⟩
+                    (FMap U^K (TMap ε^K b)) o FMap U^K (TMap ε^K ( FObj F^K (FObj U^K b)))
+               ≈⟨ sym (distr U^K) ⟩
+                    FMap U^K (B [ TMap ε^K b o (TMap ε^K ( FObj F^K (FObj U^K b))) ] )
+               ≈⟨ fcong U^K (nat ε^K) ⟩   -- Horizontal composition                                                                        
+                    FMap U^K (B [ TMap ε^K b o FMap F^K (FMap U^K (TMap ε^K b)) ] )
+               ≈⟨ distr U^K ⟩
+                    (FMap U^K (TMap ε^K b)) o FMap U^K (FMap F^K (FMap U^K (TMap ε^K b)))
+               ≈⟨⟩
+                    (FMap U^K (TMap ε^K b)) o FMap T^K (FMap U^K (TMap ε^K b))
+               ∎
+
+</pre>
+自然変換の可換図の射に自然変換自体を入れるのを Horizontal composition 水平合成というようです。ε o ε が出てくると、それが使えるかどうかを考える感じです。
+<p>
+
+<pre>
+    open EMObj
+    emkmap : {a b : Obj B} (f : Hom B a b) -&gt; EMHom (emkobj a) (emkobj b)
+    emkmap {a} {b} f = record { EMap = FMap U^K f ; homomorphism = homomorphism1 a b f
+      } where
+          homomorphism1 : (a b : Obj B) (f : Hom B a b) -&gt; A [ A [ (φ (emkobj b))  o FMap T^K (FMap U^K f) ]  
+                                                             ≈ A [ (FMap U^K f) o (φ (emkobj a)) ] ]
+          homomorphism1 a b f = let open ≈-Reasoning (A) in
+               begin
+                    (φ (emkobj b))  o FMap T^K (FMap U^K f)
+               ≈⟨⟩
+                    FMap U^K (TMap ε^K b)  o FMap U^K (FMap F^K (FMap U^K f))
+               ≈⟨ sym (distr U^K) ⟩
+                    FMap U^K ( B [ TMap ε^K b  o FMap F^K (FMap U^K f) ] )
+               ≈⟨ sym (fcong U^K (nat ε^K)) ⟩
+                    FMap U^K ( B [ f o TMap ε^K a ] )
+               ≈⟨ distr U^K ⟩
+                    (FMap U^K f) o FMap U^K (TMap ε^K a)
+               ≈⟨⟩
+                    (FMap U^K f) o ( φ (emkobj a))
+               ∎
+
+</pre>
+射には homorphism を付ける必要があります。T^K(f) = U^K(f) なので、T^^Kは、制約を除けば U^K と同じです。U^T は制約を引き剥がすFunctor でした。こちらでも水平合成が使われています。実際、Functor K^T の性質は U^K のものをそのまま使えます。
+<p>
+
+<pre>
+    K^T : Functor B Eilenberg-MooreCategory
+    K^T = record {
+              FObj = emkobj
+            ; FMap = emkmap
+            ; isFunctor = record
+            {      ≈-cong   = ≈-cong
+                 ; identity = identity
+                 ; distr    = distr1
+            }
+         }  where
+             identity : {a : Obj B} →   emkmap (id1 B a) ≗ EM-id {emkobj a}
+             identity {a} = let open ≈-Reasoning (A) in
+               begin
+                  EMap (emkmap (id1 B a))
+               ≈⟨⟩
+                  FMap U^K (id1 B a)
+               ≈⟨ IsFunctor.identity (isFunctor U^K) ⟩
+                  id1 A ( FObj U^K a )
+               ≈⟨⟩
+                  EMap (EM-id {emkobj a})
+               ∎
+             ≈-cong : {a b : Obj B} -&gt; {f g : Hom B a b} → B [ f ≈ g ] →  emkmap f ≗ emkmap g
+             ≈-cong {a} {b} {f} {g} f≈g = let open ≈-Reasoning (A) in
+               begin
+                   EMap (emkmap f)
+               ≈⟨ IsFunctor.≈-cong (isFunctor U^K) f≈g ⟩
+                   EMap (emkmap g)
+               ∎
+             distr1 :  {a b c : Obj B} {f : Hom B a b} {g : Hom B b c} → ( (emkmap (B [ g o f ])) ≗  (emkmap g ∙ emkmap f)  )
+             distr1 {a} {b} {c} {f} {g} = let open ≈-Reasoning (A) in
+               begin
+                  EMap (emkmap (B [ g o f ] ))
+               ≈⟨ distr U^K ⟩
+                  EMap (emkmap g ∙ emkmap f)
+               ∎
+
+</pre>
+直接代入しても問題ありません。
+<p>
+
+<pre>
+    Lemma-EM20 : { a b : Obj B} { f : Hom B a b } -&gt; A [ FMap U^T ( FMap K^T f)  ≈ FMap U^K f ]
+    Lemma-EM20 {a} {b} {f}  =  let open ≈-Reasoning (A) in
+               begin
+                   FMap U^T ( FMap K^T f)
+               ≈⟨⟩
+                   FMap U^K f
+               ∎
+    Lemma-EM22 : { a b : Obj A} { f : Hom A a b } -&gt;  A [ EMap ( FMap K^T ( FMap F^K f) ) ≈ EMap ( FMap F^T f  ) ]
+    Lemma-EM22  {a} {b} {f} =  let open ≈-Reasoning (A) in
+               begin
+                    EMap ( FMap K^T ( FMap F^K f) )
+               ≈⟨⟩
+                    FMap U^K ( FMap F^K f)
+               ≈⟨⟩
+                    EMap ( FMap F^T f  )
+               ∎
+
+</pre>
+定義から、
+<p>
+
+<pre>
+     U^T ○ K^T = U^K
+     K^T ○ K^K = F^T
+
+</pre>
+が成立します。
+<p>
+<a href="univmap.html"> Next : Universal mapping と Free Monoid を使った例 </a>
+</div>
+<ol class="side" id="menu">
+Elienberg Moore Category の Comparison Functor
+<li><a href="#content039">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content040">  Elienberg Moore Category の Comparison Functor</a>
+<li><a href="#content041">  Comparison Functor T^K の作成</a>
+<li><a href="#content042">   * <a href="univmap.html"> Next : Universal mapping と Free Monoid を使った例 </a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 06:03:42 2013
+</body></html>

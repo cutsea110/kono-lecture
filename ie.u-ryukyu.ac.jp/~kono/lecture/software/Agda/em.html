@@ -1,0 +1,545 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Elienberg Moore Category</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Elienberg Moore Category</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content048">Elienberg Moore Category</a></h2>
+Monad は、もう一つのResolutionを持っており、Kleisli Category のように Comparison Functor を構成することができます。
+<p>
+Elienberg Moore Category は <a href="univmap.html"> Monoids </a> 同じような構造を持っています。これから出てくる homomorphism とかは、そこから来ています。
+
+<p>
+今度は射は、Aの射をそのまま使います。対象 Obj は Algebra と呼ばれる制約が付きます。
+<p>
+まず、module の引数で道具をそろえます。Monad M(T, η, μ)　です。
+<p>
+
+<pre>
+    module em-category { c₁ c₂ ℓ : Level} { A : Category c₁ c₂ ℓ }
+                 { T : Functor A A }
+                 { η : NTrans A A identityFunctor T }
+                 { μ : NTrans A A (T ○ T) T }
+                 { M : Monad A T η μ } where
+
+</pre>
+Obj は record として用意します。
+<p>
+
+<pre>
+    record IsAlgebra {a : Obj A} { phi : Hom A (FObj T a) a } : Set (c₁ ⊔ c₂ ⊔ ℓ)  where
+       field
+           identity : A [ A [ phi  o TMap η a ] ≈ id1 A a ]
+           eval     : A [ A [ phi  o TMap μ a ] ≈ A [ phi o FMap T phi ] ]
+    record EMObj : Set (c₁ ⊔ c₂ ⊔ ℓ)  where
+       field
+           a         : Obj A
+           phi       : Hom A (FObj T a) a
+           isAlgebra : IsAlgebra {a} {phi}
+       obj : Obj A
+       obj = a
+       φ : Hom A (FObj T a) a
+       φ = phi
+    open EMObj
+
+</pre>
+a は Obj そのものですが、Obj には φ : T(a)-&gt;a という射が付属していています。
+<p>
+射は、a の射そのものですが、やはり制約があります。
+<p>
+
+<pre>
+    record Eilenberg-Moore-Hom (a : EMObj ) (b : EMObj ) : Set (c₁ ⊔ c₂ ⊔ ℓ) where
+       field
+           EMap    : Hom A (obj a) (obj b)
+           homomorphism : A [ A [ (φ b)  o FMap T EMap ]  ≈ A [ EMap  o (φ a) ] ]
+    open Eilenberg-Moore-Hom
+    EMHom : (a : EMObj ) (b : EMObj ) -&gt; Set (c₁ ⊔ c₂ ⊔ ℓ)
+    EMHom = \a b -&gt; Eilenberg-Moore-Hom a b
+
+</pre>
+制約があるのとElienberg Moore Category の対象からの関数に直す必要があるので、やはり record にする必要があります。
+<p>
+φが満たす可換図を書くと、以下の様になります。
+<p>
+
+<pre>
+           η(a)                         μ(a)                     T(f)
+      a-----------&gt; T(a)         T^2(a)--------&gt; T(a)     T(a)----------&gt;T(b) 
+                    |               |            |         |              |
+                    |               |            |         |              |
+                    |φ          T(φ)|            |φ       φ|              |φ'
+                    |               |            |         |              |
+                    v               v            v         v              v
+      _             a              T(a)--------&gt;T(a)       a------------&gt; b
+                                          φ                      f   
+
+</pre>
+単位射は A の単位射そのものですが、制約を満たしているかどうかを確認する必要があります。制約を満たしているという証明を record に登録する必要があるわけです。
+<p>
+
+<pre>
+    Lemma-EM1 : {x : Obj A} {φ : Hom A (FObj T x) x} (a : EMObj )
+                   -&gt; A [ A [ φ  o FMap T (id1 A x) ]  ≈ A [ (id1 A x) o φ ] ]
+    Lemma-EM1 {x} {φ} a = let open ≈-Reasoning (A) in
+       begin
+           φ o FMap T (id1 A x)
+       ≈⟨ cdr ( IsFunctor.identity (isFunctor T) ) ⟩
+           φ o (id1 A (FObj T x))
+       ≈⟨ idR ⟩
+           φ
+       ≈⟨ sym idL ⟩
+           (id1 A x)  o φ
+       ∎
+    EM-id : { a : EMObj } -&gt; EMHom a a
+    EM-id {a} = record { EMap = id1 A (obj a);
+         homomorphism = Lemma-EM1 {obj a} {phi a} a }
+
+</pre>
+合成も合成自体は同じですが、homorphism を証明しなくてはなりません。
+<p>
+
+<pre>
+    open import Relation.Binary.Core
+    Lemma-EM2 : (a : EMObj )
+                (b : EMObj )
+                (c : EMObj )
+                (g : EMHom b c)
+                (f : EMHom a b)
+                     -&gt; A [ A [ φ c  o FMap T (A [ (EMap g)  o  (EMap f) ] ) ]
+                          ≈ A [ (A [ (EMap g)  o  (EMap f) ])  o φ a ] ]
+    Lemma-EM2 a b c g f = let
+          open ≈-Reasoning (A) in
+       begin
+            φ c  o FMap T ((EMap g)  o  (EMap f))
+       ≈⟨ cdr (distr T) ⟩
+            φ c o ( FMap T (EMap g)  o  FMap T (EMap f) )
+       ≈⟨ assoc ⟩
+            ( φ c o FMap T (EMap g))  o  FMap T (EMap f)
+       ≈⟨ car (homomorphism (g)) ⟩
+            ( EMap g o φ b) o  FMap T (EMap f)
+       ≈⟨ sym assoc ⟩
+            EMap g  o (φ b o  FMap T (EMap f) )
+       ≈⟨ cdr (homomorphism (f)) ⟩
+            EMap g  o (EMap f  o  φ a)
+       ≈⟨ assoc ⟩
+            ( (EMap g)  o  (EMap f) )  o φ a
+       ∎
+    _∙_ :  {a b c : EMObj } -&gt; EMHom b c -&gt; EMHom a b -&gt; EMHom a c
+    _∙_ {a} {b} {c} g f = record { EMap = A [ EMap g  o EMap f ] ; homomorphism = Lemma-EM2 a b c g f }
+
+</pre>
+合成する射の homomorphism の合成によって証明を得ることができます。
+<p>
+等式はそのままです。
+<p>
+
+<pre>
+    _≗_ : {a : EMObj } {b : EMObj } (f g : EMHom a b ) -&gt; Set ℓ
+    _≗_ f g = A [ EMap f ≈ EMap g ]
+
+</pre>
+Category の性質は射に関するものだけで、射自体はAと同じで、合成に関して homomoprhism が成立することがわかっているので、Category の性質は、すべて A の性質に帰着することができます。
+<p>
+
+<pre>
+    isEilenberg-MooreCategory : IsCategory EMObj EMHom _≗_ _∙_  EM-id
+    isEilenberg-MooreCategory  = record  { isEquivalence =  isEquivalence
+                        ; identityL =   IsCategory.identityL (Category.isCategory A)
+                        ; identityR =   IsCategory.identityR (Category.isCategory A)
+                        ; o-resp-≈ =    IsCategory.o-resp-≈ (Category.isCategory A)
+                        ; associative = IsCategory.associative (Category.isCategory A)
+                        }
+         where
+             open ≈-Reasoning (A)
+             isEquivalence : {a : EMObj } {b : EMObj } -&gt;
+                   IsEquivalence {_} {_} {EMHom a b } _≗_
+             isEquivalence {C} {D} =      -- this is the same function as A's equivalence but has different types                          
+               record { refl  = refl-hom
+                 ; sym   = sym
+                 ; trans = trans-hom
+                 }
+    Eilenberg-MooreCategory : Category (c₁ ⊔ c₂ ⊔ ℓ) (c₁ ⊔ c₂ ⊔ ℓ) ℓ
+    Eilenberg-MooreCategory =
+      record { Obj = EMObj
+             ; Hom = EMHom
+             ; _o_ = _∙_
+             ; _≈_ = _≗_
+             ; Id  =  EM-id
+             ; isCategory = isEilenberg-MooreCategory
+              }
+
+</pre>
+Equivalence を一度分解する必要があるのはいつもの通りです。
+<p>
+
+<hr/>
+<h2><a name="content050">Monoid Monad に対する Elienberg Moore Category </a></h2>
+
+<pre>
+    f: a-&gt; b
+    T: a -&gt; (m,a) 
+    η: a -&gt; (1,a) 
+    μ: (m,(m',a)) -&gt; (mm',a) 
+
+</pre>
+でした。φは、以下のようになります。
+<p>
+
+<pre>
+    φ: (m,a) -&gt; φ(m,a) = ma 
+
+</pre>
+制約を証明する必要がありますが、Monad なことはわかっているので、既に証明は終わっています。
+<p>
+
+<pre>
+           η(a)                         μ(a)                     T(f)
+      a-----------&gt;(1,a)     (m,(m',a))-----&gt; (mm',a)   (m,a)-----------&gt;(m,f(a))
+                    |               |            |         |              |
+                    |               |            |         |              |
+                    |φ          T(φ)|            |φ       φ|              |φ'
+                    |               |            |         |              |
+                    v               v            v         v              v
+      _            1a           (m,m'a)--------&gt;mm'a      ma------------&gt; mf(a)=f(ma)
+                                          φ                      f   
+
+</pre>
+
+<hr/>
+<h2><a name="content051">Elienberg Moore Category による Resolution</a></h2>
+
+<p>
+二つのFunctor U^T, U^F そして、自然変換二つ η^T, μ^T を作ります。μ^T はμと同じですが型が違います。
+<p>
+
+<pre>
+    U^T : Functor Eilenberg-MooreCategory A
+    U^T = record {
+                FObj = \a -&gt; obj a
+              ; FMap = \f -&gt; EMap f
+            ; isFunctor = record
+            {      ≈-cong   = \eq -&gt; eq
+                 ; identity = refl-hom
+                 ; distr    = refl-hom
+            }
+         } where open ≈-Reasoning (A)
+
+</pre>
+U^T は非常に簡単です。homoprphism を忘れるだけです。
+<p>
+F^T はそうはいきません。Algebra を構築していく必要があります。
+<p>
+
+<pre>
+    open Monad
+    Lemma-EM4 : (x : Obj A ) -&gt; A [ A [ TMap μ x  o TMap η (FObj T x) ] ≈ id1 A (FObj T x) ]
+    Lemma-EM4 x = let  open ≈-Reasoning (A) in
+        begin
+           TMap μ x  o TMap η (FObj T x)
+        ≈⟨ IsMonad.unity1 (isMonad M) ⟩
+           id1 A (FObj T x)
+        ∎
+    Lemma-EM5 : (x : Obj A ) -&gt; A [ A [ ( TMap μ x)  o TMap μ (FObj T x) ] ≈ A [ ( TMap μ x) o FMap T ( TMap μ x) ] ]
+    Lemma-EM5 x =  let  open ≈-Reasoning (A) in
+        begin
+           ( TMap μ x)  o TMap μ (FObj T x)
+        ≈⟨ IsMonad.assoc (isMonad M) ⟩
+           ( TMap μ x) o FMap T ( TMap μ x)
+        ∎
+    ftobj : Obj A -&gt; EMObj
+    ftobj = \x -&gt; record { a = FObj T x ; phi = TMap μ x;
+     isAlgebra = record {
+          identity = Lemma-EM4 x;
+          eval     = Lemma-EM5 x
+     } }
+
+</pre>
+FObj F^R では、Monad 則が、そのまま Obj に張り付くことがわかります。φ には　μ(x) が入ります。
+<p>
+
+<pre>
+    Lemma-EM6 :  (a b : Obj A ) -&gt; (f : Hom A a b ) -&gt;
+          A [ A [ (φ (ftobj b))  o FMap T (FMap T f) ]  ≈ A [ FMap T f  o (φ (ftobj a)) ] ]
+    Lemma-EM6 a b f =  let  open ≈-Reasoning (A) in
+        begin
+           (φ (ftobj b))  o FMap T (FMap T f)
+        ≈⟨⟩
+           TMap μ b  o FMap T (FMap T f)
+        ≈⟨ sym (nat μ) ⟩
+           FMap T f  o TMap μ a
+        ≈⟨⟩
+           FMap T f  o (φ (ftobj a))
+        ∎
+
+</pre>
+Lemma-EM6 :  (a b : Obj A ) -&gt; (f : Hom A a b ) -&gt;
+<pre>
+      A [ A [ (φ (ftobj b))  o FMap T (FMap T f) ]  ≈ A [ FMap T f  o (φ (ftobj a)) ] ]
+
+</pre>
+Lemma-EM6 a b f =  let  open ≈-Reasoning (A) in
+<pre>
+    begin
+       (φ (ftobj b))  o FMap T (FMap T f)
+    ≈⟨⟩
+       TMap μ b  o FMap T (FMap T f)
+    ≈⟨ sym (nat μ) ⟩
+       FMap T f  o TMap μ a
+    ≈⟨⟩
+       FMap T f  o (φ (ftobj a))
+    ∎
+    ftmap : {a b : Obj A} -&gt; (Hom A a b) -&gt; EMHom (ftobj a) (ftobj b)
+    ftmap {a} {b} f = record { EMap = FMap T f; homomorphism =  Lemma-EM6 a b f }
+
+</pre>
+FMap F^T では、μの可換性が homorphism になります。対象と射に Monad の要素が Algebra として付加されるわけです。それを除けば、F^T は実は T そのものです。実際、射の性質は、全部 T の性質にになります。
+<p>
+
+<pre>
+    F^T : Functor A Eilenberg-MooreCategory
+    F^T = record {
+            FObj = ftobj
+            ; FMap = ftmap
+            ; isFunctor = record {
+                   ≈-cong   = ≈-cong
+                 ; identity = identity
+                 ; distr    = distr1
+            }
+         } where
+            ≈-cong   : {a b : Obj A} {f g : Hom A a b} → A [ f ≈ g ] → (ftmap f) ≗ (ftmap g)
+            ≈-cong   = let  open ≈-Reasoning (A) in ( fcong T )
+            identity :  {a : Obj A} →  ftmap (id1 A a) ≗ EM-id {ftobj a}
+            identity = IsFunctor.identity ( isFunctor T )
+            distr1    :  {a b c : Obj A} {f : Hom A a b} {g : Hom A b c} → ftmap (A [ g o f ]) ≗ ( ftmap g ∙ ftmap f )
+            distr1    =  let  open ≈-Reasoning (A) in ( distr T )
+
+</pre>
+U^T は制約を忘れる、F^T は制約を付加する T なわけですから、T = (U^T ○ F^T) が成立します。
+<p>
+
+<pre>
+    Lemma-EM7 :  ∀{a b : Obj A} -&gt; (f : Hom A a b ) -&gt; A [ FMap T f  ≈ FMap (U^T ○ F^T) f ]
+    Lemma-EM7 {a} {b} f = let open ≈-Reasoning (A) in
+         sym ( begin
+              FMap (U^T ○ F^T) f
+         ≈⟨⟩
+              EMap ( ftmap f )
+         ≈⟨⟩
+               FMap T f
+         ∎ )
+    Lemma-EM8 :  T ≃  (U^T ○ F^T)
+    Lemma-EM8 f = Category.Cat.refl (Lemma-EM7 f)
+
+</pre>
+証明というよりは定義から自明ですね。
+<p>
+
+<hr/>
+<h2><a name="content052">自然変換を作る</a></h2>
+η^T はηの型を変えたものです。EM7 で型を変換する必要があります。
+<p>
+
+<pre>
+    η^T : NTrans A A identityFunctor ( U^T ○ F^T )
+    η^T = record { TMap = \x -&gt; TMap η x ; isNTrans = isNTrans1 } where
+           commute1 :  {a b : Obj A} {f : Hom A a b}
+                → A [ A [ ( FMap ( U^T ○ F^T ) f ) o  ( TMap η a ) ]  ≈ A [ (TMap η b ) o  f  ] ]
+           commute1 {a} {b} {f} =  let open ≈-Reasoning (A) in
+              begin
+                  ( FMap ( U^T ○ F^T ) f ) o  ( TMap η a )
+              ≈⟨ sym (resp refl-hom (Lemma-EM7 f)) ⟩
+                  FMap T f o TMap η a
+              ≈⟨ nat η ⟩
+                  TMap η b o f
+              ∎
+           isNTrans1 : IsNTrans A A identityFunctor ( U^T ○ F^T ) (\a -&gt; TMap η a)
+           isNTrans1 = record { commute = commute1 }
+
+</pre>
+本命はε^Tです。これは φ を取ってくる操作です。φは自然変換だったわけです。F^T が対象に付加した φ は自然変換 μ でした。homomorphism には eval を逆順入れます。これは F^T では Monad の assoc 則でした。
+<p>
+
+<pre>
+    Lemma-EM9 : (a : EMObj) -&gt; A [ A [ (φ a)  o FMap T (φ a) ]  ≈ A [ (φ a)  o (φ (FObj ( F^T ○ U^T ) a)) ] ]
+    Lemma-EM9 a = let open ≈-Reasoning (A) in
+              sym ( begin
+                  (φ a)  o (φ (FObj ( F^T ○ U^T ) a))
+              ≈⟨⟩
+                  (φ a)  o (TMap μ (obj a))
+              ≈⟨ IsAlgebra.eval (isAlgebra a) ⟩
+                  (φ a)  o FMap T (φ a)
+              ∎ )
+    emap-ε : (a : EMObj ) -&gt; EMHom (FObj ( F^T ○ U^T ) a)  a
+    emap-ε a = record { EMap = φ a ; homomorphism = Lemma-EM9 a }
+    ε^T : NTrans Eilenberg-MooreCategory Eilenberg-MooreCategory  ( F^T ○ U^T ) identityFunctor
+    ε^T = record { TMap = \a -&gt; emap-ε a; isNTrans = isNTrans1 } where
+           commute1 : {a b : EMObj } {f : EMHom a b}
+                →  (f ∙ ( emap-ε a ) ) ≗ (( emap-ε b ) ∙(  FMap (F^T ○ U^T) f ) )
+           commute1 {a} {b} {f} =  let open ≈-Reasoning (A) in
+              sym ( begin
+                 EMap (( emap-ε b ) ∙ (  FMap (F^T ○ U^T) f ))
+              ≈⟨⟩
+                 φ b  o   FMap T (EMap f)
+              ≈⟨ homomorphism f ⟩
+                 EMap f  o φ a
+              ≈⟨⟩
+                 EMap (f ∙ ( emap-ε a ))
+              ∎  )
+           isNTrans1 : IsNTrans  Eilenberg-MooreCategory Eilenberg-MooreCategory ( F^T ○ U^T ) identityFunctor (\a -&gt; emap-ε a )
+           isNTrans1 = record { commute = \{a} {b} {f} -&gt;  
+               (IsEquivalence.sym (IsCategory.isEquivalence (Category.isCategory A)) )  (homomorphism f ) }  -- commute1 {a} {b} {f}
+
+</pre>
+commute1 を使うと黄色くなってしまうので何かが足りないようです。 付加した制約が巧妙に、ε^T を構成していることがわかります。
+<p>
+μ^T は、いつもの通り、U^T ε^T F^T です。
+<p>
+
+<pre>
+    emap-μ :  (a : Obj A) -&gt; Hom A (FObj ( U^T ○ F^T ) (FObj ( U^T ○ F^T ) a)) (FObj ( U^T ○ F^T ) a)
+    emap-μ a = FMap U^T ( TMap ε^T ( FObj F^T a ))
+    μ^T : NTrans A A (( U^T ○ F^T ) ○ ( U^T ○ F^T )) ( U^T ○ F^T )
+    μ^T = record { TMap = emap-μ ; isNTrans = isNTrans1 } where
+            commute1 : {a b : Obj A} {f : Hom A a b}
+                 →  A [ A [ (FMap (U^T ○ F^T) f) o  ( emap-μ a) ]  ≈ A [ ( emap-μ b ) o  FMap (U^T ○ F^T) ( FMap (U^T ○ F^T) f)  ] ]
+            commute1 {a} {b} {f} =  let open ≈-Reasoning (A) in
+              sym ( begin
+                 ( emap-μ b ) o  FMap (U^T ○ F^T) ( FMap (U^T ○ F^T) f)
+              ≈⟨⟩
+                 (FMap U^T ( TMap ε^T ( FObj F^T b ))) o  (FMap (U^T ○ F^T) ( FMap (U^T ○ F^T) f) )
+              ≈⟨⟩
+                 (TMap μ b) o (FMap T (FMap T f))
+              ≈⟨ sym (nat μ) ⟩
+                  FMap T f  o ( TMap μ a )
+              ≈⟨⟩
+                 (FMap (U^T ○ F^T) f) o  ( emap-μ a)
+              ∎  )
+            isNTrans1 : IsNTrans A A (( U^T ○ F^T ) ○ ( U^T ○ F^T )) ( U^T ○ F^T ) emap-μ
+            isNTrans1 = record { commute = commute1 }
+
+</pre>
+これが μと等しいことを示しておく必要があります。
+<p>
+
+<pre>
+    Lemma-EM10 : {x : Obj A } -&gt; A [ TMap μ^T x ≈ FMap U^T ( TMap ε^T ( FObj F^T x ) ) ]
+    Lemma-EM10 {x} = let open ≈-Reasoning (A) in
+              sym ( begin
+                  FMap U^T ( TMap ε^T ( FObj F^T x ) )
+              ≈⟨⟩
+                  emap-μ x
+              ≈⟨⟩
+                  TMap μ^T x
+              ∎ )
+    Lemma-EM11 : {x : Obj A } -&gt; A [ TMap μ x ≈ FMap U^T ( TMap ε^T ( FObj F^T x ) ) ]
+    Lemma-EM11 {x} = let open ≈-Reasoning (A) in
+              sym ( begin
+                  FMap U^T ( TMap ε^T ( FObj F^T x ) )
+              ≈⟨⟩
+                  TMap μ x
+              ∎ )
+
+</pre>
+証明と言うよりは単なる cast ですね。しかし、これを MResolution 側では示すことはできません。
+<p>
+
+<hr/>
+<h2><a name="content053">Adjunction の構成</a></h2>
+Adjoint の証明自体は短いものです。
+<p>
+
+<pre>
+    Adj^T : Adjunction A Eilenberg-MooreCategory U^T F^T η^T ε^T
+    Adj^T = record {
+               isAdjunction = record {
+                   adjoint1 = \{b} -&gt; IsAlgebra.identity (isAlgebra b) ; -- adjoint1                                                       
+                   adjoint2 = adjoint2
+               }
+           } where
+               adjoint1 :   { b : EMObj } →
+                         A [ A [ ( FMap U^T ( TMap ε^T b))  o ( TMap η^T ( FObj U^T b )) ]  ≈ id1 A (FObj U^T b) ]
+               adjoint1 {b} =  let open ≈-Reasoning (A) in
+                   begin
+                      ( FMap U^T ( TMap ε^T b))  o ( TMap η^T ( FObj U^T b ))
+                   ≈⟨⟩
+                       φ b  o TMap η (obj b)
+                   ≈⟨ IsAlgebra.identity (isAlgebra b) ⟩
+                       id1 A (a b)
+                   ≈⟨⟩
+                       id1 A (FObj U^T b)
+                   ∎
+               adjoint2 :   {a : Obj A} →
+                         Eilenberg-MooreCategory [ Eilenberg-MooreCategory [ ( TMap ε^T ( FObj F^T a ))  o ( FMap F^T ( TMap η^T a )) ]
+                                         ≈ id1 Eilenberg-MooreCategory (FObj F^T a) ]
+               adjoint2 {a} =  let open ≈-Reasoning (A) in
+                   begin
+                      EMap (( TMap ε^T ( FObj F^T a )) ∙ ( FMap F^T ( TMap η^T a )) )
+                   ≈⟨⟩
+                      TMap μ a  o FMap T ( TMap η a )
+                   ≈⟨ IsMonad.unity2 (isMonad M) ⟩
+                      EMap (id1 Eilenberg-MooreCategory (FObj F^T a))
+                   ∎
+
+</pre>
+最後に Resolution を構成して終わりです。
+<p>
+
+<pre>
+    open MResolution
+    Resolution^T : MResolution A Eilenberg-MooreCategory T U^T F^T {η^T} {ε^T} {μ^T} Adj^T
+    Resolution^T = record {
+         T=UF = Lemma-EM8;
+         μ=UεF  = Lemma-EM11
+     }
+
+</pre>
+<a href="comparison-em.html"> Next : Elienberg-Moore圏による Conparison Functor   </a>
+</div>
+<ol class="side" id="menu">
+Elienberg Moore Category
+<li><a href="#content047">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content048">  Elienberg Moore Category</a>
+<li><a href="#content049">   * <a href="univmap.html"> Monoids </a> 同じような構造を持っています。これから出てくる homomorphism とかは、そこから来ています。
+</a>
+<li><a href="#content050">  Monoid Monad に対する Elienberg Moore Category </a>
+<li><a href="#content051">  Elienberg Moore Category による Resolution</a>
+<li><a href="#content052">  自然変換を作る</a>
+<li><a href="#content053">  Adjunction の構成</a>
+<li><a href="#content054">   * <a href="comparison-em.html"> Next : Elienberg-Moore圏による Conparison Functor   </a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 09:32:06 2013
+</body></html>

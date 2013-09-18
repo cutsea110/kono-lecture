@@ -1,0 +1,49 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>自然変換</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>自然変換</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+List の先頭要素を返す head  ( x は空のリストであってはならない )
+<p>
+
+<pre>
+    fmap show ( head  x ) =  head ( fmap show x )
+
+</pre>
+List ( List Integer ) を考えよう。flatten は、自然変換になっている。この場合、TT(f) は Nest した List のみに働く必要がある。
+<p>
+行列の行列式を求める関数
+<p>
+これら、 あるいは、その他の適当な例を作り、自然変換であることを Agda で少なくとも一つ証明せよ。
+<p>
+</div>
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Tue Jul  2 01:06:22 2013
+</body></html>

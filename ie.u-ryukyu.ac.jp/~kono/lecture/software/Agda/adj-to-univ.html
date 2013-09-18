@@ -1,0 +1,340 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Adjunction から Universal mapping を導く</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Adjunction から Universal mapping を導く</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content001">Universal Mapping と Adjunction の対応</a></h2>
+Universal Mapping は Adjunction と一対一の対応があります。まず、Adjunction から Universal Mapping を導きます。<a href="examples/universal-mapping.agda"> universal-mapping.agda </a>
+
+<p>
+Adjoint には二つのFunctor U, Fと二つの自然変換η,εがあるので、道具立てが豊富なので、この方向の方が簡単です。
+<p>
+Universal Mapping の U,F,ηは、そのまま Adjoint のU,F,ηが対応します。あとは、解を求めて、唯一性を証明するだけです。
+<p>
+Adjoint の定義は、
+<p>
+
+<pre>
+        open import Category.Cat
+        record IsAdjunction  {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                         ( U : Functor B A )
+                         ( F : Functor A B )
+                         ( η : NTrans A A identityFunctor ( U ○  F ) )
+                         ( ε : NTrans B B  ( F ○  U ) identityFunctor )
+                         : Set (suc (c₁ ⊔ c₂ ⊔ ℓ ⊔ c₁' ⊔ c₂' ⊔ ℓ' )) where
+           field
+               adjoint1 :   { b : Obj B } →
+                             A [ A [ ( FMap U ( TMap ε b ))  o ( TMap η ( FObj U b )) ]  ≈ id1 A (FObj U b) ]
+               adjoint2 :   {a : Obj A} →
+                             B [ B [ ( TMap ε ( FObj F a ))  o ( FMap F ( TMap η a )) ]  ≈ id1 B (FObj F a) ] 
+
+</pre>
+こういう感じでした。使える道具はこれだけです。いや、いっぱい飛び道具がある感じです。でも、単にこれを仮定すればよいだけです。
+<p>
+
+<pre>
+      Adjunction A B U F η ε  →
+
+</pre>
+と書くだけです。これで、adjoint1, adjoint2 などが使い放題です。
+<p>
+証明するべき Adjunction から Universal mapping の命題は以下のように記述します。前に定義した、UniversalMapping A B U (FObj F) (TMap η) の record を構成すれば勝ちです。
+<p>
+
+<pre>
+    Adj2UM : {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                     { U : Functor B A }
+                     { F : Functor A B }
+                     { η : NTrans A A identityFunctor ( U ○  F ) }
+                     { ε : NTrans B B  ( F ○  U ) identityFunctor } →
+          Adjunction A B U F η ε  → UniversalMapping A B U (FObj F) (TMap η)
+    Adj2UM A B {U} {F} {η} {ε} adj = record {
+             _* = solution  ;
+             isUniversalMapping = record {
+                        universalMapping  = universalMapping;
+                        uniquness = uniqness
+                  }
+          } where
+             solution :  { a : Obj A} { b : Obj B} → ( f : Hom A a (FObj U b) ) →  Hom B (FObj F a ) b
+             solution  {_} {b} f = B [ TMap ε b o FMap F f ]
+
+</pre>
+解は、f* = ε(b) o F(f) です。随伴関手の可換図を書いてみると、このような感じです。
+<p>
+
+<pre>
+                           FU(b)
+                         ・   |
+                      ・      |
+              F(f) ・         |
+                ・         ε(b)
+             ・               |
+         ・      f*           v
+      F(a) -----------------&gt; b
+                U(f*)
+     UF(a) -----------------&gt; Ub
+       ^                    ・
+       |                 ・
+       |              ・
+    η(a)          ・  f
+       |       ・
+       |    ・    f = U(f*)η
+       |・
+       a
+
+</pre>
+ηとεの位置が対称になっているのがわかります。Free Monoid の例では、b から逆向きに f* をF(a)に届くまで f を使って合成しました。
+<p>
+この解が、UniversalMapping の解になっていることは一直線に証明することができます。
+<p>
+
+<pre>
+         universalMapping {a} {b} {f} =
+           let open ≈-Reasoning (A) in
+              begin
+                  FMap U ( solution  f) o TMap η a
+              ≈⟨⟩
+                  FMap U (  B [ TMap ε b o FMap F f ] ) o TMap η a
+              ≈⟨ car (distr U ) ⟩
+                 ( (FMap U (TMap ε b))  o (FMap U ( FMap F f )) ) o TMap η a
+              ≈⟨ sym assoc ⟩
+                  (FMap U (TMap ε b))  o ((FMap U ( FMap F f ))  o TMap η a )
+              ≈⟨ cdr (nat η) ⟩
+                  (FMap U (TMap ε b))  o ((TMap η (FObj U b )) o f )
+              ≈⟨ assoc ⟩
+                  ((FMap U (TMap ε b))  o (TMap η (FObj U b)))  o f
+              ≈⟨ car ( IsAdjunction.adjoint1 ( isAdjunction adj))  ⟩
+                  id (FObj U b) o f
+              ≈⟨  idL  ⟩
+                  f
+              ∎
+
+</pre>
+ηの可換性と adjoint1 が使われています。adjoint1 は、
+<p>
+
+<pre>
+         A [ A [ ( FMap U ( TMap ε b ))  o ( TMap η ( FObj U b )) ]  ≈ id1 A (FObj U b) ]
+
+</pre>
+つまり、
+<p>
+
+<pre>
+        U(ε(b))   o η(U(b))  = id(U(b))
+
+</pre>
+これは、ε(b) が、id(U(b)) の solution であることを示しています。(a = U(b)) の場合。
+<p>
+
+<pre>
+                U(ε(b))
+     UF(a) -----------------&gt; U(b) = a
+           &lt;-----------------    
+                η(a)
+
+</pre>
+と η(a)で UF(a) に行ったあと、U(ε(b)) で、U(b) に戻ってくるわけです。
+<p>
+これをηの可換性で f を使って下に引き伸ばすと、任意のfに対する解が得られます。
+<p>
+
+<pre>
+                U(ε(b))
+  UF(U(b)) -----------------&gt; U(b)
+       ^   &lt;-----------------  ^
+       |       η(U(b))         |
+       |                       |
+  UF(f)|                       |f
+       |                       |
+       |                       |
+     UF(a) &lt;----------------- -a  
+                η(a)
+
+</pre>
+この図がηの可換図であることと、U (ε(b) o F(f) ) o η(a) = f であることを示していることを理解できれば証明を理解したことになります。これが Agda の証明に対応していることもわかります。
+<p>
+
+<hr/>
+<h2><a name="content003"> 唯一性</a></h2>
+
+<pre>
+         uniqness :   {a' : Obj A} { b' : Obj B } → { f : Hom A a' (FObj U b') } → { g :  Hom B (FObj F a') b'} →
+                     A [ A [ FMap U g o  TMap η a' ]  ≈ f ] → B [ solution f  ≈ g ]
+
+</pre>
+を証明することになりますが、仮定に等式が入っているのと、cong が使えないのとで、ちょっと大変です。(cong は、x ≡ y → f x ≡  f y です )
+<p>
+
+<pre>
+         uniqness {a} {b} {f} {g} k = let open ≈-Reasoning (B) in
+
+</pre>
+と、k で、仮定の等式 FMap U g o  TMap η a'  ≈ f　を受けています。
+<p>
+
+<pre>
+       solution f
+
+</pre>
+は、
+<pre>
+       TMap ε b o FMap F f
+
+</pre>
+ですので、ここの f を等式を使って入れ替えます。Agda では代入は簡単ではありません。cong を使うことを意味するからです。圏の射に対する cong はありませんが、IsFunctor.≈-cong (isFunctor F) が使えます。これは、
+<p>
+
+<pre>
+    ≈-cong : {A B : Obj C} {f g : Hom C A B} → C [ f ≈ g ] → D [ FMap f ≈ FMap g ]
+
+</pre>
+つまり、Functor ならば cong と同じことができます。
+<p>
+
+<pre>
+              ≈⟨ cdr (sym ( lemma1 a b f g k )) ⟩
+
+</pre>
+として、lemma1 を呼び出します。
+<p>
+
+<pre>
+         lemma1 : (a : Obj A) ( b : Obj B ) ( f : Hom A a (FObj U b) ) → ( g :  Hom B (FObj F a) b) →
+                A [ A [ FMap U g o  TMap η a ]  ≈ f ] →
+                B [  (FMap F (A [ FMap U g o TMap η a ] )) ≈ FMap F f ]
+         lemma1 a b f g k = IsFunctor.≈-cong (isFunctor F) k
+
+</pre>
+これで、FMap F f が、(FMap F (A [ FMap U g o TMap η a ] )) に置き換わります。
+<p>
+あとは少し変形すると、
+<p>
+
+<pre>
+      g o ( TMap ε ( FObj F a)   o FMap F ( TMap η a ) )
+
+</pre>
+となり、ε(F(a)) o F(η(a)) = id(F(a)) という adjoint2 に帰着します。まとめると、こうなります。
+<p>
+
+<pre>
+         uniqness :   {a' : Obj A} { b' : Obj B } → { f : Hom A a' (FObj U b') } → { g :  Hom B (FObj F a') b'} →
+                     A [ A [ FMap U g o  TMap η a' ]  ≈ f ] → B [ solution f  ≈ g ]
+         uniqness {a} {b} {f} {g} k = let open ≈-Reasoning (B) in
+              begin
+                  solution f
+              ≈⟨⟩
+                  TMap ε b o FMap F f
+              ≈⟨ cdr (sym ( lemma1 a b f g k )) ⟩
+                  TMap ε b o FMap F ( A [ FMap U g o  TMap η a ] )
+              ≈⟨ cdr (distr F )  ⟩
+                  TMap ε b o ( FMap F ( FMap U g)  o FMap F ( TMap η a ) )
+              ≈⟨ assoc  ⟩
+                  ( TMap ε b o  FMap F ( FMap U g) ) o FMap F ( TMap η a )
+              ≈⟨ sym ( car ( nat ε ))  ⟩
+                  ( g o TMap ε ( FObj F a) )  o FMap F ( TMap η a )
+              ≈⟨ sym assoc ⟩
+                  g o ( TMap ε ( FObj F a)   o FMap F ( TMap η a ) )
+              ≈⟨ cdr ( IsAdjunction.adjoint2 ( isAdjunction adj )) ⟩
+                  g o id (FObj F a)
+              ≈⟨ idR ⟩
+                  g
+              ∎
+
+</pre>
+つまり、mapping の方で adjoin1 を使い、uniquness で adjoint2 を使います。Universal mapping の解と唯一性が随伴関手の二つの等式に対おいうしていることがわかります。こちらでは、εの可換性が使われています。
+<p>
+普遍問題は、任意のfに対して唯一の解f* が存在するという量化記号が入った形式ですが、随伴関手では、それが等式二つだけで書けています。
+<p>
+また、uniquenes はε側から見た普遍問題の解に相当することもわかります。二つの証明は構造的にまったく同じなこともわかります。
+<p>
+
+<hr/>
+<h2><a name="content004"> Hom(F(-),-) = Hom(-,U(-))</a></h2>
+随伴関手から普遍問題の解を導けたので、
+<p>
+
+<pre>
+     Hom(F(-),-) = Hom(-,U(-))
+
+</pre>
+を証明することができます。これは、随伴関手の組 F,U は、
+<p>
+
+<pre>
+    f : a -&gt; U(b)
+
+</pre>
+と、
+<p>
+
+<pre>
+    f* :F(a) -&gt; b
+
+</pre>
+とが一対一対応するという意味の式です。Hom(a,b) は、Hom A a b です。a から b への射の集合です。(f : Hom A a b) などとして、その要素 f を取り出していました。
+<p>
+
+<pre>
+    Hom(F(-),-) = λ a b -&gt; Hom A F(a) b
+    Hom(-,U(-)) = λ a b -&gt; Hom A a U(b)
+
+</pre>
+というわけです。実際、f* は普遍問題の解そのものです。
+<p>
+
+<pre>
+     Hom(F(-),-) = Hom(-,U(-))
+
+</pre>
+から随伴関手を構成するためには、普遍問題の解から随伴関手の二つの自然変換を構成する必要があります。
+<p>
+<a href="univ-to-adj.html"> next : Universal mapping  から Adjoint </a>
+</div>
+<ol class="side" id="menu">
+Adjunction から Universal mapping を導く
+<li><a href="#content000"> * <a href="index.html"> top Agda による圏論入門 </a>
+</a>
+<li><a href="#content001">  Universal Mapping と Adjunction の対応</a>
+<li><a href="#content002">   * <a href="examples/universal-mapping.agda"> universal-mapping.agda </a>
+</a>
+<li><a href="#content003">   唯一性</a>
+<li><a href="#content004">   Hom(F(-),-) = Hom(-,U(-))</a>
+<li><a href="#content005">   * <a href="univ-to-adj.html"> next : Universal mapping  から Adjoint </a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 05:50:16 2013
+</body></html>

@@ -1,0 +1,238 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Agda の集合の Level</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Agda の集合の Level</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content111">集合のLevel</a></h2>
+<a href="agda.html"> Agda </a> の方を先に読んだ方がわかりやすいはずです。
+ここでは、Set n などと書く時の n について調べます。
+<p>
+<a href="examples/list-nat.agda">  List の定義</a>
+で、集合のLevelを取っても、定義自体は問題なく受け入れられます。
+<p>
+
+<pre>
+    postulate A : Set  
+    postulate B : Set  
+    postulate C : Set  
+    postulate a : A  
+    postulate b : A  
+    postulate c : A  
+    infixr 40 _::_
+    data  List (A : Set ) : Set where
+       [] : List A
+       _::_ : A -&gt; List A -&gt; List A
+
+</pre>
+では、
+<p>
+
+<pre>
+    l1 = a :: []
+
+</pre>
+問題ありませんが、
+<p>
+
+<pre>
+    l1' = A :: []
+
+</pre>
+では、
+<p>
+
+<pre>
+   Set₁ != Set
+
+</pre>
+と言われてしまいます。これは A が Set₁ であることを示しています。a は、宣言から Set です。
+<p>
+集合 (Set) の Level は 
+<p>
+
+<pre>
+   open import Level
+
+</pre>
+を使うことにより、操作することができます。Level は自然数であり、zero から suc level という形を持つ。ただの Set は Set zero です。また、
+<p>
+
+<pre>
+    { c₁ c₂ ℓ : Level}  Set (c₁ ⊔ c₂ ⊔ ℓ)
+
+</pre>
+などのように ⊔ を使って、大きい方を取ることができます。
+<p>
+
+<pre>
+    infixr 40 _::_
+    data  List  (A : Set (suc zero)) : Set (suc zero) where
+       [] : List A
+       _::_ : A -&gt; List A -&gt; List A
+
+</pre>
+とすると、
+<p>
+
+<pre>
+    l1' = A :: []
+
+</pre>
+は問題ありませんが、
+<p>
+
+<pre>
+   l1 = a :: []
+
+</pre>
+は、
+<p>
+
+<pre>
+   Set != Set₁
+
+</pre>
+と言われてしまいます。
+<p>
+
+<hr/>
+<h2><a name="content114">すべてのレベルに対する List の定義</a></h2>
+<a href="examples/list-level.agda">  Level を含んだ List の定義</a>
+は以下のようになります。
+<p>
+
+<pre>
+    infixr 40 _::_
+    data  List {a} (A : Set a) : Set a where
+       [] : List A
+       _::_ : A -&gt; List A -&gt; List A
+    infixl 30 _++_
+    _++_ : ∀ {a} {A : Set a} -&gt; List A -&gt; List A -&gt; List A
+    []        ++ ys = ys
+    (x :: xs) ++ ys = x :: (xs ++ ys)
+    l1 = a :: []
+    l1' = A :: []
+    l2 = a :: b :: a :: c ::  []
+    l3 = l1 ++ l2
+    infixr 20  _==_
+    data _==_ {n} {A : Set n} :  List A -&gt; List A -&gt; Set n where
+          reflection  : {x : List A} -&gt; x == x
+          eq-cons : {x y : List A} { a : A } -&gt; x ==  y -&gt; ( a :: x ) == ( a :: y )
+          trans-list : {x y z : List A} { a : A } -&gt; x ==  y -&gt; y == z -&gt; x == z
+
+</pre>
+Level は{a}という暗黙の引数 (implicit variable) で書かれます。data は「ある Level a」に対して定義されます。
+<p>
+append _++_ は、すべてのレベルに対して定義されています。
+<p>
+
+<pre>
+    _++_ : {a : Level} -&gt; {A : Set a} -&gt; List A -&gt; List A -&gt; List A
+
+</pre>
+とも書きます。data の {a} に ∀ を付けることはできません。
+<p>
+
+<pre>
+    list-id-l : { A : Set } -&gt; { x : List A} -&gt;  [] ++ x == x
+    list-id-l = reflection
+
+</pre>
+使う場合は、Level を省略しても良い。暗黙の引数は自動的に推論されます。推論に失敗することもありますが。
+<p>
+
+<hr/>
+<h2><a name="content116">Level が上がる場合</a></h2>
+引数に異なる Level の集合が含まれる場合は、その最大値に合わせる必要があります。
+<p>
+
+<pre>
+    { c₁ c₂ ℓ : Level}  Set (c₁ ⊔ c₂ ⊔ ℓ)
+
+</pre>
+を使います。
+<p>
+Level n の集合を返す関数自体は、一つ上の Level の集合である必要があります。<a href="examples/level-ex.agda"> level-ex.agda </a>
+
+<p>
+
+<pre>
+    module level-ex where
+    open import Level
+    postulate ℓ : Level
+    postulate A : Set ℓ
+    postulate a : A
+    lemma1 : Set  ℓ -&gt; A
+    lemma1  = \x -&gt; a
+    lemma2 : A -&gt; Set  ℓ
+    lemma2 = \x -&gt; A
+    lemma3 : Set  (suc ℓ)
+    lemma3 = A -&gt; Set  ℓ
+
+</pre>
+Binary Relation に、そういう例があります。
+<p>
+
+<pre>
+    -- Heterogeneous binary relations                                                                                                                      
+    REL : ∀ {a b} → Set a → Set b → (ℓ : Level) → Set (a ⊔ b ⊔ suc ℓ)
+    REL A B ℓ = A → B → Set ℓ
+    -- Homogeneous binary relations                                                                                                                        
+    Rel : ∀ {a} → Set a → (ℓ : Level) → Set (a ⊔ suc ℓ)
+    Rel A ℓ = REL A A ℓ
+
+</pre>
+<a href="record.html"> Next : Agda の record 　</a>
+</div>
+<ol class="side" id="menu">
+Agda の集合の Level
+<li><a href="#content110">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content111">  集合のLevel</a>
+<li><a href="#content112">   * <a href="agda.html"> Agda </a> の方を先に読んだ方がわかりやすいはずです。
+</a>
+<li><a href="#content113">   * <a href="examples/list-nat.agda">  List の定義</a>
+</a>
+<li><a href="#content114">  すべてのレベルに対する List の定義</a>
+<li><a href="#content115">   * <a href="examples/list-level.agda">  Level を含んだ List の定義</a>
+</a>
+<li><a href="#content116">  Level が上がる場合</a>
+<li><a href="#content117">   * <a href="examples/level-ex.agda"> level-ex.agda </a>
+</a>
+<li><a href="#content118">   * <a href="record.html"> Next : Agda の record 　</a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 06:04:28 2013
+</body></html>

@@ -1,0 +1,745 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Universal mapping と、Free Monoid を使った例</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Universal mapping と、Free Monoid を使った例</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content162">Universal mapping Problem  とは</a></h2>
+Category A, B 、B から A への Functor U 、Aの対象から Bの対象への写像 F、さらに、a から、A の対象 a から UF(a) への射を返す写像η があるとします。
+<p>
+任意の f : a → U(b) に対して、
+<p>
+
+<pre>
+     U(f*)η(a) = f
+
+</pre>
+となるような唯一の f* : F(a) → b を Univeral mapping problem の解と言いいます。
+<p>
+
+<pre>
+              f*
+     F(a) -----------→ b
+    UF(a) ---------→ U(b)
+      ^
+      |
+  η(a)|            f
+      |
+      a
+      f = U(f*)η
+
+</pre>
+ηは、もちろん、随伴関手の自然変換 ηに対応するものです。F も関手になるべきものです。そして、自然変換 ε を定義できれば、Universal mapping を導くことができます。
+<p>
+η(a) は、a から UF(a) へのたくさんの射の中から、ただ一つを選び出す写像だと考えることができます。
+<p>
+この問題の定義は cat-utility に書いてあります。
+<p>
+
+<pre>
+        record IsUniversalMapping  {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ') 
+                         ( U : Functor B A )
+                         ( F : Obj A → Obj B )
+                         ( η : (a : Obj A) → Hom A a ( FObj U (F a) ) )
+                         ( _* : { a : Obj A}{ b : Obj B} → ( Hom A a (FObj U b) ) →  Hom B (F a ) b )
+                         : Set (suc (c₁ ⊔ c₂ ⊔ ℓ ⊔ c₁' ⊔ c₂' ⊔ ℓ' )) where
+           field
+               universalMapping :   {a : Obj A} { b : Obj B } → { f : Hom A a (FObj U b) } → 
+                             A [ A [ FMap U ( f * ) o  η a ]  ≈ f ]
+               uniquness :   {a : Obj A} { b : Obj B } → { f : Hom A a (FObj U b) } → { g :  Hom B (F a) b } → 
+                             A [ A [ FMap U g o  η a ]  ≈ f ] → B [ f * ≈ g ]
+        record UniversalMapping  {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ') 
+                         ( U : Functor B A )
+                         ( F : Obj A → Obj B )
+                         ( η : (a : Obj A) → Hom A a ( FObj U (F a) ) )
+                         : Set (suc (c₁ ⊔ c₂ ⊔ ℓ ⊔ c₁' ⊔ c₂' ⊔ ℓ' )) where
+            infixr 11 _*
+            field
+               _* :  { a : Obj A}{ b : Obj B} → ( Hom A a (FObj U b) ) →  Hom B (F a ) b 
+               isUniversalMapping : IsUniversalMapping A B U F η _*
+
+</pre>
+universalMapping は普遍問題の性質、
+<p>
+
+<pre>
+         A [ A [ FMap U ( f * ) o  η a ]  ≈ f ]
+
+</pre>
+つまり、U(f*)η = f です。
+<p>
+さらに、「ただ一つ」でなければなりません。つまり、U(g)η = f があったら、それは f* 。これが uniquness
+<p>
+
+<pre>
+         A [ A [ FMap U g o  η a ]  ≈ f ] → B [ f * ≈ g ]
+
+</pre>
+というわけです。_* を定義して、universalMapping の証明と uniquness の証明によって UniversalMapping が構成されます。Set (suc (c₁ ⊔ c₂ ⊔ ℓ ⊔ c₁' ⊔ c₂' ⊔ ℓ' )) というめんどくさい Levvel を持っていますが、Categoryを二つ含む定理では、いつものことです。
+<p>
+
+<pre>
+         ( U : Functor B A )
+         ( F : Obj A → Obj B )
+         ( η : (a : Obj A) → Hom A a ( FObj U (F a) ) )
+
+</pre>
+が登場要素ですが、Functor なのは U だけです。F はFunctor になりたいし、ηは自然変換になりたいわけですが、必要最小限な要求だけを書いています。あとで、_* があれば Functor と自然変換であることを示します。証明できるので、ここでは不要なわけです。
+<p>
+
+<hr/>
+<h2><a name="content163">Free Mnooid の例</a></h2>
+Monoid とは結合法則を満たすだた一つの演算と単位元を一つ持つ代数でした。集合a を与えた時に、集合a 上の List a を作ると、それは Monoid になります。この a → List a の写像を F(a) とします。
+<p>
+
+<pre>
+    F = list a
+
+</pre>
+list a は、単なる List ではなく、Agda の Monoid record でなければなりません。
+<p>
+F は Free と覚えることもできます。集合の要素を自由に組み合わせてできる Monoid なわけです。この文字列を自由に組み合わせた List を Kleene closure と言います。Free monoid とも呼ばれます。数学で Free と付いていると、基底から自由に組み合わせてできるものを指すようです。
+<p>
+A を Sets 、B を Monoid を対象とする圏だとします。 Monoid を圏して見るのではなく、Monoid 全部を集めて 作る圏です。U を Monoid b から の射の集合 (Carrier b) を得る関手だとします。U を Underlying と覚えることもできます。代数から代数構造を忘れるので忘却関手とも呼ばれます。
+<p>
+a から生成された List a のCarrier から基底を選び出す写像があるとします。これをη(a)とします。任意の η が普遍問題の解を導くわけではなく、特定のηとUとFの組み合わせにより解を作ります。
+<p>
+ここでは、
+<p>
+
+<pre>
+    η(a) = λ (x : a ) → [x]
+
+</pre>
+つまり、要素一つの List a を返す写像です。自然変換である必要ありませんが、後で、自然変換になることを示します。
+<p>
+ある集合 a から、ある Monoid b の Carrier への写像 f があると、集合 a から作った List a から Monoid b への準同型写像 (射を保存する写像 )が基底η(a)に対して唯一存在します。これがUniversal mapping の解 f* です。
+<p>
+
+<pre>
+      f* : [a,b,c,d,e] →  f(a) ∙ f(b) ∙ f(c) ∙ f(d) ○ f(e) 
+
+</pre>
+さらに、
+<p>
+
+<pre>
+        (f*)[a] = f(a)
+
+</pre>
+となります。
+<p>
+つまり、 任意の集合 a から Monoid b の Carrier への射 f に対して、
+<p>
+
+<pre>
+      f = U(f*)η(a)
+
+</pre>
+となる唯一の f * : F(a) → b を与えるようなFree Monoid  F(a) と、その基底 η(a) の組があるというわけです。
+<p>
+U(f*) は、Sets の射ですから写像です。η(a) は x から要素一つのリスト、[x]への(Setsの射である)写像です。この二つの合成が f (Sets の射) になります。つまり、U(f*) は要素一つのリストから、Monoid の Carrier への射です。つまり、u(f*)η(a) は、集合 a から Monoid b への射で、f の型と同じであることがわかります。
+<p>
+η(a) は恣意的に選ばれている気がしますが、Universal mapping を提供する η, U, F の要素の一つとして定義されています。
+<p>
+
+<hr/>
+<h2><a name="content164">Free Monoid の使い方</a></h2>
+Free Monooid の Universal mapping は、集合からMonoidへの写像f に関する議論ならば、Free Monoid = List
+で議論するので十分だということを示しています。これは、List が Monoid の Model だと考えても良いということです。
+<p>
+Monoid の性質、
+<p>
+
+<pre>
+    identity :  [] ++ x = x
+                x ++ [] = x
+    assoc :    a ++ ( b ++ c ) = ( a ++ b ) ++ c
+
+</pre>
+は、List て考えて構いません。Monoid の射 (Carrier ) は、基本的な射 (a や b) か、その合成であるわけです。これは Monoid に対して極めて具体的なイメージを提供します。
+<p>
+Monoids の Monoid 同士の射である homomorphism は、
+<p>
+
+<pre>
+    基本要素の射 :     a → f(a)   
+    単位元 :           [] → f([])    = ε
+
+</pre>
+と、その合成、
+<p>
+
+<pre>
+     f(a) ○ f(b) ○ f(c) ○ f(d) ○ f(e) 
+
+</pre>
+からなると考えると、
+<p>
+
+<pre>
+     *f : [] = f([]_ = ε
+     *f : a ++ b = f(a)  ○ f (b)
+
+</pre>
+が具体的な形で見えてきます。実際、これが Universal mapping の性質です。
+<p>
+
+<hr/>
+<h2><a name="content165">Agda で Free Monoid を書く</a></h2>
+List と、その結合は、もう既に書きました。
+<p>
+
+<pre>
+    infixr 40 _::_
+    data  List  (A : Set c ) : Set c where
+       [] : List A
+       _::_ : A → List A → List A
+    infixl 30 _++_
+    _++_ :   {A : Set c } → List A → List A → List A
+    []        ++ ys = ys
+    (x :: xs) ++ ys = x :: (xs ++ ys)
+
+</pre>
+問題は、書かなければならないのは Monoid ではなくて、Monoid を対象にする圏 Monoids だということです。Underline Functor U によって、 Monoids は Sets に写像されます。
+<p>
+まず、Monoid を定義します。T = M x A で使ったものをここでも使います。Monoid は Algbra にあります。
+<p>
+
+<pre>
+    open import Algebra.FunctionProperties using (Op₁; Op₂)
+    open import Algebra.Structures
+    open import Data.Product
+    record ≡-Monoid : Set (suc c) where
+      infixl 7 _∙_
+      field
+        Carrier  : Set c
+        _∙_      : Op₂ Carrier
+        ε        : Carrier
+        isMonoid : IsMonoid _≡_ _∙_ ε
+    open ≡-Monoid
+
+</pre>
+_≡_  が使えるので Sets と相性が良いのが特徴です。isMnoid には単位元と結合則が入っています。Monoid の射は Carrier と呼ばれます。
+<p>
+これが Monoids の Obj 対象です。そして、射になるのは、Monoid 間の準同型写像 (Homomoriphism)です。Functor と同様、単位元を保存し、分配則が成立します。moprh 自体は普通の写像です。これも Sets と相性がよろしい。
+<p>
+
+<pre>
+    record Monomorph ( a b : ≡-Monoid )  : Set (suc c) where
+      field
+          morph : Carrier a → Carrier b
+          identity     :  morph (ε a)  ≡  ε b
+          homo :  ∀{x y} → morph ( _∙_ a x  y ) ≡ ( _∙_ b (morph  x ) (morph  y) )
+    open Monomorph
+
+</pre>
+Monoid 毎に別な演算 _∙_ があるので、infix はうまく働きません。_∙_ と書けば、普通の関数と同じ扱いになります。単位元と結合則で、二つの法則がちゃんと成立することを証明する必要があります。
+<p>
+
+<pre>
+    _+_ : { a b c : ≡-Monoid } → Monomorph b c → Monomorph a b → Monomorph a c
+    _+_ {a} {b} {c} f g =  record {
+          morph = λx →  morph  f ( morph g x ) ;
+          identity  = identity1 ;
+          homo  = homo1
+       } where
+          identity1 : morph f ( morph g (ε a) )  ≡  ε c
+          -- morph f (ε b) = ε c ,  morph g (ε a) ) ≡  ε b                                                                          
+          -- morph f  morph g (ε a) ) ≡  morph f (ε b) = ε c                                                                        
+          identity1 = trans ( ≡-cong (morph f ) ( identity g ) )  ( identity f )
+          homo1 :  ∀{x y} → morph f ( morph g ( _∙_ a x  y )) ≡ ( _∙_ c (morph f (morph  g x )) (morph f (morph  g y) ) )
+          --  ∀{x y} → morph f ( morph g ( _∙_ a x  y )) ≡ morph f ( ( _∙_ c  (morph  g x )) (morph  g y) )                        
+          --  ∀{x y} → morph f ( ( _∙_ c  (morph  g x )) (morph  g y) )  ≡ ( _∙_ c (morph f (morph  g x )) (morph f (morph  g y) ))
+          homo1 = trans  (≡-cong (morph f ) ( homo g) ) ( homo f )
+    M-id : { a : ≡-Monoid } → Monomorph a a
+    M-id = record { morph = λx → x  ; identity = refl ; homo = refl }
+
+</pre>
+Reasoning を使うべきですが、ちょっとさぼっています。困った時には refl です。
+<p>
+等号は morph だけを見ます。record ごと  _≡_ で見ると、identity とかも比較するので失敗してしまいます。
+<p>
+
+<pre>
+    _==_ : { a b : ≡-Monoid } → Monomorph a b → Monomorph a b → Set c
+    _==_  f g =  morph f ≡ morph g
+
+</pre>
+あとは、これらを使って圏 Monoids を作るだけです。
+<p>
+
+<pre>
+    isMonoids : IsCategory ≡-Monoid Monomorph _==_  _+_  (M-id)
+    isMonoids  = record  { isEquivalence =  isEquivalence1
+                        ; identityL =  refl
+                        ; identityR =  refl
+                        ; associative = refl
+                        ; o-resp-≈ =    λ{a} {b} {c} {f} {g} {h} {i} → o-resp-≈ {a} {b} {c} {f} {g} {h} {i}
+                        }
+         where
+            o-resp-≈ :  {a b c :  ≡-Monoid } {f g : Monomorph a b } → {h i : Monomorph b c } →
+                              f ==  g → h ==  i → (h + f) ==  (i + g)
+            o-resp-≈  {A} refl refl = refl
+            isEquivalence1 : { a b : ≡-Monoid } → IsEquivalence {_} {_} {Monomorph a b}  _==_
+            isEquivalence1  =      -- this is the same function as A's equivalence but has different types                          
+               record { refl  = refl
+                 ; sym   = sym
+                 ; trans = trans
+                 }
+    Monoids : Category _ _ _
+    Monoids  =
+      record { Obj =  ≡-Monoid
+             ; Hom = Monomorph
+             ; _o_ = _+_
+             ; _≈_ = _==_
+             ; Id  =  M-id
+             ; isCategory = isMonoids
+               }
+
+</pre>
+refl だけでできてしまうので簡単です。
+<p>
+
+<hr/>
+<h2><a name="content166">Underline Functor と Generator を作る</a></h2>
+
+<pre>
+    A = Sets {c}
+    B = Monoids
+
+</pre>
+としましょう。Underline Functro (Forgetful functor / 忘却関手 ) は、Carrier を取ってくるだけです。Carrier は、そのまま Set
+だからです。T = M x A でも、同じ方法を使いました。 
+<p>
+
+<pre>
+    open Functor
+    U : Functor B A
+    U = record {
+           FObj = λm → Carrier m ;
+           FMap = λf → morph f ;
+           isFunctor = record {
+                  ≈-cong   = λx → x
+                 ; identity = refl
+                 ; distr    = refl
+           }
+       }
+
+</pre>
+忘却関手は射の集合を集合として対象にします。Monoid は対象を一つだけ持ちますが、それではありません。圏では重要なのは射です。忘れているのは、identity や homo の拘束条件です。moroph は、もう単なる写像なので関手の条件もほとんど refl です。≈-cong  は等式を受け取って、そのまま返します。
+<p>
+関手 Generator は、list を返すわけですが、それは Monoid でなければなりません。つまり、Monoid の性質を証明する必要があります。Data の List を使っても良いですが、ここでは自分で証明します。
+<p>
+
+<pre>
+    -- FObj                                                                                                                         
+    list  : (a : Set c) → ≡-Monoid
+    list a = record {
+        Carrier    =  List a
+        ; _∙_      = _++_
+        ; ε        = []
+        ; isMonoid = record {
+              identity = ( ( λx → list-id-l {a}  ) , ( λx → list-id-r {a} ) ) ;
+              isSemigroup = record {
+                   assoc =  λx → λy → λz → sym ( list-assoc {a} {x} {y} {z} )
+                 ; isEquivalence = list-isEquivalence
+                 ; ∙-cong = λx → λy →  list-o-resp-≈ y x
+              }
+          }
+        }
+
+</pre>
+record の identity = は、特別な構文であり、引数を付けることはできません。なので、λ式で受けています。Monoid の identity は Prouct で記述されているので、それに合わせます。
+<p>
+
+<pre>
+    ≡-cong = Relation.Binary.PropositionalEquality.cong
+    list-id-l : { A : Set c } → { x : List A } →  [] ++ x ≡ x
+    list-id-l {_} {_} = refl
+    list-id-r : { A : Set c } → { x : List A } →  x ++ [] ≡ x
+    list-id-r {_} {[]} =   refl
+    list-id-r {A} {x :: xs} =  ≡-cong ( λy → x :: y ) ( list-id-r {A} {xs} )
+    list-assoc : {A : Set c} → { xs ys zs : List A } →
+          ( xs ++ ( ys ++ zs ) ) ≡ ( ( xs ++ ys ) ++ zs )
+    list-assoc  {_} {[]} {_} {_} = refl
+    list-assoc  {A} {x :: xs}  {ys} {zs} = ≡-cong  ( λy  → x :: y )
+             ( list-assoc {A} {xs} {ys} {zs} )
+    list-o-resp-≈ :  {A : Set c} →  {f g : List A } → {h i : List A } →
+                      f ≡  g → h ≡  i → (h ++ f) ≡  (i ++ g)
+    list-o-resp-≈  {A} refl refl = refl
+    list-isEquivalence : {A : Set c} → IsEquivalence {_} {_} {List A }  _≡_
+    list-isEquivalence {A} =      -- this is the same function as A's equivalence but has different types                           
+       record { refl  = refl
+         ; sym   = sym
+         ; trans = trans
+         }
+
+</pre>
+cong の名前が重なっているので、別に用意しています。これも、既に証明したものですが、Monoid に合わせる必要があります。
+<p>
+
+<pre>
+    Generator : Obj A → Obj B
+    Generator s =  list s
+
+</pre>
+これが Generator です。関手には、まだなってません。Universal mapping の解と合わせて関手を構成します。
+<p>
+
+<hr/>
+<h2><a name="content167"> 解の構成</a></h2>
+解は基本的に、List を分解して、一つ一つ f で写像して、Monoid として合成するだけです。
+<p>
+
+<pre>
+    open UniversalMapping
+    Φ :  {a : Obj A } {b : Obj B} { f : Hom A a (FObj U b) } →  List a → Carrier b
+    Φ {a} {b} {f} [] = ε b
+    Φ {a} {b} {f} ( x :: xs ) = _∙_ b  ( f x ) (Φ {a} {b} {f} xs )
+
+</pre>
+これが *f [a,b,c] = f(a) ∙ f(b) ∙ f(c) そのものです。よく使うので抜き出してあります。 *f [] = εも、ここで定義されています。
+<p>
+あとは、これから Monoids の射 homo を構成すれば良いわけです。solution は新しく作られる Monoids の射ですから、identity と homo を証明する必要があります。
+<p>
+
+<pre>
+    solution : (a : Obj A ) (b : Obj B) ( f : Hom A a (FObj U b) ) →  Hom B (Generator a ) b
+    solution a b f = record {
+             morph = λ(l : List a) → Φ l   ;
+             identity = refl ;
+             homo = λ{x y} → homo1 x y
+        } where
+            _*_ : Carrier b → Carrier b → Carrier b
+            _*_  f g = _∙_ b f g
+            homo1 : (x y : Carrier (Generator a)) → Φ ((Generator a ∙ x) y) ≡ (b ∙ Φ x) (Φ y)
+            homo1 [] y = sym (proj₁ ( IsMonoid.identity ( isMonoid b) ) (Φ y))
+            homo1 (x :: xs) y = let open ≡-Reasoning in
+                 sym ( begin
+                    (Φ {a} {b} {f} (x :: xs)) * (Φ {a} {b} {f} y)
+                 ≡⟨⟩
+                     ((f x) * (Φ {a} {b} {f} xs)) * (Φ {a} {b} {f} y)
+                 ≡⟨ ( IsMonoid.assoc ( isMonoid b )) _ _ _ ⟩
+                    (f x) * ( (Φ {a} {b} {f} xs)  * (Φ {a} {b} {f} y) )
+                 ≡⟨ sym ( (IsMonoid.∙-cong (isMonoid b)) refl (homo1 xs y )) ⟩
+                    (f x) * ( Φ {a} {b} {f} ( xs ++ y ) )
+                 ≡⟨⟩
+                    Φ {a} {b} {f} ( x :: ( xs ++ y ) )
+                 ≡⟨⟩
+                    Φ {a} {b} {f} ( (x ::  xs) ++ y )
+                 ≡⟨⟩
+                    Φ {a} {b} {f} ((Generator a ∙ x :: xs) y)
+                 ∎ )
+
+</pre>
+射 Φ の定義に従って証明します。list と Monoid が混在するので、演算を定義しなおして infix で使っています。++ は Generator a の演算 _∙_ でした。Φの定義の展開は ≡⟨⟩ で自動的に行われます。見やすいように変形しているだけです。
+<p>
+homo1 は、List の constructor ( [], _::_ ) で場合分けして証明します。List の証明の定番です。Monoid の identity は Product であり、さらに引数を取るので、それに合わせて呼び出しています。list-id-r をそのまま呼び出すこともできます。
+<p>
+
+<pre>
+    ≡⟨ sym ( (IsMonoid.∙-cong (isMonoid b)) refl (homo1 xs y )) ⟩
+
+</pre>
+で、homo1 を再帰的に呼び出しています。より短い射への証明を呼び出すわけです。「より短い」を Agda が認識できない場合は「黄色」が出て「証明の停止性に問題がある」ことを示します。Agda のλ式では、無限ループは許されないわけです。これは、型の unification で x = f ( x ) が許されないことに対応します。f ( f ( f ( ... ) ) )  = x になってしまうわけです。
+<p>
+
+<pre>
+      f ( [] ) = []
+      f ( x :: xs ) = f ( xs ) 
+
+</pre>
+なら大丈夫です。
+<p>
+Φの暗黙の引数は、Reasoing の中では省略できません。さぼると黄色くなってしまいます。
+<p>
+次に (insertion function と呼ばれるらしい) ηを構成します。これは楽勝です。[x] つまり、x :: [] を返すだけです。
+<p>
+
+<pre>
+    eta :  (a : Obj A) → Hom A a ( FObj U (Generator a) )
+    eta  a = λ( x : a ) →  x :: []
+
+</pre>
+
+<hr/>
+<h2><a name="content168"> Universal mapping を構成する</a></h2>
+
+<p>
+これで役者はそろったので、f = U(f*)ηと、その唯一性を証明して、UniversalMapping record を構成します。Sets を扱うので、Functional Extensinality (∀ {x} → (f x ≡ g x))  → ( f ≡ g ) を仮定します。
+<p>
+
+<pre>
+    -- Functional Extensionality Axiom (We cannot prove this in Agda / Coq, just assumming )
+    -- postulate extensionality : { a b : Obj A } {f g : Hom A a b } → (∀ {x} → (f x ≡ g x))  → ( f ≡ g ) 
+    postulate extensionality : Relation.Binary.PropositionalEquality.Extensionality c c 
+    FreeMonoidUniveralMapping : UniversalMapping A B U Generator eta
+    FreeMonoidUniveralMapping =
+        record {
+           _* = λ{a b} → λf → solution a b f ;
+           isUniversalMapping = record {
+                 universalMapping = λ{a b f} → universalMapping {a} {b} {f} ;
+                 uniquness = λ{a b f g} → uniquness {a} {b} {f} {g}
+           }
+        } where
+            universalMapping :  {a : Obj A } {b : Obj B} { f : Hom A a (FObj U b) } →  FMap U ( solution a b f  ) o eta a   ≡ f
+            universalMapping {a} {b} {f} = let open ≡-Reasoning in
+                         begin
+                             FMap U ( solution a b f ) o eta a
+                         ≡⟨⟩
+                             ( λ (x : a ) → Φ {a} {b} {f} (eta a x) )
+                         ≡⟨⟩
+                             ( λ (x : a ) → Φ {a} {b} {f} ( x :: [] ) )
+                         ≡⟨⟩
+                             ( λ (x : a ) →  _∙_ b  ( f x ) (Φ {a} {b} {f} [] ) )
+                         ≡⟨⟩
+                             ( λ (x : a ) →  _∙_ b  ( f x ) ( ε b ) )
+                         ≡⟨ ≡-cong ( λ g → ( ( λ (x : a ) →  g x ) )) (extensionality lemma-ext1) ⟩
+                             ( λ (x : a ) →  f x  )
+                         ≡⟨⟩
+                              f
+                         ∎  where
+                            lemma-ext1 : ∀{ x : a } →  _∙_ b  ( f x ) ( ε b )  ≡ f x
+                            lemma-ext1 {x} = ( proj₂ ( IsMonoid.identity ( isMonoid b) ) ) (f x)
+
+</pre>
+universalMapping 側は一直線ですが、一箇所、extensionality が必要になります。Sets では射が λ x → f x の形なので避けることは難しいようです。
+<p>
+Uniqueness の方が少し面倒です。
+<p>
+
+<pre>
+        uniquness :  {a : Obj A } {b : Obj B} { f : Hom A a (FObj U b) } →
+             { g :  Hom B (Generator a) b } → (FMap U g) o (eta a )  ≡ f  → B [ solution a b f ≈ g ]
+        uniquness {a} {b} {f} {g} eq =
+                     extensionality  ( lemma-ext2 ) where
+                        lemma-ext2 : ( ∀{ x : List a } → (morph ( solution a b f)) x  ≡ (morph g) x  )
+                        -- (morph ( solution a b f)) []  ≡ (morph g) []  )                                                      
+                        lemma-ext2 {[]} = let open ≡-Reasoning in
+                             begin
+                                (morph ( solution a b f)) []
+                             ≡⟨ identity ( solution a b f) ⟩
+                                ε b
+                             ≡⟨ sym ( identity g ) ⟩
+                                (morph g) []
+                             ∎
+                        lemma-ext2 {x :: xs}  = let open ≡-Reasoning in
+                             begin
+                                (morph ( solution a b f)) ( x :: xs )
+                             ≡⟨ homo ( solution a b f) {x :: []} {xs} ⟩
+                                 _∙_ b ((morph ( solution a b f)) ( x :: []) )  ((morph ( solution a b f)) xs )
+                             ≡⟨  ≡-cong ( λ k → (_∙_ b ((morph ( solution a b f)) ( x :: []) ) k )) (lemma-ext2 {xs} )   ⟩
+                                 _∙_ b ((morph ( solution a b f)) ( x :: []) )  ((morph g) ( xs ))
+                             ≡⟨  ≡-cong ( λk → ( _∙_ b ( k x ) ((morph g) ( xs )) )) (
+                                 begin
+                                     ( λx → (morph ( solution a b f)) ( x :: [] ) )
+                                 ≡⟨ extensionality lemma-ext3 ⟩
+                                     ( λx → (morph g) ( x :: [] ) )
+                                 ∎
+                             ) ⟩
+                                 _∙_ b ((morph g) ( x :: [] )) ((morph g) ( xs ))
+                             ≡⟨ sym ( homo g ) ⟩
+                                (morph g) ( x :: xs )
+                             ∎   where
+                         lemma-ext3 :  ∀{ x : a } → (morph ( solution a b f)) (x :: [])  ≡ (morph g) ( x :: []  )
+                         lemma-ext3 {x} = let open ≡-Reasoning in
+                             begin
+                               (morph ( solution a b f)) (x :: [])
+                             ≡⟨  ( proj₂  ( IsMonoid.identity ( isMonoid b) )(f x) ) ⟩
+                                f x
+                             ≡⟨  sym ( ≡-cong (λf → f x )  eq  ) ⟩
+                               (morph g) ( x :: []  )
+                             ∎
+
+</pre>
+証明すべき式自体が、 (FMap U g) o (eta a )  ≡ f  → B [ solution a b f ≈ g ] ですが、このままだと、手がかりがなさすぎます。でも、
+<p>
+
+<pre>
+    eta a
+
+</pre>
+は確か、
+<p>
+
+<pre>
+    eta a = λ( x : a ) →  x :: []
+
+</pre>
+でした。λx はどこに? と言うことは、、 (FMap U g) o (eta a )  ≡ f  本当は、
+<p>
+
+<pre>
+     λx → (FMap U g) o (eta a x )  ≡ λx → f x  
+
+</pre>
+B [ solution a b f ≈ g ] も同様に、λy → solution a b f ≈ λy → g y 。しかも、y は List a なはずです。
+<p>
+
+<pre>
+     λ(y : List a) → B [ solution a b f ≈ λ(y : List a) → g y  ]
+
+</pre>
+だとすれば、extensinality で引数を明示して、List a の定石である [] と _::_ の場合分けを行えば良いわけです。それが、
+<p>
+
+<pre>
+         extensionality  ( lemma-ext2 ) where
+            lemma-ext2 : ( ∀{ x : List a } → (morph ( solution a b f)) x  ≡ (morph g) x  )
+
+</pre>
+です。 B は Monoids ですから、射の等式は morph を比較すれば良いわけです。[] の case は、
+<p>
+
+<pre>
+        (morph ( solution a b f)) [] ≡⟨ sym ( identity g ) ⟩ (morph g) []
+
+</pre>
+です。これは、以下のように示せます。
+<p>
+
+<pre>
+        lemma-ext2 {[]} = let open ≡-Reasoning in
+             begin
+                (morph ( solution a b f)) []
+             ≡⟨ identity ( solution a b f) ⟩
+                ε b
+             ≡⟨ sym ( identity g ) ⟩
+                (morph g) []
+             ∎
+
+</pre>
+[] の case は比較的簡単ですが、_::_ はやさしくありません。f* ( a ++ b ) = f(a) ∙ f(b) を示すだけなので、homo で分解して sym homo で元に戻せば良いだけですが... 示すべき式は、
+<p>
+
+<pre>
+        (morph ( solution a b f)) ( x :: xs ) ≡ (morph g) ( x :: xs )
+
+</pre>
+です。 x :: xs  は、x ++ xs ではないので、homo で分解すると、[x] ++ xs つまり、_::_ x [] と、xs に分解されます。分解した xs 側は、
+<p>
+
+<pre>
+         ≡⟨  ≡-cong ( λ k → (_∙_ b ((morph ( solution a b f)) ( x :: []) ) k )) (lemma-ext2 {xs} )   ⟩
+
+</pre>
+で再帰的に処理できます。これで問題は、
+<p>
+
+<pre>
+      _∙_ b ((morph ( solution a b f)) ( x :: []) )  ((morph g) ( xs ))  ≡ _∙_ b ((morph g) ( x :: [] )) ((morph g) ( xs ))
+
+</pre>
+になりました。右辺は、sym homo で、目的の (morph g) ( x :: xs ) になります。あと、もう少しです。
+<p>
+見通しを良くするために、もう一度、 ≡-cong と extensionality を使って、
+<p>
+
+<pre>
+           (morph ( solution a b f)) (x :: []) ≡ (morph g) ( x :: []  )
+
+</pre>
+だけにします。これが、lemma-ext3 です。
+<p>
+
+<pre>
+         lemma-ext3 :  ∀{ x : a } → (morph ( solution a b f)) (x :: [])  ≡ (morph g) ( x :: []  )
+         lemma-ext3 {x} = let open ≡-Reasoning in
+             begin
+               (morph ( solution a b f)) (x :: [])
+             ≡⟨  ( proj₂  ( IsMonoid.identity ( isMonoid b) )(f x) ) ⟩
+                f x
+             ≡⟨  sym ( ≡-cong (λf → f x )  eq  ) ⟩
+               (morph g) ( x :: []  )
+             ∎
+
+</pre>
+まず、下の方から逆にたどってみます。 今まで使ってなかった、
+<p>
+
+<pre>
+        (FMap U g) o (eta a )  ≡ f
+
+</pre>
+の仮定は、\x -&gt; (FMap U g) (eta a x) を C-c C-n で正規化すると、 \x -&gt; morph g (x :: []) です。つまり、
+<p>
+
+<pre>
+        \x -&gt; morph g (x :: []) ≡ \x -&gt; f x
+
+</pre>
+です。これを使うと、 (morph g) ( x :: []  ) を f x  に直せます。Extensinality の逆( f ≡ g → λx → f x ≡ λx → g x)は自動的に Agda が推論してくれるわけです。
+<p>
+そこで、最初に戻ります。
+<p>
+
+<pre>
+           (morph ( solution a b f)) (x :: [])
+
+</pre>
+は、 λa → λb → λf → λx →   (morph ( solution a b f)) (x :: []) を C-c C-n すると、 λ a b f x → (b ∙ f x) (ε b) です。なので、
+<p>
+
+<pre>
+             ≡⟨  ( proj₂  ( IsMonoid.identity ( isMonoid b) )(f x) ) ⟩
+
+</pre>
+として、ε b を消すと、
+<p>
+
+<pre>
+          \ a -&gt; \b -&gt; \f -&gt; f x
+
+</pre>
+になるはずです。これは Agda が解決して f x してくれます。これで uniquness の証明ができました。
+<p>
+<a href="adj-to-univ.html"> Next : Adjoint から Universal mapping  </a>
+</div>
+<ol class="side" id="menu">
+Universal mapping と、Free Monoid を使った例
+<li><a href="#content161">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content162">  Universal mapping Problem  とは</a>
+<li><a href="#content163">  Free Mnooid の例</a>
+<li><a href="#content164">  Free Monoid の使い方</a>
+<li><a href="#content165">  Agda で Free Monoid を書く</a>
+<li><a href="#content166">  Underline Functor と Generator を作る</a>
+<li><a href="#content167">   解の構成</a>
+<li><a href="#content168">   Universal mapping を構成する</a>
+<li><a href="#content169">   * <a href="adj-to-univ.html"> Next : Adjoint から Universal mapping  </a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 09:34:28 2013
+</body></html>

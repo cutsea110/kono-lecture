@@ -1,0 +1,268 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Agda に関する覚書</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Agda に関する覚書</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content010">最初にすること</a></h2>
+ここでは、Agda についての自分の Know How を書いていきます。
+<p>
+いきなり、これを読まずに<a href="../s04/lecture.html"> install と起動方法、命題論理 </a> を試した方がわかりやすいはずです。(言っても聞かないでしょうけど... 一応、ここだけでもわかるようにはします)
+
+<p>
+Agda では、
+<p>
+
+<pre>
+    関数名 :  関数の型
+    関数名 =  関数の定義
+
+</pre>
+という形で命題と証明を記述します。
+<p>
+これは、もちろん、
+<p>
+
+<pre>
+    証明はλ式であり、命題は、そのλ式の型に対応する
+
+</pre>
+という Curry-Howard 対応に沿って作られているからです。また、Agda が型付きλ計算そのものでもあることに対応しています。
+<p>
+まず最初に、Agda を使った List 処理について調べます。Agda には data と record がありますが、まずは data について調べます。これは、Haskell の data と同じものなので、Haskell を知っていれば楽でしょう。
+<p>
+
+<hr/>
+<h2><a name="content012">data と List</a></h2>
+ここでは、<a href="examples/list-nat.agda"> liast-nag.agda </a> 
+を例題として使います。
+<p>
+data は、複数の型を組み合わせる方法の一つです。List は Agda の Data.List に定義されているので、まずは、それを使ってみましょう。
+<p>
+
+<pre>
+    module list where
+    open import Data.List
+    postulate A : Set
+    postulate a : A
+    postulate b : A
+    postulate c : A
+    l1 = [ a ]
+    l2 = ( a :: [] )
+
+</pre>
+普通の List の Cons ( List の Head と Tail の組み ) を作るのが _::_ という演算子になっています。ここで、postulate は仮定であり、定義を書かないで受け入れる命題です。
+<p>
+Data.List の中身を見てみると、
+<p>
+
+<pre>
+    infixr 40 _::_
+    data  List {a} (A : Set a) : Set a where
+       [] : List A
+       _::_ : A -&gt; List A -&gt; List A
+
+</pre>
+と書いてあります。data の下に書いてあるのは、data の Constructor です。ここでは、List は [] と _::_ の二つの作り方、二つの種類のケース型を持つことがわかります。List A は自分自身なので、Recursive Type になっています。
+<p>
+Agda はindent が構文の一部なので、data と [] の行は、このとおりでなければなりません。[] と _::_ の先頭は確実に合っている必要があります。その代わり余計な括弧は少なくてすみます。
+<p>
+List {a} の {a} は、<a href="level.html"> 集合のLevel  </a>
+を表しています。 ℓ とかを使うことが多いらしいです。今は気にしない。{} も今は気にしないでおきましょう。
+<p>
+
+<pre>
+    infixr 40 _::_
+
+</pre>
+は、:: は infix operator として使うことができるので、その優先順位などを指定しています。かっこを省略できる程度のメリットがあります。例えば、
+<p>
+
+<pre>
+    a :: b :: c :: []
+
+</pre>
+と書きたいと思いますが、infixr を書かないと、
+<p>
+
+<pre>
+    a :: (b :: (c :: [] ))
+
+</pre>
+と書かないと Parse Error と言われてしまいます。
+<p>
+List の Append は以下のように記述します。
+<p>
+
+<pre>
+    infixl 30 _++_
+    _++_ :  {A : Set } -&gt; List A -&gt; List A -&gt; List A
+    []        ++ ys = ys
+    (x :: xs) ++ ys = x :: (xs ++ ys)
+    l1 = a :: []
+    l2 = a :: b :: a :: c ::  []
+    l3 = l1 ++ l2
+
+</pre>
+= で書かれた定義が二つあるのは、List data のケース型への Patern Matching になっているからです。data で定義された Constructor ( [] と _::_ ) を pattern として、すべて列挙する必要があります。そうしないと文句を言ってきます。
+<p>
+定義の head ( = の左辺 ) に書けるのは、関数名と引数名、そして、Pattern としての data の引数ということになります。_++_ は infix 中置演算子 なので、そいういう使い方をしています。
+<p>
+右辺に現れている :: ( _::_ と中置い演算子であることを明記して書くのが普通らしい ) は、data (この場合は List ) を作っています。左辺で分解して、右辺で構成ていることになります。
+<p>
+Haskell での append と、ほとんど同じ。
+<p>
+
+<pre>
+    append1 [] y = y
+    append1 (h:t) y = (h:append t y)
+
+</pre>
+C-c C-n を使って、List や Append を試してみましょう。
+<p>
+l1 ++ l2 では、x, xs, ys には、a や c :: []  などが入る。これは Unification と呼ばれる操作になります。
+<p>
+
+<hr/>
+<h2><a name="content015">型が合わない場合</a></h2>
+Agda では、型を書く時に、その＊型の型＊が合っている必要があります。そして、値の定義を書く時には、その値は型の定義に合っている必要があります。つまり、Agda では、一つの命題と、その証明を書くのに、二段階の型のチェックがあることになります。
+<p>
+最初は、
+<p>
+
+<pre>
+    hoge : fuga
+    hoge = ?
+
+</pre>
+として置いて、型の部分の型の整合性を合わせることに集中します。
+<p>
+
+<hr/>
+<h2><a name="content016">data と Equality</a></h2>
+data のもう一つの重要な使い方は、等号(Equality)です。
+<p>
+
+<pre>
+    infixr 20  _==_
+    data _==_ {n} {A : Set n} :  List A -&gt; List A -&gt; Set n where
+          reflection  : {x : List A} -&gt; x == x
+
+</pre>
+これは、Relation.Binary.PropositionalEquality に _≡_ として定義されているものと同じです。reflection は反映、鏡に映った同じもの。Agda では refl と書かれることが多いようです。
+<p>
+data の下に書いてあるものは Constructor なので、reflection は、x == x を作る関数ということになります。
+<p>
+
+<pre>
+            {x}
+        ------------- reflection
+           x == x
+
+</pre>
+というわけなので、x == x は常に正しい。ここで、x は List A つまり、A という型の要素を持つリストになっています。Agda の要素は、結局は集合なので、集合に対して定義されている  _≡_ で、ほとんどの場合はすむはずです。実際、_≡_ の refl を使って List の等式を作っても問題ありません。
+<p>
+[] ++ a は a に等しい。したがって、[] ++ a == a のはずです。これは証明するべき型で記述された命題です。Haskell では [] や ++ は値で出くることはできますが、型には出きません。Agda の高階型システムが、それを可能にしています。
+<p>
+
+<pre>
+    list-id-l : { A : Set } -&gt; { x : List A} -&gt;  [] ++ x == x
+    list-id-l = reflection
+
+</pre>
+2行目の reflection は、X == X という data を作成しています。ここで、X は、[] ++ x と x と両方の型に対応する必要があります。そうでなければ等号は成立しません。_++_ の定義の一つ、
+<p>
+
+<pre>
+    []        ++ ys = ys
+
+</pre>
+により、[] ++ x は x に簡約 (reduction) されるので証明自体は x == x として自明です。型としては、[] ++ x == x だが、list-id-l は {x} -&gt; x == x という data 型を返す関数になります。つまり、型の証明がλ式に対応する Curry-Howard 対応を示したのが上の Agda の証明ということになります。
+<p>
+
+<pre>
+    ==-to-≡ :  {A : Set }  {x y : List A}  -&gt; x ==  y -&gt; x ≡ y
+    ==-to-≡ reflection = refl
+
+</pre>
+を使うことにより、_==_ による等式を _≡_ の等式に変換することができます。等式を data で書かない場合 (Relation (関係)として記述する場合とか}は、このような変換ができない場合もあります。
+<p>
+自分で定義した _==_ に関して、合同則、推移則を証明することができます。
+<p>
+
+<pre>
+    cong1 : {A : Set  } { B : Set  } -&gt;
+       ( f : List A -&gt; List B ) -&gt; {x : List A } -&gt; {y : List A} -&gt; x == y -&gt; f x == f y
+    cong1 f reflection = reflection
+    eq-cons :  {A : Set } {x y : List A} ( a : A ) -&gt; x ==  y -&gt; ( a :: x ) == ( a :: y )
+    eq-cons a z = cong1 ( \x -&gt; ( a :: x) ) z
+    trans-list :  {A : Set } {x y z : List A}  -&gt; x ==  y -&gt; y == z -&gt; x == z
+    trans-list reflection reflection = reflection
+
+</pre>
+eq-cons は、cong1 の特殊な場合に過ぎません。_≡_ に対しては、cong と trans という名前で定義されています。
+<p>
+cong1 は f x == f x を生成していて、eq-cons は a :: x == a :: y を生成しています。trans-list は結局は、x == x と x= = x から x==x  を生成しているだけです。
+<p>
+eq-cons は x == x  の x を  a :: x で置き換えています。これは unification (単一化) と呼ばれる作業で、変数の値をより詳細に規定することに相当します。この置き換えを適切に行うのが、Agda の型推論のすることになります。
+<p>
+
+<hr/>
+<h2><a name="content017">暗黙の変数 {x}</a></h2>
+型の引数の変数に {x}を付けることができます。普通に () を使った場合と意味は変わりません。しかし、{} を付けた変数は呼び出し時に省略することができます。省略された引数は、Agda によって推論されます。
+<p>
+適切に推論されない場合は、Agda は黄色の表示で文句を言いいます。その場合は、省略せずに{}付きで値を指定してやると直る場合があります。しかし、実際にはいろいろ複雑で場合場合によって対処することになります。
+<p>
+<a href="level.html"> Next : Agda の集合の Level　</a>
+</div>
+<ol class="side" id="menu">
+Agda に関する覚書
+<li><a href="#content009">   * <a href="index.html"> Agda による圏論入門 </a>
+</a>
+<li><a href="#content010">  最初にすること</a>
+<li><a href="#content011">   * <a href="../s04/lecture.html"> install と起動方法、命題論理 </a> を試した方がわかりやすいはずです。(言っても聞かないでしょうけど... 一応、ここだけでもわかるようにはします)
+</a>
+<li><a href="#content012">  data と List</a>
+<li><a href="#content013">   * <a href="examples/list-nat.agda"> liast-nag.agda </a> 
+</a>
+<li><a href="#content014">   * <a href="level.html"> 集合のLevel  </a>
+</a>
+<li><a href="#content015">  型が合わない場合</a>
+<li><a href="#content016">  data と Equality</a>
+<li><a href="#content017">  暗黙の変数 {x}</a>
+<li><a href="#content018">   * <a href="level.html"> Next : Agda の集合の Level　</a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 05:50:51 2013
+</body></html>

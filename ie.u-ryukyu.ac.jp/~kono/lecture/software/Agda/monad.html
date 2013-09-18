@@ -1,0 +1,605 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Monad と join の結合則</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Monad と join の結合則</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content120">Monad</a></h2>
+ここでの目標は Monad と、それから作る Kleisli 圏です。Haskell の Monad を理解するために必要な道具立てです。
+<p>
+まずは、Monad の定義から始めます。Monad は、Triple とも呼ばれる Functor T と二つの自然変換の組です。
+<p>
+
+<pre>
+        record IsMonad {c₁ c₂ ℓ : Level} (A : Category c₁ c₂ ℓ)
+                         ( T : Functor A A )
+                         ( η : NTrans A A identityFunctor T )
+                         ( μ : NTrans A A (T ○ T) T)
+                         : Set (suc (c₁ ⊔ c₂ ⊔ ℓ )) where
+           field
+              assoc  : {a : Obj A} → A [ A [ TMap μ a o TMap μ ( FObj T a ) ] ≈  A [  TMap μ a o FMap T (TMap μ a) ] ]
+              unity1 : {a : Obj A} → A [ A [ TMap μ a o TMap η ( FObj T a ) ] ≈ Id {_} {_} {_} {A} (FObj T a) ]
+              unity2 : {a : Obj A} → A [ A [ TMap μ a o (FMap T (TMap η a ))] ≈ Id {_} {_} {_} {A} (FObj T a) ]
+        record Monad {c₁ c₂ ℓ : Level} (A : Category c₁ c₂ ℓ) (T : Functor A A) (η : NTrans A A identityFunctor T) (μ : NTrans A A (T ○ T) T)
+               : Set (suc (c₁ ⊔ c₂ ⊔ ℓ )) where
+          field
+            isMonad : IsMonad A T η μ
+             -- g ○ f = μ(c) T(g) f                                                                                                    
+          join : { a b : Obj A } → { c : Obj A } →
+                              ( Hom A b ( FObj T c )) → (  Hom A a ( FObj T b)) → Hom A a ( FObj T c )
+          join {_} {_} {c} g f = A [ TMap μ c  o A [ FMap T g o f ] ]
+
+</pre>
+それなりに大きいですが、三つの公理と join の定義が含まれています。
+<p>
+assoc は結合法則に相当します。
+<p>
+
+<pre>
+              assoc  : {a : Obj A} → A [ A [ TMap μ a o TMap μ ( FObj T a ) ] ≈  A [  TMap μ a o FMap T (TMap μ a) ] ]
+
+</pre>
+普通の式で書くと、
+<p>
+
+<pre>
+              μ o μ T  = μ  o T μ
+
+</pre>
+引数を明示すると、
+<p>
+
+<pre>
+              μ(a) o μ(T(a))  = μ(a)  o T(μ(a))
+
+</pre>
+です。この中の二つのTはObjとHomの二つの別な写像であることが(monomorphicな)Agdaではわかります。μT や Tμ を自然変換だと考えると  o は自然変換の結合を表していることになります。
+<p>
+TMap μ (FObj T a) は、FObj T ( FObj T (FObj T a)) から FObj T (FObj T a) への射です。TMap μ a は、FObj T (FObj T a) から FObj T a への射です。なので結合可能になっています。
+<p>
+unity1, unity2 はηが単位元のようは働きをすることを示しています。
+<p>
+
+<pre>
+              unity1 : {a : Obj A} → A [ A [ TMap μ a o TMap η ( FObj T a ) ] ≈ Id {_} {_} {_} {A} (FObj T a) ]
+              unity2 : {a : Obj A} → A [ A [ TMap μ a o (FMap T (TMap η a ))] ≈ Id {_} {_} {_} {A} (FObj T a) ]
+
+</pre>
+これは、
+<pre>
+              μ o η T = μ o T η = 1
+
+</pre>
+などと書きます。引数を明示すると、
+<p>
+
+<pre>
+              μ(a) o η(T(a)) = μ(a) o T(η(a)) = 1
+
+</pre>
+1 は、正確には T(a) 上の射です。Id {_} {_} {_} {A} (FObj T a) の{}を省略するすることは何故かできません。これはめんどくさいので、cat-utility.agda に以下の定義をたしておきます。
+<p>
+
+<pre>
+        id1 :   ∀{c₁ c₂ ℓ  : Level} (A : Category c₁ c₂ ℓ)  (a  : Obj A ) →  Hom A a a
+        id1 A a =  (Id {_} {_} {_} {A} a)
+
+</pre>
+η(a)やμ(a)は射を返すので T の引数になり、T(a) は対象を返すので自然変換の引数になります。
+<p>
+これらは可換図では以下のように表します。
+<p>
+
+<pre>
+         Tη                      μT
+   T ---------&gt; T^2        T^3---------&gt; T^2
+   |・          |           |            |
+   |  ・1_T     |           |            |
+ ηT|     ・     |μ        Tμ|            |μ
+   |       ・   |           |            |
+   v         ・ v           v            v
+   T^2 -------&gt; T          T^2 --------&gt; T
+         μ                        μ
+
+</pre>
+ここで T^3 とあるのは、T が三つ重なったものです。Functor T は Haskell のデータ構造に相当するので、三段になった List のようなものです。
+<p>
+
+<pre>
+              assoc  : {a : Obj A} → A [ A [ TMap μ a o TMap μ ( FObj T a ) ] ≈  A [  TMap μ a o FMap T (TMap μ a) ] ]
+
+</pre>
+前に見たとおり、この式は、FObj T ( FObj T ( FObj T a )) から FObj T a への射同士の等式です。
+<p>
+Monad の公理は、この三つの他にμとηの自然変換があります。
+<p>
+
+<pre>
+          C [ C [ (  FMap T f ) o  ( TMap μ a ) ]  ≈ C [ (TMap μ b ) o  f  ] ]
+          C [ C [ f o  ( TMap ε a ) ]  ≈ C [ (TMap ε b ) o  (FMap T (FMap T  f))  ] ]
+
+</pre>
+これが、Haskell の Monad の元になるものです。Haskell の &gt;&gt;= は join が含まれています。
+<p>
+
+<pre>
+             -- g ○ f = μ(c) T(g) f                                                                                                    
+          join : { a b : Obj A } → { c : Obj A } →
+                              ( Hom A b ( FObj T c )) → (  Hom A a ( FObj T b)) → Hom A a ( FObj T c )
+          join {_} {_} {c} g f = A [ TMap μ c  o A [ FMap T g o f ] ]
+
+</pre>
+これは、等式ではなく μ o (T(g) o f) という g と f の結合です。ここで  f は b から FObj T c への射であり、g は a から FObj T b への射です。結果は、a から FObj T c への射です。a から FObj T b への射は、あとで作る Kleisli 圏の射です。つまり、この join は結合則を満たす必要があります。
+<p>
+Haskell の Monad は「Monad というデータ構造を返す関数」ですから、Kleisli 圏の射に相当します。射が関数だというわけです。
+<p>
+引数を明示すると、
+<p>
+
+<pre>
+    μ(c) o (T(g) o f) 
+
+</pre>
+となります。この c は g の codmain (値域) つまり T(c) の c です。Kleisli 圏の射の結合を _*_ とすると、
+<p>
+
+<pre>
+    g * f
+
+</pre>
+です。c は暗黙の引数なので隠れていますが、Agda が自動的に推論してくれます。人間が、この式を見る時にも c を推論することが期待されているわけです。結合時に domain と codomain が合っていることが期待されるように c も適切に合っている必要があります。これを Agda がチェックしてくれるのが Agda の良い所です。
+<p>
+
+<hr/>
+<h2><a name="content121">join の性質</a></h2>
+join には、Monad の公理に対応して、圏の射に関する三つの公理が成立します。最初に左単位元を調べます。
+<p>
+
+<pre>
+   η(b) ○ f = f     
+
+</pre>
+Lemma7 : { a : Obj A } { b : Obj A } ( f : Hom A a ( FObj T b) )
+<pre>
+                      → A  [ join M (TMap η b) f  ≈ f ]
+
+</pre>
+Lemma7 {_} {b} f = 
+<pre>
+  let open ≈-Reasoning (A) in 
+     begin  
+         join M (TMap η b) f 
+     ≈⟨ refl-hom ⟩
+         A [ TMap μ b  o A [ FMap T ((TMap η b)) o f ] ]  
+     ≈⟨ IsCategory.associative (Category.isCategory A) ⟩
+        A [ A [ TMap μ b  o  FMap T ((TMap η b)) ] o f ]
+     ≈⟨ car ( IsMonad.unity2 ( isMonad M) )  ⟩
+        A [  id (FObj T b)   o f ]
+     ≈⟨ IsCategory.identityL (Category.isCategory A) ⟩
+        f
+     ∎
+
+</pre>
+単独の Lemma7 では、引数のどれを暗黙にするかは自由ですが、これは後で Kleisli 圏を構成する時に使うので、それに便利なように指定します。
+<p>
+
+<pre>
+         join M (TMap η b) f 
+
+</pre>
+から始めます。 ≈⟨ refl-hom ⟩ は ≈⟨⟩ と書くことができます。join の定義を(手で)展開すると、
+<p>
+
+<pre>
+         A [ TMap μ b  o A [ FMap T ((TMap η b)) o f ] ]  
+
+</pre>
+となります。≈-Reasoning (A) を使っているので、
+<p>
+
+<pre>
+         TMap μ b  o ( FMap T ((TMap η b)) o f )
+
+</pre>
+とも書けます。Monad の公理を使えるように結合順序を変える必要があります。
+<p>
+
+<pre>
+         (TMap μ b  o  FMap T ((TMap η b)) ) o f 
+
+</pre>
+となって欲しいわけです。それには、
+<p>
+
+<pre>
+     ≈⟨ IsCategory.associative (Category.isCategory A) ⟩
+
+</pre>
+を使います。≈-Reasoning (A) には、短縮形が定義されていて、
+<p>
+
+<pre>
+     ≈⟨ assoc  ⟩
+
+</pre>
+と書くことができます。 Monad の公理は以下のように呼び出します。
+<p>
+
+<pre>
+     ≈⟨ car ( IsMonad.unity2 ( isMonad M) )  ⟩
+
+</pre>
+ここで、car は ≈-Reasoning (A) で、
+<p>
+
+<pre>
+  car : {a b c : Obj A } {x y : Hom A a b } { f : Hom A c a } →
+          x ≈ y  → ( x o f ) ≈ ( y  o f )
+  car {f} eq = ( IsCategory.o-resp-≈ ( Category.isCategory A )) ( refl-hom  ) eq
+
+</pre>
+となっていて、変形規則を  o の左側にのみ適用します。o-resp-≈ は、Category.agda に定義されていて、
+<p>
+
+<pre>
+    o-resp-≈ : {A B C : Obj} {f g : Hom A B} {h i : Hom B C} → f ≈ g → h ≈ i → (h o f) ≈ (i o g)
+
+</pre>
+でした。右と左と両方を置き換えているので、その片方だけを使っています。ということは、右側も cdr として定義できます。
+<p>
+
+<pre>
+  cdr : {a b c : Obj A } {x y : Hom A a b } { f : Hom A b c } →
+          x ≈ y  →  f o x  ≈  f  o y 
+  cdr {f} eq = ( IsCategory.o-resp-≈ ( Category.isCategory A )) eq (refl-hom  ) 
+
+</pre>
+car と cdr は、昔の LISP の用語で、List を以下のように考えた時の矢印の名前です。
+<p>
+
+<pre>
+                cdr          cdr
+            :: -------&gt; :: -------&gt;  []
+            |           |
+            |car        |
+            v           v
+            a           b
+
+</pre>
+これが [a,b] という List に相当します。Agda だと a :: b :: [] と書いてました。
+<p>
+Reflrection を使うと、式のListを、List として扱うこともできるようになるようです。<a href="https://github.com/copumpkin/fingertree/blob/master/MonoidSolver.agda"> MonoidSolver.agda </a>
+
+<p>
+最後に、identity の結合を使って終わりです。
+<p>
+
+<pre>
+     ≈⟨ IsCategory.identityL (Category.isCategory A) ⟩
+        f
+     ∎
+
+</pre>
+少し書きなおすと、
+<pre>
+    Lemma7 : { a : Obj A } { b : Obj A } ( f : Hom A a ( FObj T b) )
+                          → A  [ join M (TMap η b) f  ≈ f ]
+    Lemma7 {_} {b} f = 
+      let open ≈-Reasoning (A) in 
+         begin  
+             join M (TMap η b) f 
+         ≈⟨⟩
+             TMap μ b  o ( FMap T ((TMap η b)) o f )
+         ≈⟨ assoc ⟩
+            ( TMap μ b  o  FMap T ((TMap η b)) ) o f 
+         ≈⟨ car ( IsMonad.unity2 ( isMonad M) )  ⟩
+             id (FObj T b)   o f 
+         ≈⟨ idL) ⟩
+            f
+         ∎
+
+</pre>
+assoc の前と後で、どのように式が変わるかに慣れる必要があります。
+<p>
+
+<pre>
+    f ○ η(a) = f
+
+</pre>
+も同じようにできます。
+<p>
+
+<pre>
+    Lemma8 : { a  : Obj A }  { b : Obj A }
+                     ( f : Hom A a ( FObj T b) )
+                          → A  [ join M f (TMap η a)  ≈ f ]
+    Lemma8 {a} {b} f = 
+      begin join M f (TMap η a) 
+      ≈⟨⟩  TMap μ b  o ( FMap T f o (TMap η a) )
+      ≈⟨ cdr  ( nat η ) ⟩
+          TMap μ b  o ( (TMap η ( FObj T b)) o f )
+      ≈⟨ assoc) ⟩
+          ( TMap μ b  o (TMap η ( FObj T b))  o f )
+      ≈⟨ car ( IsMonad.unity1 ( isMonad M) ) ⟩
+         A [ id (FObj T b)  o f ]
+      ≈⟨  idL)  ⟩
+         f
+      ∎  where 
+          open ≈-Reasoning (A) 
+
+</pre>
+ηの可換性を使っています。どの規則を使ったかわかるところが証明支援系の良いところです。
+<p>
+さて、本当に厄介なのは結合則です。
+<p>
+
+<pre>
+    h ○ (g ○ f) = (h ○ g) ○ f
+
+</pre>
+ですが、証明は長い道のりになります。
+<p>
+
+<pre>
+    Lemma9 : { a b c d : Obj A }
+                     ( h : Hom A c ( FObj T d) )
+                     ( g : Hom A b ( FObj T c) ) 
+                     ( f : Hom A a ( FObj T b) )
+                          → A  [ join M h (join M g f)  ≈ join M ( join M h g) f ]
+    Lemma9 {a} {b} {c} {d} h g f = 
+      begin 
+         join M h (join M g f)  
+       ≈⟨⟩
+         join M h (                  ( TMap μ c o ( FMap T g o f ) ) )
+       ≈⟨ refl-hom ⟩
+         ( TMap μ d  o ( FMap T h  o  ( TMap μ c o ( FMap T g  o f ) ) ) )
+       ≈⟨ cdr ( cdr ( assoc )) ⟩
+         ( TMap μ d  o ( FMap T h o ( ( TMap μ c o  FMap T g )  o f ) ) )
+       ≈⟨ assoc  ⟩    ---   ( f  o  ( g  o  h ) ) = ( ( f  o  g )  o  h )
+         (     ( TMap μ d o  FMap T h ) o  ( (TMap μ c   o  FMap T g )    o f ) )
+       ≈⟨ assoc  ⟩
+         ( ( ( TMap μ d o      FMap T h ) o  (TMap μ c   o  FMap T g ) )  o f )
+       ≈⟨ car (sym assoc) ⟩
+         ( ( TMap μ d o  ( FMap T h     o   ( TMap μ c   o  FMap T g ) ) ) o f )
+       ≈⟨ car ( cdr (assoc) ) ⟩
+         ( ( TMap μ d o  ( ( FMap T h o       TMap μ c ) o  FMap T g )   ) o f )
+       ≈⟨ car assoc ⟩
+         ( ( ( TMap μ d o  ( FMap T h   o   TMap μ c ) ) o  FMap T g ) o f )
+       ≈⟨ car (car ( cdr ( begin 
+               ( FMap T h o TMap μ c )
+           ≈⟨ nat μ ⟩
+               ( TMap μ (FObj T d) o FMap T (FMap T h) )
+            ∎ 
+       )))  ⟩
+          ( ( ( TMap μ d  o  ( TMap μ ( FObj T d)  o FMap T (  FMap T h ) ) )  o FMap T g )  o f )
+       ≈⟨ car (sym assoc) ⟩
+         ( ( TMap μ d  o  ( ( TMap μ ( FObj T d)   o FMap T (  FMap T h ) )   o FMap T g ) )   o f )
+       ≈⟨ car ( cdr (sym assoc) ) ⟩
+         ( ( TMap μ d  o  ( TMap μ ( FObj T d)   o ( FMap T (  FMap T h ) o FMap T g ) ) )   o f )
+       ≈⟨ car ( cdr (cdr (sym (distr T )))) ⟩
+         ( ( TMap μ d  o  ( TMap μ ( FObj T d)     o FMap T ( ( FMap T h  o g ) ) ) )   o f )
+       ≈⟨ car assoc ⟩
+         ( ( ( TMap μ d  o  TMap μ ( FObj T d)  )  o FMap T ( ( FMap T h  o g ) ) )    o f )
+       ≈⟨ car ( car (
+          begin
+             ( TMap μ d o TMap μ (FObj T d) )
+          ≈⟨ IsMonad.assoc ( isMonad M) ⟩
+             ( TMap μ d o FMap T (TMap μ d) )
+          ∎
+       )) ⟩
+         ( ( ( TMap μ d  o    FMap T ( TMap μ d) ) o FMap T ( ( FMap T h  o g ) ) )    o f )
+       ≈⟨ car (sym assoc) ⟩
+         ( ( TMap μ d  o  ( FMap T ( TMap μ d )    o FMap T ( ( FMap T h  o g ) ) ) )  o f )
+       ≈⟨ sym assoc ⟩
+         ( TMap μ d  o  ( ( FMap T ( TMap μ d )    o FMap T ( ( FMap T h  o g ) ) )  o f ) )
+       ≈⟨ cdr ( car ( sym ( distr T )))   ⟩
+         ( TMap μ d  o ( FMap T ( ( ( TMap μ d )   o ( FMap T h  o g ) ) ) o f ) )
+       ≈⟨ refl-hom ⟩
+         join M ( ( TMap μ d  o ( FMap T h  o g ) ) ) f
+       ≈⟨ refl-hom ⟩
+         join M ( join M h g) f 
+      ∎ where open ≈-Reasoning (A) 
+
+</pre>
+長いが、ほとんどは式の変形。
+<p>
+
+<pre>
+       ≈⟨ cdr ( cdr ( assoc )) ⟩
+
+</pre>
+とかは、式の途中を変形します。重要なのは、
+<p>
+
+<pre>
+               ( FMap T h o TMap μ c )
+           ≈⟨ nat μ ⟩
+               ( TMap μ (FObj T d) o FMap T (FMap T h) )
+            ∎ 
+
+</pre>
+と、
+<p>
+
+<pre>
+          begin
+             ( TMap μ d o TMap μ (FObj T d) )
+          ≈⟨ IsMonad.assoc ( isMonad M) ⟩
+             ( TMap μ d o FMap T (TMap μ d) )
+          ∎
+
+</pre>
+です。そう、car や  cdr の中で、さらに Reasoning できます。これらは、可換図を書かないと見つけるのが難しい。
+<p>
+実際には、
+<p>
+
+<pre>
+      begin 
+         join M h (join M g f)  
+       ≈⟨ ? ⟩
+         join M ( join M h g) f 
+      ∎ where open ≈-Reasoning (A) 
+
+</pre>
+から始めて、上と下から徐々に変形していきます。
+<p>
+
+<pre>
+      begin 
+         join M h (join M g f)  
+       ≈⟨⟩
+         join M h (                  ( TMap μ c o ( FMap T g o f ) ) )
+       ≈⟨ refl-hom ⟩
+         ( TMap μ d  o ( FMap T h  o  ( TMap μ c o ( FMap T g  o f ) ) ) )
+       ≈⟨ ? ⟩
+         ( TMap μ d  o ( FMap T ( ( ( TMap μ d )   o ( FMap T h  o g ) ) ) o f ) )
+       ≈⟨ refl-hom ⟩
+         join M ( ( TMap μ d  o ( FMap T h  o g ) ) ) f
+       ≈⟨ refl-hom ⟩
+         join M ( join M h g) f 
+      ∎ where open ≈-Reasoning (A) 
+
+</pre>
+というわけです。
+<p>
+
+<pre>
+       ≈⟨ car ( car (
+          begin
+             ?
+          ≈⟨ ? ⟩
+             ?
+          ∎
+       )) ⟩
+
+</pre>
+とすると、Agda が、
+<p>
+
+<pre>
+    0 : Category.Category.Hom A (FObj (T ○ T) (FObj T d)) (FObj T d)
+    ?1 : (A Category.≈ TMap μ d .nat._._.o TMap μ (FObj T d))
+    (TMap μ d .nat._._.o FMap T (TMap μ d))
+    ?2 : Category.Category.Hom A (FObj (T ○ T) (FObj T d)) (FObj T d)
+
+</pre>
+と、変換部分を教えてくれます。0と2は役に立ちませんが、
+<p>
+
+<pre>
+    ?1 : (A Category.≈ TMap μ d .nat._._.o TMap μ (FObj T d))
+    (TMap μ d .nat._._.o FMap T (TMap μ d))
+
+</pre>
+この部分は、
+<p>
+
+<pre>
+       TMap μ d o TMap μ (FObj T d)) 
+     ≈
+      (TMap μ d o FMap T (TMap μ d))
+
+</pre>
+と読めるので、それを0と2の部分に書けば良いわけです。これが「Monadのassocだ」とわかるようになれば圏論に慣れてきたというわけです。
+<p>
+
+<pre>
+      μ : T ○ T  -&gt; T
+               μT
+      TTT ---------------&gt; TT
+       |                   |
+       |                   |
+       |Tμ                 |μ
+       |                   |
+       v       μ           v
+       TT ---------------&gt; T
+
+</pre>
+です。
+<p>
+この証明は長くて厄介ですが、ηとMonadのassocが使われているのがわかります。
+<p>
+Agda は証明を発見してはくれないので、式や可換図を書くことは必須です。発見してくれませんが、noral form は表示してくれます。例えば、
+<p>
+
+<pre>
+     C-C C-n \f \h \g -&gt; join M ( join M h g) f
+
+</pre>
+とすると ( M は既にで定義されてます )
+<p>
+
+<pre>
+    λ f h g →
+      (A Category.o TMap μ (_c_9332 f))
+      ((A Category.o
+        FMap T
+        ((A Category.o TMap μ (_c_9332 f)) ((A Category.o FMap T h) g)))
+       f)
+
+</pre>
+と表示します。infix されてないので見づらいですが、これは、join M ( join M h g) f が、
+<p>
+
+<pre>
+      TMap μ (_c_9332 f) o (( FMap T ( TMap μ (_c_9332 f) ) o  (FMap T h) g) o f) 
+
+</pre>
+だということを示しています。(_c_9332 f) は f に依存した何かの変数で、ここでは d です。
+<p>
+
+<pre>
+      TMap μ d o (( FMap T ( TMap μ d ) o  ((FMap T h) o g )) o f ) 
+
+</pre>
+この自然変換の引数は TTT や TT の元の対象(Obj)で、自然変換の可換性によって変わります。これが何かは、Agda がチェックしてくれます。つまり、正しく射が結合できる型(行き先の対象と元の対象)が一致してなければならないわけです。
+<p>
+これで、Monad の join の結合則が証明できました。ここまでで、一段落となります。
+<p>
+<a href="monoid.html"> Next : Sets と Monoid を使った Monad の例 </a>
+</div>
+<ol class="side" id="menu">
+Monad と join の結合則
+<li><a href="#content119">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content120">  Monad</a>
+<li><a href="#content121">  join の性質</a>
+<li><a href="#content122">   * <a href="https://github.com/copumpkin/fingertree/blob/master/MonoidSolver.agda"> MonoidSolver.agda </a>
+</a>
+<li><a href="#content123">   * <a href="monoid.html"> Next : Sets と Monoid を使った Monad の例 </a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 10:17:14 2013
+</body></html>

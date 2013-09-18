@@ -1,0 +1,42 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Functor in Haskkel</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Functor in Haskkel</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+Haskell fmap を List に対して定義して、Functor になっていることを確かめよ。
+<p>
+結合律が成立していることを確かめる程度でも良い。
+<p>
+Agda で Functor を List に対して定義して、Functor の結合律 F(fg) = F(f)F(g) が成立していることを証明せよ。
+<p>
+特定のf g について証明しても良い。</div>
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Tue Jun 25 11:53:57 2013
+</body></html>

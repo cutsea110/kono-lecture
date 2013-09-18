@@ -1,0 +1,90 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Agda による圏論入門</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Agda による圏論入門</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+Agda で証明しながら圏論を学ぶという予定です。あまり入門ではないかも。
+<p>
+<a target="_blank" href="http://www.amazon.co.jp/Introduction-Higher-Order-Categorical-Cambridge-Mathematics/dp/0521356539/?_encoding=UTF8&camp=247&creative=1211&keywords=higher%20order%20categorycal%20logic&linkCode=ur2&qid=1377081782&sr=8-1-spell&tag=shinjkonoshom-22">Higher-Order Categorical Logic</a><img src="http://ir-jp.amazon-adsystem.com/e/ir?t=shinjkonoshom-22&l=ur2&o=9" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" />
+の 0章に相等する内容です。
+<p>
+<ol><li><a href="lecture.html"> Agda の入門の要約</a>
+<p>
+<li><a href="agda.html"> Agda の入門　</a>
+<p>
+<li><a href="level.html"> Agda の集合の Level　</a>
+<p>
+<li><a href="record.html"> Agda の record 　</a>
+<p>
+<li><a href="reasoning.html"> Agda のReasoning 　</a>
+<p>
+<li><a href="category.html"> Caategory module と圏の入門 </a>
+<p>
+<li><a href="nat.html"> 自然変換 </a>
+<p>
+<li><a href="hom-reasoning.html"> IdentityFunctor と Hom Reasoning </a>
+<p>
+<li><a href="monad.html"> Monad  の結合則  </a>
+<p>
+<li><a href="monoid.html"> Sets と Monoid を使った Monad の例 </a>
+<p>
+<li><a href="kleisli.html"> Kleisli 圏の構成  </a>
+<p>
+ここまでが Monad を理解するための部分。以下は、Adjoint 関連です。
+<p>
+<li><a href="adjoint.html"> Adjoint から　Monad  を導く  </a>
+<p>
+<li><a href="kleisli-resolution.html"> Kleisli 圏による Monad の Resolution   </a>
+<p>
+<li><a href="comparison-k.html"> Kleisli 圏による Conparison Functor   </a>
+<p>
+<li><a href="em.html"> Elienberg-Moore 圏の構成と Resolution  </a>
+<p>
+<li><a href="comparison-em.html"> Elienberg-Moore圏による Conparison Functor   </a>
+<p>
+<li><a href="univmap.html"> Universal mapping と Free Monoid を使った例 </a>
+<p>
+<li><a href="adj-to-univ.html"> Adjoint から Universal mapping  </a>
+<p>
+<li><a href="univ-to-adj.html"> Universal mapping  から Adjoint </a>
+<p>
+<li><a href="homset.html">  Hom (F(-),-) = Hom (-,U(-)) と Adjoint </a>
+<p>
+<li><a href="yoneda.html">  米田関手</a>
+<p>
+<li><a href="equalizer.html">  Equalizer </a>
+<p>
+<li><a href="examples/index.html"> Agda sources </a></ol>
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+</div>
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Mon Sep  9 21:24:03 2013
+</body></html>

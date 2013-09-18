@@ -1,0 +1,455 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>IdentityFunctor と Hom Reasoning </title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>IdentityFunctor と Hom Reasoning </h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content063">identityFunctor と Functor の結合</a></h2>
+identityFunctor は圏の圏 Category.Cat で定義されています。
+<p>
+
+<pre>
+    identityFunctor : ∀{c₁ c₂ ℓ} {C : Category c₁ c₂ ℓ} → Functor C C
+    identityFunctor {C = C} =
+      record { FObj      = λ x → x
+             ; FMap      = λ x → x
+             ; isFunctor = isFunctor
+             }
+      where
+        isFunctor : ∀{c₁ c₂ ℓ} {C : Category c₁ c₂ ℓ} → IsFunctor C C (λ x → x) (λ x → x)
+        isFunctor {C = C} =
+          record { ≈-cong   = λ x → x
+                 ; identity = IsEquivalence.refl (IsCategory.isEquivalence (Category.isCategory C))
+                 ; distr    = IsEquivalence.refl (IsCategory.isEquivalence (Category.isCategory C))
+                 }
+
+</pre>
+FObj = λ x → x ; FMap = λ x → x 辺りがいさぎよいです。これは圏を省略していますが、identityFunctorm {A} と明示することもできます。
+<p>
+証明があっていれば、identityFunctor を使う時に、identityFunctor の証明を追う必要はほとんどありません。しかし、ここでは「証明したい」わけですので、証明も見るわけです。isFunctor の証明は、どても自明ですが refl が二つ出てきています。Category の level の書き方は、これが定番です。
+<p>
+この証明に突っ込むには、IsFunctor の定義に戻ります。
+<p>
+
+<pre>
+    ≈-cong : {A B : Obj C} {f g : Hom C A B} → C [ f ≈ g ] → D [ FMap f ≈ FMap g ]
+    identity : {A : Obj C} →  D [ (FMap {A} {A} (Id {_} {_} {_} {C} A)) ≈ (Id {_} {_} {_} {D} (FObj A)) ]
+    distr : {a b c : Obj C} {f : Hom C a b} {g : Hom C b c}
+      → D [ FMap (C [ g o f ]) ≈ (D [ FMap g o FMap f ] )]
+
+</pre>
+ここで、FMap と FObj に λ x → x を入れれば良いわけです。
+<p>
+
+<pre>
+    ≈-cong : {A B : Obj C} {f g : Hom C A B} → C [ f ≈ g ] → D [ f ≈ g ]
+    identity : {A : Obj C} →  D [ ((Id {_} {_} {_} {C} A)) ≈ (Id {_} {_} {_} {D} (FObj A)) ]
+    distr : {a b c : Obj C} {f : Hom C a b} {g : Hom C b c}
+      → D [ (C [ g o f ]) ≈ (D [ g o f ] )]
+
+</pre>
+証明が証明に見えて来ましたか? refl が C [ x ≈ x ] を返すことが理解できていれば大丈夫なはずです。
+<p>
+Cat.agda には、Functor の同一性 _≃_ や Functor の結合 _○_ も出てきます。同一性はめんどうですが、結合は簡単です。
+<p>
+
+<pre>
+    _○_ : ∀{c₁ c₂ ℓ c₁′ c₂′ ℓ′ c₁″ c₂″ ℓ″} {C : Category c₁ c₂ ℓ} {D : Category c₁′ c₂′ ℓ′} {E : Category c₁″ c₂″ ℓ″}
+          → Functor D E → Functor C D → Functor C E
+    _○_ {C = C} {D = D} {E = E} G F =
+      record { FObj = λ x → FObj G (FObj F x)
+             ; FMap = λ x → FMap G (FMap F x)
+             ; isFunctor = myIsFunctor
+             }
+      where
+        myIsFunctor : IsFunctor C E (λ x → FObj G (FObj F x)) (λ x → FMap G (FMap F x))
+        myIsFunctor =
+          record { ≈-cong   = λ x → IsFunctor.≈-cong (isFunctor G) (IsFunctor.≈-cong (isFunctor F) x)
+                 ; identity = IsEquivalence.trans (IsCategory.isEquivalence (Category.isCategory E))
+                                                  (IsFunctor.≈-cong (isFunctor G) (IsFunctor.identity (isFunctor F)))
+                                                  (IsFunctor.identity (isFunctor G))
+                 ; distr    = IsEquivalence.trans (IsCategory.isEquivalence (Category.isCategory E))
+                                                  (IsFunctor.≈-cong (isFunctor G) (IsFunctor.distr (isFunctor F)))
+                                                  (IsFunctor.distr (isFunctor G))
+
+</pre>
+ここで重要なのは FObj = λ x → FObj G (FObj F x) ; FMap = λ x → FMap G (FMap F x) だけです。要するに順に呼び出しているだけです。証明の方も trans で結合しているだけです。しかし、これが証明になることを確認しようとしても、これでは良くわかりません。さっきややったように式に戻れば人に優しい感じになります。もちろん、 前に使った Reasoning を使うべきでしょう。
+<p>
+
+<hr/>
+<h2><a name="content064">Hom Reasoning</a></h2>
+_≈_ は data ではないので、library の  ≡-Reasoning を使うことはできません。なので、自分で Reasoning を定義しなければなりません。型が合えば良いので「絶対にできるはずだ」という信念を持って書くと書けるようです。Agda はそういうものなのでしょう。
+<p>
+
+<pre>
+    module ≈-Reasoning {c₁ c₂ ℓ : Level} (A : Category c₁ c₂ ℓ) where
+      open import Relation.Binary.Core 
+      refl-hom :   {a b : Obj A } { x : Hom A a b }  →  x ≈ x 
+      refl-hom =  IsEquivalence.refl (IsCategory.isEquivalence  ( Category.isCategory A ))
+      trans-hom :   {a b : Obj A } { x y z : Hom A a b }  →
+             x ≈ y →  y ≈ z  →  x ≈ z 
+      trans-hom b c = ( IsEquivalence.trans (IsCategory.isEquivalence  ( Category.isCategory A ))) b c
+      infixr  2 _∎
+      infixr 2 _≈⟨_⟩_ _≈⟨⟩_ 
+      infix  1 begin_
+    ------ If we have this, for example, as an axiom of a category, we can use ≡-Reasoning directly
+    --  ≈-to-≡ : {a b : Obj A } { x y : Hom A a b }  → A [ x ≈  y ] → x ≡ y
+    --  ≈-to-≡ refl-hom = refl
+      data _IsRelatedTo_ { a b : Obj A } ( x y : Hom A a b ) :
+                         Set (suc (c₁ ⊔ c₂ ⊔ ℓ ))  where
+          relTo : (x≈y : x ≈ y ) → x IsRelatedTo y
+      begin_ : { a b : Obj A } { x y : Hom A a b } →
+               x IsRelatedTo y → x ≈ y 
+      begin relTo x≈y = x≈y
+      _≈⟨_⟩_ : { a b : Obj A } ( x : Hom A a b ) → { y z : Hom A a b } → 
+               x ≈ y → y IsRelatedTo z → x IsRelatedTo z
+      _ ≈⟨ x≈y ⟩ relTo y≈z = relTo (trans-hom x≈y y≈z)
+      _≈⟨⟩_ : { a b : Obj A } ( x : Hom A a b ) → { y : Hom A a b } → x IsRelatedTo y → x IsRelatedTo y
+      _ ≈⟨⟩ x∼y = x∼y
+      _∎ : { a b : Obj A } ( x : Hom A a b ) → x IsRelatedTo x
+      _∎ _ = relTo refl-hom
+
+</pre>
+書けてしまえば、どうってことありません。List で書いたものとほとんど同じです。違うのは、refl と trans が、refl-hom と trans-hom になっていることです。これらは、Category.agda で証明されているので、それを呼び出せばよいだけです。問題は「どの圏に対して呼び出すか」ということですが、 ここでは module に引数が付いています。
+<p>
+
+<pre>
+    module ≈-Reasoning {c₁ c₂ ℓ : Level} (A : Category c₁ c₂ ℓ) where
+
+</pre>
+この引数は、module 中で仮定(postulate)として使うことができます。このようすると module を利用する時に、そこにある圏を使うことができます。また、 IsEquivalence.refl (IsCategory.isEquivalence  ( Category.isCategory A )) の代わりに refl-hom と短くすますことができます。
+<p>
+さらに、うれしいのは、
+<p>
+
+<pre>
+     A [ f o g ]
+
+</pre>
+を、
+<p>
+
+<pre>
+     f o g 
+
+</pre>
+と書いて良いことです。Category.agda の中で、
+<p>
+
+<pre>
+    _o_ : {A B C : Obj} → Hom B C → Hom A B → Hom A C
+
+</pre>
+と書いてあるものは、 _o_ A f g  などと呼び出す必要がありますが、この A を仮定から Agda が推論してくれるわけです。これで式を書くのがかなり楽になります。
+<p>
+実際、この module の中でも A [  x ≈ y  ] と書くべきところを  x ≈ y  ですませています。また、圏 A が仮定されているので、_≈⟨_⟩_ を使う時にも A を書く必要がありません。これは Agda  の暗黙の引数は module の引数と同じようなものであることも示しています。
+<p>
+
+<pre>
+          relTo : (x≈y : x ≈ y ) → x IsRelatedTo y
+
+</pre>
+により、x ≈ y は、x IsRelatedTo y に読み替えられます。begin が最終的にx ≈ y に戻します。
+<p>
+
+<pre>
+      _ ≈⟨ x≈y ⟩ relTo y≈z = relTo (trans-hom x≈y y≈z)
+
+</pre>
+が、x≈y (という変数に格納された  x ≈ y という式 )を使って、y≈z (という変数に格納された  y ≈ z という式 )に推移則に従って書き換えています。いや、実際は方向が逆なのですが。
+<p>
+
+<pre>
+      begin 左辺 .... ≈⟨ 書き替え則  ⟩ ... 右辺  ∎ 
+
+</pre>
+というのは、
+<p>
+
+<pre>
+      左辺 ≈ 右辺 = 書き替え則  (  右辺  ≈ 右辺 )
+
+</pre>
+という関数呼び出しであり、書き替え則は
+<p>
+
+<pre>
+           左辺 ≈ 右辺 
+
+</pre>
+という形をしていて、trans-hom の
+<p>
+
+<pre>
+             x ≈ y →  y ≈ z  →  x ≈ z 
+
+</pre>
+により、
+<p>
+
+<pre>
+      (右辺  ≈ 右辺)  -&gt; (左辺 ≈ 右辺)   -&gt; 左辺  ≈ 右辺
+        x        x         x       y         x        y
+
+</pre>
+という関数に変換されます。 (右辺  ≈ 右辺)  は必ず正しい式 (refl-hom ) なので、推論は、それからはじめなければなりません。
+<p>
+もちろん、推論が一段ならば、 「書き替え則」自体が証明になります。
+<p>
+現実には、書き替え則が x ≈ x ( refl-hom ) にする必要がでてきます。Agda には自明なことを人間に丁寧に説明するために…
+<p>
+書き替え則は、  x ≈ y  (正確には A [   x ≈ y  ] ) を生成する関数で、それ以上の意味もそれ以下の意味もありません。実際、圏論に出てくる性質や公理のほとんどは、  x ≈ y  という形です。それを呼び出せば良いわけです。
+<p>
+それでは、Hom-Reasoning を使ってみましょう。
+<p>
+
+<hr/>
+<h2><a name="content065">Hom-Reasoning を使って、identityFunctor を証明する</a></h2>
+identityFunctor は、
+<p>
+
+<pre>
+      record { FObj      = λ x → x
+             ; FMap      = λ x → x
+
+</pre>
+によって定義されていますが、それが Functor の性質を満たしているかどうかを証明する必要があります。それができて、初めてidentityFunctor の存在が言えるわけです。証明は既に書いてありますが、別な定義を書いてみます。
+<p>
+
+<pre>
+    module idF where
+    open import Category
+    open import HomReasoning
+    identityFunctor : ∀{c₁ c₂ ℓ} {C : Category c₁ c₂ ℓ} → Functor C C
+    identityFunctor {C = C} = record { FObj      = λ x → x
+         ; FMap      = λ x → x
+         ; isFunctor = isFunctor
+         }
+      where
+            isFunctor : ∀{c₁ c₂ ℓ} {C : Category c₁ c₂ ℓ} → IsFunctor C C (λ x → x) (λ x → x)
+            isFunctor {C = C} =
+              record { ≈-cong   = Lemma1
+                     ; identity = Lemma2
+                     ; distr    = Lemma3
+                     } where
+               Lemma1 : ?
+               Lemma1 = ?
+               Lemma2 : ?
+               Lemma2 = ?
+               Lemma3 : ?
+               Lemma3 = ?
+
+</pre>
+とすると、
+<p>
+
+<pre>
+    Cannot instantiate the metavariable _29 to solution C [ .f ≈ .g ] →
+    C [ .f ≈ .g ] since it contains the variable .A which is not in
+
+</pre>
+と言ってきます。これは、Lemma1 の型の定義がないので十分な情報がないと文句を言っています。ここは、Parse Error と言われなかったと確認したわけです。
+<p>
+
+<pre>
+    ≈-cong : {A B : Obj C} {f g : Hom C A B} → C [ f ≈ g ] → D [ FMap f ≈ FMap g ]
+    identity : {A : Obj C} →  D [ (FMap {A} {A} (Id {_} {_} {_} {C} A)) ≈ (Id {_} {_} {_} {D} (FObj A)) ]
+    distr : {a b c : Obj C} {f : Hom C a b} {g : Hom C b c}
+      → D [ FMap (C [ g o f ]) ≈ (D [ FMap g o FMap f ] )]
+
+</pre>
+をコピペって、FMap などの定義をここでの定義に置き換えます。
+<p>
+
+<pre>
+    module idF where
+    open import Category
+    open import HomReasoning
+    identityFunctor : ∀{c₁ c₂ ℓ} {C : Category c₁ c₂ ℓ} → Functor C C
+    identityFunctor {C = C} = record {
+           FObj      = λ x → x
+         ; FMap      = λ x → x
+         ; isFunctor = isFunctor
+         }
+      where
+            isFunctor : ∀{c₁ c₂ ℓ} {C : Category c₁ c₂ ℓ} → IsFunctor C C (λ x → x) (λ x → x)
+            isFunctor {C = C} =
+              record { ≈-cong   = Lemma1
+                     ; identity = Lemma2
+                     ; distr    = Lemma3
+                     } where
+               FMap : {a b : Obj C} -&gt; Hom C a b -&gt; Hom C a b
+               FMap = λ x → x
+               FObj : Obj C -&gt; Obj C
+               FObj = λ x → x
+               Lemma1 : {A B : Obj C} {f g : Hom C A B} → C [ f ≈ g ] → C [ FMap f ≈ FMap g ]
+               Lemma1 = ?
+               Lemma2 : {A : Obj C} →  C [ (FMap {A} {A} (Id {_} {_} {_} {C} A)) ≈ (Id {_} {_} {_} {C} (FObj A)) ]
+               Lemma2 = ?
+               Lemma3 : {a b c : Obj C} {f : Hom C a b} {g : Hom C b c}
+                  → C [ FMap (C [ g o f ]) ≈ (C [ FMap g o FMap f ] )]
+               Lemma3 = ?
+
+</pre>
+これで、複数のLemma と Functor の公理が一致したことがわかります。あとは、この ? を埋めていけば良いだけです。(答えも、もうわかってます) Agda は、
+<p>
+
+<pre>
+    ?0 : {A B : Obj C} {f g : Hom C A B} →
+    C [ f ≈ g ] → (C Category.≈ FMap f) (FMap g)
+    ?1 : {A : Obj C} → (C Category.≈ FMap (Id A)) (Id (FObj A))
+    ?2 : {a b c : Obj C} {f : Hom C a b} {g : Hom C b c} →
+    (C Category.≈ FMap (C [ g o f ])) (C [ FMap g o FMap f ])
+
+</pre>
+と ? の型を教えてくれますが、既に書いてあることと同じです。
+<p>
+Lemma1 を以下のように書き換えます。
+<p>
+
+<pre>
+           Lemma1 : {A B : Obj C} {f g : Hom C A B} → C [ f ≈ g ] → C [ FMap f ≈ FMap g ]
+           Lemma1 {a} {b} {f} {g}  f≈g = let open ≈-Reasoning C in
+             begin
+                FMap f
+             ≈⟨ ? ⟩
+                FMap g
+             ∎
+
+</pre>
+暗黙の引数は{}で受ける必要があります。Reasoning は FMap f ≈ FMap g の左辺から右辺を導くので、そのように書きます。
+<p>
+とりあず、≈⟨⟩ としてみます。これは、≈⟨ refl-hom ⟩ と同じです。つまり、見かけは同じだが Agda に取っては同じものではないかと期待するわけです。
+<p>
+
+<pre>
+    g != f of type Category.Category.Hom C a b
+
+</pre>
+残念ながら、うまくはいかないようです。そういえば、f≈g  を使ってません。f≈g  は f ≈ g  なので、まさに必要なものです。
+<p>
+
+<pre>
+           Lemma1 : {A B : Obj C} {f g : Hom C A B} → C [ f ≈ g ] → C [ FMap f ≈ FMap g ]
+           Lemma1 {a} {b} {f} {g}  f≈g = let open ≈-Reasoning C in
+             begin
+                 FMap f
+             ≈⟨ f≈g ⟩
+                 FMap g
+             ∎
+
+</pre>
+で証明は終わりです。結局、証明自体は、
+<p>
+
+<pre>
+             f≈g   = f≈g    
+
+</pre>
+という関数、つまり、\x -&gt; x だったわけです。これをさらに、
+<p>
+
+<pre>
+             begin
+                 FMap f
+             ≈⟨⟩
+                 f
+             ≈⟨ f≈g  ⟩
+                 g
+             ≈⟨⟩
+                 FMap g
+             ∎
+
+</pre>
+とすることも可能です。FMap が \x -&gt; x なので、それを明示的に置き換えたわけです。
+<p>
+Lemma2 の方は、
+<p>
+
+<pre>
+           Lemma2 : {A : Obj C} →  C [ (FMap {A} {A} (Id {_} {_} {_} {C} A)) ≈ (Id {_} {_} {_} {C} (FObj A)) ]
+           Lemma2 {A} = let open ≈-Reasoning C in
+             begin
+                   (FMap {A} {A} (Id {_} {_} {_} {C} A))
+             ≈⟨⟩
+                   (Id {_} {_} {_} {C} (FObj A))
+             ∎
+             Lemma3 : {a b c : Obj C} {f : Hom C a b} {g : Hom C b c}
+                  → C [ FMap (C [ g o f ]) ≈ (C [ FMap g o FMap f ] )]
+             Lemma3 {a} {b} {c} {f} {g}  = let open ≈-Reasoning C in
+             begin
+                FMap ( g o f )
+             ≈⟨⟩
+                FMap g o FMap f
+             ∎
+
+</pre>
+で終わりです。refl の場合は ≈⟨⟩ で終りです。
+<p>
+
+<pre>
+             begin
+                FMap ( g o f )
+             ≈⟨⟩
+                g o f 
+             ≈⟨⟩
+                FMap g o FMap f
+             ∎
+
+</pre>
+としても良いかも知れません。
+<p>
+
+<pre>
+             begin FMap ( g o f )
+             ≈⟨⟩ g o f 
+             ≈⟨⟩ FMap g o FMap f ∎
+
+</pre>
+などと書く人もいるようです。 ≈⟨⟩ は単なる演算子なので、その辺りは自由です。ただし、indent には気を付けなくてはいけません。
+<p>
+<a href="monad.html"> Next : Monad  の結合則  </a>
+</div>
+<ol class="side" id="menu">
+IdentityFunctor と Hom Reasoning 
+<li><a href="#content062">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content063">  identityFunctor と Functor の結合</a>
+<li><a href="#content064">  Hom Reasoning</a>
+<li><a href="#content065">  Hom-Reasoning を使って、identityFunctor を証明する</a>
+<li><a href="#content066">   * <a href="monad.html"> Next : Monad  の結合則  </a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 06:04:02 2013
+</body></html>

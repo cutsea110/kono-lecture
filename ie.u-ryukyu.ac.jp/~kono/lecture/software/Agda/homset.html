@@ -1,0 +1,426 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Hom Set Adjunction</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Hom Set Adjunction</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content068">射の集合の対応としての随伴関手</a></h2>
+
+<pre>
+    Hom (F(-),-) = Hom (-,U(-)) 
+
+</pre>
+は、Hom B F(a) b と Hom A a U(b) に一対一の対応があるという意味です。ここでは、随伴関数からそれを示します。
+<p>
+このように並べて、FはUに対する左随伴関手、UはFに対する右随伴関手と言うようです。
+<p>
+<a href="examples/universal-mapping.agda"> universal-mapping.agda</a>
+普遍写像問題は、f : Hom A a U(b) から  f* : Hom B F(a) b を求める問題でした。普遍写像問題の解を Φと書くことが多いようですが、ここでは、left / right の組を使います。Φが left 普遍写像問題の解に相当して、Φ^{-1} が right になります。
+<p>
+
+<pre>
+       right  : {a : Obj A} { b : Obj B } → Hom A a ( FObj U b ) → Hom B (FObj F a) b
+       left   : {a : Obj A} { b : Obj B } → Hom B (FObj F a) b   → Hom A a ( FObj U b )
+
+</pre>
+一対一を示すには、
+<p>
+
+<pre>
+       right-injective : {a : Obj A} { b : Obj B } → {f : Hom A a (FObj U b) }  → A [ left ( right f ) ≈ f ]
+       left-injective  : {a : Obj A} { b : Obj B } → {f : Hom B (FObj F a) b }  → B [ right ( left f ) ≈ f ]
+
+</pre>
+というように「行って帰ってくる」のを確認することにします。二ついるのは上への写像、つまり、left も right も Hom A/B 全域への写像であるを示せるからです。
+<p>
+
+<pre>
+    record UnityOfOppsite  {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                         ( U : Functor B A )
+                         ( F : Functor A B )
+                         : Set (suc (c₁ ⊔ c₂ ⊔ ℓ ⊔ c₁' ⊔ c₂' ⊔ ℓ' )) where
+           field
+               right  : {a : Obj A} { b : Obj B } → Hom A a ( FObj U b ) → Hom B (FObj F a) b
+               left   : {a : Obj A} { b : Obj B } → Hom B (FObj F a) b   → Hom A a ( FObj U b )
+               right-injective : {a : Obj A} { b : Obj B } → {f : Hom A a (FObj U b) }  → A [ left ( right f ) ≈ f ]
+               left-injective  : {a : Obj A} { b : Obj B } → {f : Hom B (FObj F a) b }  → B [ right ( left f ) ≈ f ]
+
+</pre>
+これが Adjunction から出てくることを示すのは、比較的簡単です。
+<p>
+
+<pre>
+    Adj2UO : {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                 { U : Functor B A }
+                 { F : Functor A B }
+                 { η : NTrans A A identityFunctor ( U ○  F ) }
+                 { ε : NTrans B B  ( F ○  U ) identityFunctor } →
+                 ( adj : Adjunction A B U F η ε )  → UnityOfOppsite A B U F
+    Adj2UO A B {U} {F} {η} {ε} adj = record {
+            right =  right ;
+            left  =  left ;
+            right-injective =  right-injective  ;
+            left-injective = left-injective  ;
+      } where
+            right  : {a : Obj A} { b : Obj B } → Hom A a ( FObj U b ) → Hom B (FObj F a) b
+            right {a} {b} f = B [ TMap ε b o FMap F f ]
+            left   : {a : Obj A} { b : Obj B } → Hom B (FObj F a) b   → Hom A a ( FObj U b )
+            left  {a} {b} f = A [ FMap U f o (TMap η a)  ]
+            right-injective : {a : Obj A} { b : Obj B } → {f : Hom A a (FObj U b) }  → A [ left ( right f ) ≈ f ]
+            right-injective {a} {b} {f} =  let open ≈-Reasoning (A) in
+                     begin
+                         FMap U (B [ TMap ε b o FMap F f ]) o (TMap η a)
+                     ≈⟨ car ( distr U ) ⟩
+                         ( FMap U (TMap ε b) o FMap U (FMap F f )) o (TMap η a)
+                     ≈↑⟨ assoc  ⟩
+                         FMap U (TMap ε b) o ( FMap U (FMap F f ) o (TMap η a) )
+                     ≈⟨ cdr ( nat η)  ⟩
+                         FMap U (TMap ε b) o ((TMap η (FObj U b))  o f )
+                     ≈⟨ assoc  ⟩
+                         (FMap U (TMap ε b) o (TMap η (FObj U b)))  o f
+                     ≈⟨  car  ( IsAdjunction.adjoint1 ( isAdjunction adj )) ⟩
+                        id1 A (FObj U b) o f
+                     ≈⟨ idL  ⟩
+                        f
+                     ∎
+            left-injective  : {a : Obj A} { b : Obj B } → {f : Hom B (FObj F a) b }  → B [ right ( left f ) ≈ f ]
+            left-injective {a} {b} {f} =  let open ≈-Reasoning (B) in
+                     begin
+                         TMap ε b o FMap F ( A [ FMap U f o (TMap η a)  ])
+                     ≈⟨ cdr ( distr F ) ⟩
+                         TMap ε b o ( FMap F (FMap U f) o FMap F (TMap η a))
+                     ≈⟨ assoc  ⟩
+                         ( TMap ε b o FMap F (FMap U f)) o FMap F (TMap η a)
+                     ≈↑⟨ car (nat ε)  ⟩
+                         ( f  o TMap ε ( FObj F a )) o ( FMap F ( TMap η a ))
+                     ≈↑⟨ assoc  ⟩
+                          f  o ( TMap ε ( FObj F a ) o ( FMap F ( TMap η a )))
+                     ≈⟨  cdr  ( IsAdjunction.adjoint2 ( isAdjunction adj )) ⟩
+                        f o id1 B (FObj F a)
+                     ≈⟨ idR  ⟩
+                        f
+                     ∎
+
+</pre>
+U/Fの分配則、η/εの naturality、そして、Adjunction の二つの性質、これらすべてを使っています。それだけ、直接的に対応している性質だということですね。
+<p>
+
+<hr/>
+<h2><a name="content070">Hom Set の対応から随伴関手を導く</a></h2>
+二つの圏A,BとFunctor U,F そして、left/right の組、
+<p>
+
+<pre>
+    Hom (F(-),-) = Hom (-,U(-)) 
+
+</pre>
+から、随伴看守を導くためには、left/right の naturality (可換性)を仮定する必要があります。left/right を自然変換として理解することも可能ですが、ここでは直接可換図を示します。
+<p>
+
+<pre>
+     k = Hom A b b' ; f' = k o f                        h Hom A a' a  ; f' = f o h
+                        left                                               left
+    f : Hom A F(a)   b --------&gt; f* : Hom B a U(b)      f' : Hom A F(a')b -------&gt; f'* : Hom B a' U(b)
+       |                               |                     |                               |
+       |k*                             |U(k*)                |F(h*)                          |h*
+       v                               v                     v                               v
+    f': Hom A F(a)   b'-------&gt; f'* : Hom B a U(b')     f: Hom A F(a)  b ---------&gt; f* : Hom B a U(b)
+                        left                                               left
+
+</pre>
+left/right は、射の元と行き先の二つの入力を持つので、その二つの入力それぞれに naturality  があります。
+<p>
+left の naturality は right の naturality に読み替えることができます。ただし、それを証明するためには、射の cong がないので、left/right  に対する cong を導入する必要があります。
+<p>
+ここまで仮定すると、left/right から adjunction を導くことができます。しかし、その前に、adjunction から、これらの性質を導くことができるかどうかを調べた方が良いでしょう。
+<p>
+前の record UnityOfOppsite に以下の性質を付け加えます。
+<p>
+
+<pre>
+               ---  naturality of Φ
+               left-commute1 : {a : Obj A} {b b' : Obj B } -&gt;
+                       { f : Hom B (FObj F a) b }  -&gt; { k : Hom B b b' } -&gt;
+                        A [  left ( B [ k o  f ] )  ≈ A [ FMap U k o left f  ] ]
+               left-commute2 : {a a' : Obj A} {b : Obj B } -&gt;
+                       { f : Hom B (FObj F a) b }  -&gt; { h : Hom A a' a } -&gt;
+                        A [ left ( B [ f  o  FMap F h ] )  ≈  A [ left f o h ] ]
+               r-cong : {a : Obj A} { b : Obj B } → { f g : Hom A a ( FObj U b ) } →  A [ f  ≈ g ] → B [ right f ≈ right g ]
+               l-cong : {a : Obj A} { b : Obj B } → { f g : Hom B (FObj F a) b }   →  B [ f  ≈ g ] → A [ left f ≈ left g   ]
+
+</pre>
+ここまで仮定すると、right 側の naturality を、left-commute1,2 から証明できます。
+<p>
+
+<pre>
+           --  naturality of right (Φ-1)
+           right-commute1 : {a : Obj A} {b b' : Obj B } -&gt;
+                       { g : Hom A a (FObj U b)}  -&gt; { k : Hom B b b' } -&gt;
+                        B [ B [ k o  right g ]   ≈ right ( A [ FMap U k o g  ] ) ]
+           right-commute1 {a} {b} {b'} {g} {k} =  let open ≈-Reasoning (B) in
+                     begin
+                          k o  right g
+                     ≈⟨ sym left-injective ⟩
+                          right ( left ( k o  right g ) )
+                     ≈⟨ r-cong left-commute1 ⟩
+                          right ( A [ FMap U k o left ( right g ) ] )
+                     ≈⟨ r-cong (lemma-1 g k) ⟩
+                         right ( A [ FMap U k o g  ] )
+                     ∎ where
+                             lemma-1 : {a : Obj A} {b b' : Obj B } -&gt;
+                               ( g : Hom A a (FObj U b))  -&gt; ( k : Hom B b b' ) -&gt;
+                                A [ A [ FMap U k o left ( right g ) ]   ≈  A [ FMap U k o g  ] ]
+                             lemma-1 g k = let open ≈-Reasoning (A) in
+                                   begin
+                                        FMap U k o left ( right g )
+                                   ≈⟨ cdr ( right-injective) ⟩
+                                        FMap U k o g
+                                   ∎
+           right-commute2 : {a a' : Obj A} {b : Obj B } -&gt;
+                       { g : Hom A a (FObj U b) }  -&gt; { h : Hom A a' a } -&gt;
+                        B [ B [ right g  o  FMap F h ]   ≈  right ( A [ g o h ] ) ]
+           right-commute2 {a} {a'} {b} {g} {h} =  let open ≈-Reasoning (B) in
+                     begin
+                          right g  o  FMap F h
+                     ≈⟨  sym left-injective ⟩
+                          right ( left ( right g  o  FMap F h  ))
+                     ≈⟨ r-cong  left-commute2  ⟩
+                          right ( A [ left ( right g ) o h ] )
+                     ≈⟨ r-cong ( lemma-2 g h  ) ⟩
+                          right ( A [ g o h ] )
+                     ∎  where
+                           lemma-2 :  {a a' : Obj A} {b : Obj B } -&gt;
+                               ( g : Hom A a (FObj U b))  -&gt; ( h : Hom A a' a ) -&gt;
+                                A [ A [  left ( right g ) o h ]   ≈  A [ g o h  ] ]
+                           lemma-2 g h  = let open ≈-Reasoning (A) in car ( right-injective  )
+
+</pre>
+そして、Adjunctionから、left-commute1,2 と r/l-cong が出ることを示します。
+<p>
+
+<pre>
+            left-commute1 : {a : Obj A} {b b' : Obj B } -&gt;
+                       { f : Hom B (FObj F a) b }  -&gt; { k : Hom B b b' } -&gt;
+                        A [  left ( B [ k o  f ] )  ≈ A [ FMap U k o left f  ] ]
+            left-commute1 {a} {b} {b'} {f} {k} = let open ≈-Reasoning (A) in
+                     begin
+                         left ( B [ k o  f ] )
+                     ≈⟨⟩
+                         FMap U  ( B [ k o  f ] ) o (TMap η a) 
+                     ≈⟨ car (distr U) ⟩
+                         ( FMap U k o  FMap U f ) o (TMap η a) 
+                     ≈↑⟨ assoc ⟩
+                         FMap U k o  ( FMap U f o (TMap η a) )
+                     ≈⟨⟩
+                         FMap U k o left f  
+                     ∎
+            left-commute2 : {a a' : Obj A} {b : Obj B } -&gt;
+                       { f : Hom B (FObj F a) b }  -&gt; { h : Hom A a' a}  -&gt;
+                        A [ left ( B [ f  o  FMap F h ] )  ≈  A [ left f o h ] ]
+            left-commute2 {a'} {a} {b} {f} {h} = let open ≈-Reasoning (A) in
+                     begin
+                         left ( B [ f  o  FMap F h ] )
+                     ≈⟨⟩
+                         FMap U (  B [ f  o  FMap F h ] )  o TMap η a
+                     ≈⟨ car (distr U ) ⟩
+                         (FMap U f  o  FMap U (FMap F h )) o TMap η a
+                     ≈↑⟨ assoc ⟩
+                         FMap U f o  ( FMap U (FMap F h ) o TMap η a )
+                     ≈⟨ cdr ( nat η) ⟩
+                         FMap U f o (TMap η a' o h )
+                     ≈⟨ assoc ⟩
+                         ( FMap U f  o TMap η a') o h
+                     ≈⟨⟩
+                         left f o h 
+                     ∎
+            r-cong : {a : Obj A} { b : Obj B } → { f g : Hom A a ( FObj U b ) } →  A [ f  ≈ g ] → B [ right f ≈ right g ]
+            r-cong eq = let open ≈-Reasoning (B) in ( cdr ( fcong F  eq ) )
+            l-cong : {a : Obj A} { b : Obj B } → { f g : Hom B (FObj F a) b }   →  B [ f  ≈ g ] → A [ left f ≈ left g   ]
+            l-cong eq = let open ≈-Reasoning (A) in ( car ( fcong U  eq ) )
+
+</pre>
+
+<hr/>
+<h2><a name="content071">left/right の naturality から adjunction を導く</a></h2>
+
+<p>
+η, ε が、まだないので、それを定義します。
+<p>
+
+<pre>
+       f                            : a -----------&gt; U(b)
+       1_F(a)                       :F(a) ---------&gt; F(a)
+       ε(b) = right uo (1_F(a))     :UF(b)---------&gt; a
+       η(a) = left  uo (1_U(a))     : a -----------&gt; FU(a)
+
+</pre>
+単位射の Universal mapping を考えると対応がわかります。後は naturality を示すだけです。left/right の naturality から証明するわけです。
+<p>
+
+<pre>
+    uo-η-map  : {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                     ( U : Functor B A )
+                     ( F : Functor A B ) →
+                     ( uo : UnityOfOppsite A B U F)  →  (a : Obj A )  → Hom A a (FObj U ( FObj F a ))
+    uo-η-map A B U F uo a =  left uo ( id1 B (FObj F a) )
+    uo-ε-map  : {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                     ( U : Functor B A )
+                     ( F : Functor A B ) →
+                     ( uo : UnityOfOppsite A B U F)  →  (b : Obj B )  → Hom B (FObj F ( FObj U ( b ) )) b
+    uo-ε-map A B U F uo b =  right uo ( id1 A (FObj U b) )
+    uo-η  : {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                     ( U : Functor B A )
+                     ( F : Functor A B ) →
+                     ( uo : UnityOfOppsite A B U F)  → NTrans A A identityFunctor ( U ○  F )
+    uo-η A B U F uo = record {
+                 TMap = uo-η-map A B U F uo  ; isNTrans = myIsNTrans
+           } where
+        η = uo-η-map A B U F uo
+        commute :  {a b : Obj A} {f : Hom A a b}
+          → A [ A [ (FMap U (FMap F f))  o  ( η a ) ]  ≈ A [ (η b ) o f ] ]
+        commute {a} {b} {f} =   let open ≈-Reasoning (A) in
+           begin
+                (FMap U (FMap F f))  o  (left uo ( id1 B (FObj F a) ) )
+           ≈↑⟨ left-commute1 uo  ⟩
+                left uo ( B [ (FMap F f)  o  ( id1 B (FObj F a) ) ] )
+           ≈⟨ l-cong uo (IsCategory.identityR (Category.isCategory B))  ⟩
+                left uo ( FMap F f )
+           ≈↑⟨ l-cong uo (IsCategory.identityL (Category.isCategory B))  ⟩
+                left uo ( B [  ( id1 B (FObj F b ))  o  FMap F f ] )
+           ≈⟨ left-commute2 uo   ⟩
+                (left uo ( id1 B (FObj F b) )  ) o f
+           ≈⟨⟩
+                (η b ) o f
+           ∎ where
+              lemma-1 : B [ B [ (FMap F f)  o  ( id1 B (FObj F a) ) ]  ≈  FMap F f ]
+              lemma-1 = IsCategory.identityR (Category.isCategory B)
+        myIsNTrans : IsNTrans A A identityFunctor ( U ○  F ) η
+        myIsNTrans = record { commute = commute }
+    uo-ε  : {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                     ( U : Functor B A )
+                     ( F : Functor A B )→
+                     ( uo : UnityOfOppsite A B U F)  → NTrans B B  ( F ○  U ) identityFunctor
+    uo-ε A B U F uo = record {
+                 TMap = ε ; isNTrans = myIsNTrans
+           } where
+        ε  = uo-ε-map A B U F uo
+        commute : {a b : Obj B} {f : Hom B a b }
+          →  B [ B [ f o (ε a) ] ≈ B [(ε b) o (FMap F (FMap U f)) ] ]
+        commute {a} {b} {f} = let open ≈-Reasoning (B) in
+           sym ( begin
+              ε b o (FMap F (FMap U f))
+           ≈⟨⟩
+             right uo ( id1 A (FObj U b) )  o (FMap F (FMap U f))
+           ≈⟨ right-commute2 uo ⟩
+             right uo ( A [ id1 A (FObj U b)   o FMap U f ] )
+           ≈⟨ r-cong uo (IsCategory.identityL (Category.isCategory A))  ⟩
+             right uo (  FMap U f  )
+           ≈↑⟨ r-cong uo (IsCategory.identityR (Category.isCategory A))  ⟩
+             right uo ( A [ FMap U f  o  id1 A (FObj U a) ] )
+           ≈↑⟨ right-commute1 uo ⟩
+              f o  right uo ( id1 A (FObj U a) )
+           ≈⟨⟩
+              f o  (ε a)
+           ∎  )
+        myIsNTrans : IsNTrans B B ( F ○ U ) identityFunctor　ε
+        myIsNTrans = record { commute = commute }
+
+</pre>
+あとは、Adjunction の二つの性質を証明すれば終わりです。
+<p>
+
+<pre>
+    UO2Adj : {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                     { U : Functor B A }
+                     { F : Functor A B }
+                     ( uo : UnityOfOppsite A B U F)
+                        → Adjunction A B U F ( uo-η A B U F uo ) (uo-ε A B U F uo )
+    UO2Adj A B {U} {F} uo = record {
+               isAdjunction = record {
+                   adjoint1 = adjoint1 ;
+                   adjoint2 = adjoint2
+               }
+           } where
+              um = UO2UM A B U F uo
+              adjoint1 :   { b : Obj B } →
+                         A [ A [ ( FMap U ( TMap (uo-ε A B U F uo) b ))  o ( TMap (uo-η A B U F uo) ( FObj U b )) ]  ≈ id1 A (FObj U b) ]
+              adjoint1 {b} = let open ≈-Reasoning (A) in
+                   begin
+                      ( FMap U ( TMap (uo-ε A B U F uo) b ))  o ( TMap (uo-η A B U F uo) ( FObj U b )) 
+                   ≈⟨⟩
+                        FMap U (right uo (id1 A (FObj U b))) o (left uo (id1 B (FObj F (FObj U b))))
+                   ≈↑⟨ left-commute1 uo ⟩
+                        left uo ( B [ right uo (id1 A (FObj U b))  o id1 B (FObj F (FObj U b)) ] )
+                   ≈⟨ l-cong uo ((IsCategory.identityR (Category.isCategory B))) ⟩
+                        left uo ( right uo (id1 A (FObj U b))  )
+                   ≈⟨ right-injective uo ⟩
+                      id1 A (FObj U b)
+                   ∎
+              adjoint2 :   {a : Obj A} →
+                         B [ B [ ( TMap (uo-ε A B U F uo) ( FObj F a ))  o ( FMap F ( TMap (uo-η A B U F uo) a )) ]  ≈ id1 B (FObj F a) ]
+              adjoint2 {a} = let open ≈-Reasoning (B) in
+                   begin
+                       ( TMap (uo-ε A B U F uo) ( FObj F a ))  o ( FMap F ( TMap (uo-η A B U F uo) a ))
+                   ≈⟨⟩
+                       right uo (Category.Category.Id A) o FMap F (left uo (id1 B (FObj F a)))
+                   ≈⟨ right-commute2  uo ⟩
+                       right uo ( A [ (Category.Category.Id A)   o (left uo (id1 B (FObj F a))) ] )
+                   ≈⟨ r-cong uo ((IsCategory.identityL (Category.isCategory A))) ⟩
+                       right uo ( left uo (id1 B (FObj F a)))
+                   ≈⟨  left-injective uo ⟩
+                      id1 B (FObj F a)
+                   ∎
+
+</pre>
+<a href="yoneda.html"> next : Yoneda Functor  </a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+</div>
+<ol class="side" id="menu">
+Hom Set Adjunction
+<li><a href="#content067">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content068">  射の集合の対応としての随伴関手</a>
+<li><a href="#content069">   * <a href="examples/universal-mapping.agda"> universal-mapping.agda</a>
+</a>
+<li><a href="#content070">  Hom Set の対応から随伴関手を導く</a>
+<li><a href="#content071">  left/right の naturality から adjunction を導く</a>
+<li><a href="#content072">   * <a href="yoneda.html"> next : Yoneda Functor  </a>
+</a>
+<li><a href="#content073">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Mon Sep  9 21:21:24 2013
+</body></html>

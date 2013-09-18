@@ -1,0 +1,525 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Kleisli Category と Adjunction</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Kleisli Category と Adjunction</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content077">Monad から随伴関手を導く</a></h2>
+Monad が随伴関手から導出されることはわかりましたが、逆はどうでしょう? これには二つの方法があり、一つは既に構成した Kleisli Category
+を使う方法で、もう一つは、Elienberg Moore Category を使う方法です。ここでは Kleisli Category の方法を証明していきます。結構長い証明です。
+<p>
+Monad は Category A に meta computation を付け加えた Kleisli Category を導きますが、A と Kleisli Category は実は Adjunction によって関係付けられています。
+<p>
+Monad から Adjoint Functor を導くことを Resolution と言います。まず、それを定義します。
+<p>
+
+<pre>
+        T ≃  (U_R ○ F_R)                                                                                                                              
+        μ = U_R ε F_R                                                                                                                                 
+        nat-ε                                                                                                                                    
+        nat-η     -- same as η but has different types                                                                                           
+
+</pre>
+Monadの要素 T, μ, ηがあり、それに対応するadjointの UR, FR, ηR, εR が定義されています。
+<p>
+
+<pre>
+        record MResolution {c₁ c₂ ℓ  c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) ( B : Category c₁' c₂' ℓ' )
+              ( T : Functor A A )
+              -- { η : NTrans A A identityFunctor T }                                                                                                    
+              -- { μ : NTrans A A (T ○ T) T }                                                                                                            
+              -- { M : Monad A T  η μ }                                                                                                                  
+              ( UR : Functor B A ) ( FR : Functor A B )
+              { ηR : NTrans A A identityFunctor  ( UR ○ FR ) }
+              { εR : NTrans B B ( FR ○ UR ) identityFunctor }
+              { μR : NTrans A A ( (UR ○ FR)  ○ ( UR ○ FR )) ( UR ○ FR  ) }
+              ( Adj : Adjunction A B UR FR ηR εR  )
+                        : Set (suc (c₁ ⊔ c₂ ⊔ ℓ ⊔ c₁' ⊔ c₂' ⊔ ℓ' )) where
+                   field
+                      T=UF  :  T ≃  (UR ○ FR)
+                      μ=UεF : {x : Obj A } -&gt; A [ TMap μR x ≈ FMap UR ( TMap εR ( FObj FR x ) ) ]
+                      -- ηR=η  : {x : Obj A } -&gt; A [ TMap ηR x  ≈  TMap η x ] -- We need T -&gt; UR FR conversion                                           
+                      -- μR=μ  : {x : Obj A } -&gt; A [ TMap μR x  ≈  TMap μ x ]                                          
+
+</pre>
+ここで、少し面倒なのは、T と等しいはずの  (UR ○ FR) は別な型だということです。実際、同じであることは、Cat の射として等しいことを表す等式、 T ≃  (UR ○ FR) がありますが、型としては別物です。
+<p>
+要するに、Adjoint があって、 T ≃  (UR ○ FR) で、 μ = UεF であれば、Adjoint から元の Monad を構成できます。ηはここでも再利用されています。しかし、型が違うので ηR になっています。
+<p>
+ここのBは Kleisli Category になるはずです。作らなくてはならないものは、UR,FR,εR です。ここではU_T, F_T, nat-εという名前を使います。あと、型が違うだけの nat-ηも作る必要があります。
+<p>
+まず U_T を定義します。U_T(a) は T(a) つまり、T と同じです。射は μ(b)o T(f) です。
+<p>
+
+<pre>
+    ufmap : {a b : Obj A} (f : KHom a b ) -&gt; Hom A (FObj T a) (FObj T b)
+    ufmap {a} {b} f =  A [ TMap μ (b)  o FMap T (KMap f) ]
+    U_T : Functor KleisliCategory A
+    U_T = record {
+            FObj = FObj T
+              ; FMap = ufmap
+            ; isFunctor = record
+            {      ≈-cong   = ≈-cong
+                 ; identity = identity
+                 ; distr    = distr1
+            }
+         } where
+            identity : {a : Obj A} →  A [ ufmap (K-id {a}) ≈ id1 A (FObj T a) ]
+            identity {a} = let open ≈-Reasoning (A) in
+              begin
+                  TMap μ (a)  o FMap T (TMap η a)
+              ≈⟨ IsMonad.unity2 (isMonad M) ⟩
+                 id1 A (FObj T a)
+              ∎
+            ≈-cong : {a b : Obj A} {f g : KHom a b} → A [ KMap f ≈ KMap g ] → A [ ufmap f ≈ ufmap g ]
+            ≈-cong {a} {b} {f} {g} f≈g = let open ≈-Reasoning (A) in
+              begin
+                 TMap μ (b)  o FMap T (KMap f)
+              ≈⟨ cdr (fcong T f≈g) ⟩
+                 TMap μ (b)  o FMap T (KMap g)
+              ∎
+
+</pre>
+fcong は ≈-Reasoning に定義されている Functor の cong です。分配則はかなり長いです。
+<p>
+
+<pre>
+        distr1 :  {a b c : Obj A} {f : KHom a b} {g : KHom b c} → A [ ufmap (g * f) ≈ (A [ ufmap g o ufmap f ] )]
+        distr1 {a} {b} {c} {f} {g} = let open ≈-Reasoning (A) in
+          begin
+             ufmap (g * f)
+          ≈⟨⟩
+             ufmap {a} {c} ( record { KMap = TMap μ (c) o (FMap T (KMap g)  o (KMap f)) } )
+          ≈⟨⟩
+             TMap μ (c)  o  FMap T ( TMap μ (c) o (FMap T (KMap g)  o (KMap f)))
+          ≈⟨ cdr ( distr T) ⟩
+             TMap μ (c)  o (( FMap T ( TMap μ (c)) o FMap T  (FMap T (KMap g)  o (KMap f))))
+          ≈⟨ assoc ⟩
+             (TMap μ (c)  o ( FMap T ( TMap μ (c)))) o FMap T  (FMap T (KMap g)  o (KMap f))
+          ≈⟨ car (sym (IsMonad.assoc (isMonad M))) ⟩
+             (TMap μ (c)  o ( TMap μ (FObj T c))) o FMap T  (FMap T (KMap g)  o (KMap f))
+          ≈⟨ sym assoc ⟩
+             TMap μ (c)  o (( TMap μ (FObj T c)) o FMap T  (FMap T (KMap g)  o (KMap f)))
+          ≈⟨ cdr (cdr (distr T)) ⟩
+             TMap μ (c)  o (( TMap μ (FObj T c)) o (FMap T  (FMap T (KMap g))  o FMap T (KMap f)))
+          ≈⟨ cdr (assoc) ⟩
+             TMap μ (c)  o ((( TMap μ (FObj T c)) o (FMap T  (FMap T (KMap g))))  o FMap T (KMap f))
+          ≈⟨ sym (cdr (car (nat μ ))) ⟩
+             TMap μ (c)  o ((FMap T (KMap g )  o  TMap μ (b))  o FMap T (KMap f ))
+          ≈⟨ cdr (sym assoc) ⟩
+             TMap μ (c)  o (FMap T (KMap g )  o  ( TMap μ (b)  o FMap T (KMap f )))
+          ≈⟨ assoc ⟩
+             ( TMap μ (c)  o FMap T (KMap g ) )  o  ( TMap μ (b)  o FMap T (KMap f ) )
+          ≈⟨⟩
+             ufmap g o ufmap f
+          ∎
+
+</pre>
+μの可換性と Monad の結合則が使われています。
+<p>
+次は、F_T です。F_T(a) は a です。Kleisli Category は対象は A と同じでした。射は record を作る必要があります。
+<p>
+
+<pre>
+    ffmap :  {a b : Obj A} (f : Hom A a b) -&gt; KHom a b
+    ffmap f = record { KMap = A [ TMap η (Category.cod A f) o f ] }
+
+</pre>
+つまり、η(b) o f です。この o は圏Aの結合です。
+<p>
+
+<pre>
+    F_T : Functor A KleisliCategory
+    F_T = record {
+            FObj = \a -&gt; a
+            ; FMap = ffmap
+            ; isFunctor = record
+            { ≈-cong   = ≈-cong
+                 ; identity = identity
+                 ; distr    = distr1
+            }
+         } where
+            identity : {a : Obj A} →  A [ A [ TMap η a o id1 A a ] ≈ TMap η a  ]
+            identity {a} = IsCategory.identityR ( Category.isCategory A)
+            --  Category.cod A f and Category.cod A g are actualy the same b, so we don't need cong-≈, just refl
+            lemma1 : {a b : Obj A} {f g : Hom A a b} → A [ f ≈ g ] → A [ TMap η b  ≈  TMap η b ]
+            lemma1 f≈g = IsEquivalence.refl (IsCategory.isEquivalence  ( Category.isCategory A ))
+            ≈-cong : {a b : Obj A} {f g : Hom A a b} → A [ f ≈ g ] → A [ A [ TMap η (Category.cod A f) o f ] ≈ A [ TMap η (Category.cod A g) o g ] ]
+            ≈-cong f≈g =  (IsCategory.o-resp-≈ (Category.isCategory A)) f≈g ( lemma1  f≈g )
+
+</pre>
+identity は簡単ですが、≈-cong は cong が使えないので少し工夫が必要です。resp-≈ で分解しますが、
+<p>
+
+<pre>
+            lemma1 : {a b : Obj A} {f g : Hom A a b} → A [ f ≈ g ] → A [ TMap η b  ≈  TMap η b ]
+
+</pre>
+は「困った時の refl」で解決しています。(Category.cod A f) と (Category.cod A g)  が等しいことを示さないといけないのですが、f g : Hom A a b なので、型のレベルで等しいので、そのまま b と書いています。暗黙の引数で b を渡しているので、文句は言われません。
+<p>
+
+<pre>
+            ≈-cong f≈g =  (IsCategory.o-resp-≈ (Category.isCategory A)) f≈g (  IsEquivalence.refl (IsCategory.isEquivalence  ( Category.isCategory A )) )
+
+</pre>
+でも問題ないはずです。
+<p>
+分配則はここでもかなりやっかいです。
+<p>
+
+<pre>
+        distr1 :  {a b c : Obj A} {f : Hom A a b} {g : Hom A b c} →
+                 ( ffmap (A [ g o f ]) ⋍  ( ffmap g * ffmap f ) )
+        distr1 {a} {b} {c} {f} {g} =  let open ≈-Reasoning (A) in
+          begin
+             KMap (ffmap (A [ g o f ]))
+          ≈⟨⟩
+             TMap η (c) o (g o f)
+          ≈⟨ assoc ⟩
+             (TMap η (c) o g) o f
+          ≈⟨ car (sym (nat η)) ⟩
+             (FMap T g  o TMap η (b)) o f
+          ≈⟨ sym idL ⟩
+             id1 A (FObj T c)  o ((FMap T g  o TMap η (b)) o f)
+          ≈⟨ sym (car (IsMonad.unity2 (isMonad M)))  ⟩
+             (TMap μ c  o FMap T (TMap η c)) o ((FMap T g  o TMap η (b)) o f)
+          ≈⟨ sym assoc  ⟩
+             TMap μ c  o  ( FMap T (TMap η c) o ((FMap T g  o TMap η (b)) o f) )
+          ≈⟨ cdr (cdr (sym  assoc))  ⟩
+             TMap μ c  o  ( FMap T (TMap η c) o (FMap T g  o (TMap η (b) o f)))
+          ≈⟨ cdr assoc  ⟩
+             TMap μ c  o ( ( FMap T (TMap η c) o FMap T g ) o (TMap η (b) o f) )
+          ≈⟨ sym (cdr ( car ( distr T ))) ⟩
+             TMap μ c  o ( ( FMap T (TMap η c o g))  o (TMap η (b) o f))
+          ≈⟨ assoc ⟩
+             (TMap μ c  o  ( FMap T (TMap η c o g)))  o (TMap η (b) o f)
+          ≈⟨ assoc ⟩
+             ((TMap μ c  o  (FMap T  (TMap η c o g)))  o  TMap η b) o f
+          ≈⟨ sym assoc ⟩
+             (TMap μ c  o  (FMap T  (TMap η c o g)))  o  (TMap η b o f)
+          ≈⟨ sym assoc ⟩
+             TMap μ c  o ( (FMap T  (TMap η c o g))  o  (TMap η b o f) )
+          ≈⟨⟩
+             join M (TMap η c o g)  (TMap η b o f)
+          ≈⟨⟩
+             KMap  ( ffmap g * ffmap f )
+          ∎
+
+</pre>
+となります。こちらは、Kleisli Category ですから、join しまくる必要があります。この証明は逆順から始めるべきでした。() の移動が煩雑で、いろいろな規則が使われています。
+<p>
+
+<hr/>
+<h2><a name="content078"> T = (U_T ○ F_T) </a></h2>
+これでようやっと、T = (U_T ○ F_T)  を示すことができます。この等号は Category.Cat つまり圏の圏の等号、Functor の等号です。
+<p>
+取り敢えず、返す射が等しいことは簡単に示せます。
+<p>
+
+<pre>
+    Lemma11-1 :  ∀{a b : Obj A} -&gt; (f : Hom A a b ) -&gt; A [ FMap T f  ≈ FMap (U_T ○ F_T) f ]
+    Lemma11-1 {a} {b} f = let open ≈-Reasoning (A) in
+         sym ( begin
+              FMap (U_T ○ F_T) f
+         ≈⟨⟩
+              FMap U_T ( FMap F_T f )
+         ≈⟨⟩
+               TMap μ (b)  o FMap T (KMap ( ffmap f ) )
+         ≈⟨⟩
+               TMap μ (b)  o FMap T (TMap η (b) o f)
+         ≈⟨ cdr (distr T ) ⟩
+               TMap μ (b)  o ( FMap T (TMap η (b)) o FMap T f)
+         ≈⟨ assoc  ⟩
+               (TMap μ (b)  o  FMap T (TMap η (b))) o FMap T f
+         ≈⟨ car (IsMonad.unity2 (isMonad M)) ⟩
+               id1 A (FObj T b) o FMap T f
+         ≈⟨ idL ⟩
+               FMap T f
+         ∎ )
+
+</pre>
+今度は、ちゃんと逆順に証明しました。begin の前に sym と付けることで逆順に証明することができます。
+<p>
+Functor の等号の定義は、以下のようになっています。
+<p>
+
+<pre>
+    data [_]_~_ {c₁ c₂ ℓ} (C : Category c₁ c₂ ℓ) {A B : Obj C} (f : Hom C A B)
+         : ∀{X Y : Obj C} → Hom C X Y → Set (suc (c₁ ⊔ c₂ ⊔ ℓ)) where
+      refl : {g : Hom C A B} → (eqv : C [ f ≈ g ]) → [ C ] f ~ g
+    _≃_ : ∀ {c₁ c₂ ℓ c₁′ c₂′ ℓ′} {C : Category c₁ c₂ ℓ} {D : Category c₁′ c₂′ ℓ′}
+        → (F G : Functor C D) → Set (suc ℓ′ ⊔ (suc c₂′ ⊔ (suc c₁′ ⊔ (c₂ ⊔ c₁))))
+    _≃_ {C = C} {D = D} F G = ∀{A B : Obj C} → (f : Hom C A B) → [ D ] FMap F f ~ FMap G f
+
+</pre>
+Category と違って、data つまり constructor な refl があります。だったら、それで作ればよいだけです。
+<p>
+
+<pre>
+    -- construct ≃                                                                                                                                           
+    Lemma11 :  T ≃  (U_T ○ F_T)
+    Lemma11 f = Category.Cat.refl (Lemma11-1 f)
+
+</pre>
+わかれば簡単です。引数 f がいるのが不思議ですが、取り敢えずできました。Obj の方はチェックしてませんが、射が等しいなら、その行き先である対象も等しいことを示さないといけませんから、自動的にチェックされているわけです。
+<p>
+
+<hr/>
+<h2><a name="content079">自然変換</a></h2>
+そして、εを作ることになります。まだ、結構ある...
+<p>
+易しい方から。
+<p>
+
+<pre>
+    nat-η : NTrans A A identityFunctor ( U_T ○ F_T )
+    nat-η = record { TMap = \x -&gt; TMap η x ; isNTrans = isNTrans1 } where
+           commute1 :  {a b : Obj A} {f : Hom A a b}
+                → A [ A [ (  FMap ( U_T ○ F_T ) f ) o  ( TMap η a ) ]  ≈ A [ (TMap η b ) o  f  ] ]
+           commute1 {a} {b} {f} =  let open ≈-Reasoning (A) in
+              begin
+                  ( FMap ( U_T ○ F_T ) f ) o  ( TMap η a )
+              ≈⟨ sym (resp refl-hom (Lemma11-1 f)) ⟩
+                  FMap T f o TMap η a
+              ≈⟨ nat η ⟩
+                  TMap η b o f
+              ∎
+           isNTrans1 : IsNTrans A A identityFunctor ( U_T ○ F_T ) (\a -&gt; TMap η a)
+           isNTrans1 = record { commute = commute1 }
+
+</pre>
+ηは、実は同じものですが、型が違います。Lemma11-1 を使って FMap ( U_T ○ F_T ) f を FMap T f に置き換えています。
+<p>
+εは T(a) 上の id として定義します。
+<p>
+
+<pre>
+    tmap-ε : (a : Obj A) -&gt; KHom (FObj T a) a
+    tmap-ε a = record { KMap = id1 A (FObj T a) }
+    nat-ε : NTrans KleisliCategory KleisliCategory  ( F_T ○ U_T ) identityFunctor
+    nat-ε = record { TMap = \a -&gt; tmap-ε a; isNTrans = isNTrans1 } where
+           commute1 : {a b : Obj A} {f : KHom a b}
+                →  (f * ( tmap-ε a ) ) ⋍   (( tmap-ε b ) * (  FMap (F_T ○ U_T) f ) )
+           commute1 {a} {b} {f} =  let open ≈-Reasoning (A) in
+              sym ( begin
+                  KMap (( tmap-ε b ) * (  FMap (F_T ○ U_T) f ))
+              ≈⟨⟩
+                  TMap μ b  o ( FMap T ( id1 A (FObj T b) )  o (  KMap (FMap (F_T ○ U_T) f ) ))
+              ≈⟨ cdr ( cdr (
+                   begin
+                      KMap (FMap (F_T ○ U_T) f )
+                   ≈⟨⟩
+                      KMap (FMap F_T (FMap U_T f))
+                   ≈⟨⟩
+                     TMap η (FObj T b) o (TMap μ (b)  o FMap T (KMap f))
+                   ∎
+              ))  ⟩
+                  TMap μ b  o ( FMap T ( id1 A (FObj T b) )  o (TMap η (FObj T b) o (TMap μ (b)  o FMap T (KMap f))))
+              ≈⟨ cdr (car (IsFunctor.identity (isFunctor T))) ⟩
+                  TMap μ b  o ( id1 A (FObj T (FObj T b) )  o (TMap η (FObj T b) o (TMap μ (b)  o FMap T (KMap f))))
+              ≈⟨ cdr idL ⟩
+                  TMap μ b  o  (TMap η (FObj T b) o (TMap μ (b)  o FMap T (KMap f)))
+              ≈⟨ assoc ⟩
+                  (TMap μ b  o  (TMap η (FObj T b))) o (TMap μ (b)  o FMap T (KMap f))
+              ≈⟨ (car (IsMonad.unity1 (isMonad M))) ⟩
+                  id1 A (FObj T b) o (TMap μ (b)  o FMap T (KMap f))
+              ≈⟨ idL ⟩
+                  TMap μ b  o FMap T (KMap f)
+              ≈⟨ cdr (sym idR) ⟩
+                  TMap μ b  o ( FMap T (KMap f)  o id1 A (FObj T a) )
+              ≈⟨⟩
+                  KMap (f * ( tmap-ε a ))
+              ∎ )
+           isNTrans1 : IsNTrans  KleisliCategory KleisliCategory ( F_T ○ U_T ) identityFunctor (\a -&gt; tmap-ε a )
+           isNTrans1 = record { commute = commute1 }
+
+</pre>
+定義が簡単な割に可換性の証明は複雑です。これは Kleisli Category 上で計算する必要があるからです。
+<p>
+これで役者はそろいましたが、μの型を合わせて、等しいかどうか調べる必要があります。
+<p>
+
+<pre>
+    --
+    -- μ = U_T ε U_F
+    -- 
+    tmap-μ :  (a : Obj A) -&gt; Hom A (FObj ( U_T ○ F_T ) (FObj ( U_T ○ F_T ) a)) (FObj ( U_T ○ F_T ) a)
+    tmap-μ a = FMap U_T ( TMap nat-ε ( FObj F_T a ))
+
+</pre>
+作成した U_T ε U_F からμを作ります。これは、元のμと等しくなくてはいけません。
+<p>
+
+<pre>
+    nat-μ : NTrans A A (( U_T ○ F_T ) ○ ( U_T ○ F_T )) ( U_T ○ F_T )
+    nat-μ = record { TMap = tmap-μ ; isNTrans = isNTrans1 } where
+            commute1 : {a b : Obj A} {f : Hom A a b}
+                 →  A [ A [ (FMap (U_T ○ F_T) f) o  ( tmap-μ a) ]  ≈ A [ ( tmap-μ b ) o  FMap (U_T ○ F_T) ( FMap (U_T ○ F_T) f)  ] ]
+            commute1 {a} {b} {f} =  let open ≈-Reasoning (A) in
+              sym ( begin
+                 ( tmap-μ b ) o  FMap (U_T ○ F_T) ( FMap (U_T ○ F_T) f)
+              ≈⟨⟩
+                 (  FMap U_T ( TMap nat-ε ( FObj F_T b )) ) o  FMap (U_T ○ F_T) ( FMap (U_T ○ F_T) f)
+              ≈⟨ sym ( distr U_T) ⟩
+                 FMap U_T ( KleisliCategory [ TMap nat-ε ( FObj F_T b )  o  FMap F_T ( FMap (U_T ○ F_T) f) ] )
+              ≈⟨ fcong U_T (sym (nat nat-ε)) ⟩
+                 FMap U_T ( KleisliCategory [ (FMap  F_T f) o TMap nat-ε ( FObj F_T a ) ] )
+              ≈⟨ distr U_T ⟩
+                 (FMap U_T (FMap  F_T f)) o   FMap U_T ( TMap nat-ε ( FObj F_T a ))
+              ≈⟨⟩
+                 (FMap (U_T ○ F_T) f) o  ( tmap-μ a)
+              ∎ )
+            isNTrans1 : IsNTrans A A (( U_T ○ F_T ) ○ ( U_T ○ F_T )) ( U_T ○ F_T ) tmap-μ
+            isNTrans1 = record { commute = commute1 }
+
+</pre>
+ここでは、( U_T ○ F_T )  に対して作っているので T の変換は必要ありません。
+<p>
+
+<pre>
+    Lemma12 : {x : Obj A } -&gt; A [ TMap nat-μ x ≈ FMap U_T ( TMap nat-ε ( FObj F_T x ) ) ]
+    Lemma12 {x} = let open ≈-Reasoning (A) in
+              sym ( begin
+                  FMap U_T ( TMap nat-ε ( FObj F_T x ) )
+              ≈⟨⟩
+                  tmap-μ x
+              ≈⟨⟩
+                  TMap nat-μ x
+              ∎ )
+
+</pre>
+これでは証明になっていませんが、Resolution が要求しているのはこちらです。(もしかして定義を間違えたか?)元の μ と等しいことは以下のように証明できます。
+<p>
+
+<pre>
+    Lemma13 : {x : Obj A } -&gt; A [ TMap μ x ≈ FMap U_T ( TMap nat-ε ( FObj F_T x ) ) ]
+    Lemma13 {x} = let open ≈-Reasoning (A) in
+              sym ( begin
+                  FMap U_T ( TMap nat-ε ( FObj F_T x ) )
+              ≈⟨⟩
+                  TMap μ x  o FMap T (id1 A (FObj T x) )
+              ≈⟨  cdr (IsFunctor.identity (isFunctor T)) ⟩
+                  TMap μ x  o id1 A (FObj T (FObj T x) )
+              ≈⟨ idR ⟩
+                  TMap μ x
+              ∎ )
+
+</pre>
+
+<hr/>
+<h2><a name="content080">Adjoint の構成</a></h2>
+
+<p>
+いよいよ Adjunction を作ります。
+<p>
+
+<pre>
+    Adj_T : Adjunction A KleisliCategory U_T F_T nat-η nat-ε
+    Adj_T = record {
+           isAdjunction = record {
+               adjoint1 = adjoint1 ;
+               adjoint2 = adjoint2
+           }
+       } where
+           adjoint1 :   { b : Obj KleisliCategory } →
+                     A [ A [ ( FMap U_T ( TMap nat-ε b))  o ( TMap nat-η ( FObj U_T b )) ]  ≈ id1 A (FObj U_T b) ]
+           adjoint1 {b} =  let open ≈-Reasoning (A) in
+               begin
+                  ( FMap U_T ( TMap nat-ε b))  o ( TMap nat-η ( FObj U_T b ))
+               ≈⟨⟩
+                  (TMap μ (b)  o FMap T (id1 A (FObj T b )))  o ( TMap η ( FObj T b ))
+               ≈⟨ car ( cdr (IsFunctor.identity (isFunctor T))) ⟩
+                  (TMap μ (b)  o (id1 A (FObj T (FObj T b ))))  o ( TMap η ( FObj T b ))
+               ≈⟨ car idR ⟩
+                  TMap μ (b) o ( TMap η ( FObj T b ))
+               ≈⟨ IsMonad.unity1 (isMonad M) ⟩
+                  id1 A (FObj U_T b)
+               ∎
+           adjoint2 :   {a : Obj A} →
+                     KleisliCategory [ KleisliCategory [ ( TMap nat-ε ( FObj F_T a ))  o ( FMap F_T ( TMap nat-η a )) ]
+                                     ≈ id1 KleisliCategory (FObj F_T a) ]
+           adjoint2 {a} =  let open ≈-Reasoning (A) in
+               begin
+                  KMap (( TMap nat-ε ( FObj F_T a )) * ( FMap F_T ( TMap nat-η a )) )
+               ≈⟨⟩
+                  TMap μ a o (FMap T (id1 A (FObj T a) ) o ((TMap η (FObj T a)) o (TMap η a)))
+               ≈⟨ cdr ( car ( IsFunctor.identity (isFunctor T))) ⟩
+                  TMap μ a o ((id1 A (FObj T (FObj T a) )) o ((TMap η (FObj T a)) o (TMap η a)))
+               ≈⟨ cdr ( idL ) ⟩
+                  TMap μ a o ((TMap η (FObj T a)) o (TMap η a))
+               ≈⟨ assoc  ⟩
+                  (TMap μ a o (TMap η (FObj T a))) o (TMap η a)
+               ≈⟨ car (IsMonad.unity1 (isMonad M)) ⟩
+                  id1 A (FObj T a) o (TMap η a)
+               ≈⟨ idL ⟩
+                  TMap η a
+               ≈⟨⟩
+                  TMap η (FObj F_T a)
+               ≈⟨⟩
+                  KMap (id1 KleisliCategory (FObj F_T a))
+               ∎
+
+</pre>
+今までの証明に比べると楽な感じです。
+<p>
+最後に MResoultion という record にまとめて終了です。
+<p>
+open MResolution
+<p>
+
+<pre>
+    Resolution_T : MResolution A KleisliCategory T U_T F_T {nat-η} {nat-ε} {nat-μ} Adj_T
+    Resolution_T = record {
+          T=UF   = Lemma11;
+          μ=UεF  = Lemma12
+      }
+
+</pre>
+μ=UεF の定義はやはり間違っているのかな?
+<p>
+<a href="comparison-k.html"> Next : Kleisli 圏による Conparison Functor   </a>
+</div>
+<ol class="side" id="menu">
+Kleisli Category と Adjunction
+<li><a href="#content076">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content077">  Monad から随伴関手を導く</a>
+<li><a href="#content078">   T = (U_T ○ F_T) </a>
+<li><a href="#content079">  自然変換</a>
+<li><a href="#content080">  Adjoint の構成</a>
+<li><a href="#content081">   * <a href="comparison-k.html"> Next : Kleisli 圏による Conparison Functor   </a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 06:04:13 2013
+</body></html>

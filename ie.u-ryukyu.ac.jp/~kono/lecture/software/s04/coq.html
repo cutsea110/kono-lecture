@@ -1,0 +1,484 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Coq</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Coq</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+
+<hr/>
+<h2><a name="content387">Sequent Calculus</a></h2>
+Sequent Calculus では、論理式を以下の形で使う。
+<p>
+
+<pre>
+        仮定 |- 論理式
+
+</pre>
+仮定は論理式で Context などと呼ばれる。
+<p>
+
+<pre>
+        Γ |- Σ, P
+
+</pre>
+というように左右に、任意の論理式が入ることもある。
+<p>
+
+<hr/>
+<h2><a name="content388">推論規則</a></h2>
+推論規則は、変形前と変形後の二つの式で表す。変形の条件が別にあることもある。
+<p>
+
+<pre>
+        Γ |- Σ, P
+    ---------------------
+        Γ |- Σ, P
+
+</pre>
+なぜ、
+<p>
+
+<pre>
+        |- Γ → Σ, P
+
+</pre>
+ではだめなのかというと、だめなわけではなくて、
+<p>
+
+<pre>
+        Γ |- Σ, P                    |- Γ → Σ, P
+    ---------------------        ---------------------
+        |- Γ → Σ, P                    Γ |- Σ, P                    
+
+</pre>
+という関係があります。deduction theorm などと呼ばれます。
+<p>
+
+<pre>
+        Γ |- P   Σ |-  Q                      
+    --------------------- ∧ introduction       
+        |- Γ,Σ → P ∧ Q                         
+ 
+       Γ |-   P ∧ Q                Γ |-   P ∧ Q 
+ ------------------------     ------------------ ∧ elimnation (L,R)       
+         Γ |- P                      Γ |- Q                    
+
+</pre>
+
+<hr/>
+<h2><a name="content389">Coq</a></h2>
+
+<p>
+Command line からなら、
+<p>
+
+<pre>
+ /Applications/CoqIdE_8.4beta2.app/Contents/Resources/bin/coqtop
+
+</pre>
+Coq &lt; Require Import ZArith.
+<p>
+period が最後に必要。
+<p>
+
+<hr/>
+<h2><a name="content390">Prop.</a></h2>
+Section で変数の宣言の準備をして、変数の宣言を行います。
+<p>
+
+<pre>
+   Section hoge1.
+   Variables (P Q R : Prop).
+
+</pre>
+: の後が型で、ここでは Prop 命題です。P Q R が Prop なことを Check で調べます。
+<p>
+Prop は Proposition (命題)という意味だけど、ここでは何かそういう名前の型。
+<p>
+
+<pre>
+   Check P.
+
+</pre>
+P-&gt;Q なども Prop になります。命題論理式といいます。
+<p>
+
+<pre>
+   Check P-&gt;Q.
+   Check P-&gt;Q-&gt;P.
+
+</pre>
+P-&gt;Q-&gt;P は、P-&gt;(Q-&gt;P) のこと。3-2-1 が (3-2)-1 で、3-(2-1) とはならないのが普通だが、この場合は、この優先順位の方が便利だということがあとでわかる。
+<p>
+
+<hr/>
+<h2><a name="content391">Coq のλ式</a></h2>
+λ式は、変数を受け取ってなにか値を返す関数。
+<p>
+
+<pre>
+ Variables (p:P) (q:Q).
+    Coq &lt; Check (fun H:P =&gt; q).
+    fun _ : P =&gt; q
+         : P -&gt; Q
+
+</pre>
+fun H:P =&gt; q は、P という型を持つ値を変数Hで、(で、それを無視して) Q という型を持つ値 q を返す関数。
+<p>
+この場合の型を P-&gt;Q と書く。これは、命題論理式の形をしています。実際、これを命題論理式とみなして良いことが後でわかります。
+<p>
+実際に、この関数を評価したい時は、Eval compute in を使います。
+<p>
+
+<pre>
+    Coq &lt; Eval compute in  (fun H:P =&gt; q) p.
+         = q
+         : Q
+
+</pre>
+これを p に関数 (fun H:P=&gt;q) を適用する(apply)と言います。
+<p>
+
+<hr/>
+<h2><a name="content392">Curry 化</a></h2>
+複数の引数を持つλ式は、以下のように書きます。
+<p>
+
+<pre>
+    Coq &lt; Check (fun (H:P) (H1:Q) =&gt; q).
+    fun (_ : P) (_ : Q) =&gt; q
+         : P -&gt; Q -&gt; Q
+
+</pre>
+() は省略できないのが不思議ですが、この場合の型は P-&gt;Q-&gt;Q という式になります。
+<p>
+
+<pre>
+    Coq &lt; Eval compute in  (fun (H:P) (H1:Q) =&gt; q) p q.
+         = q
+         : Q
+
+</pre>
+引数を一つしか与えないと、
+<p>
+Coq &lt; Eval compute in  (fun (H:P) (H1:Q) =&gt; q) p . 
+<p>
+
+<pre>
+     = fun _ : Q =&gt; q
+     : Q -&gt; Q
+
+</pre>
+Q を受け取って q を返す関数を返します。
+<p>
+つまり、引数を複数持つ関数は、高階関数で表されるということなります。これを、Curry 化といいます。
+<p>
+高階関数はプログラミング言語では、closure で実現されることが多いです。
+<p>
+
+<hr/>
+<h2><a name="content393">関数に名前を付ける</a></h2>
+
+<pre>
+    Coq &lt; Definition f1 := fun (H:P) (H1:Q) =&gt; q .
+    f1 is defined
+    Coq &lt; Check f1.                               
+    f1
+         : P -&gt; Q -&gt; Q
+
+</pre>
+型を自分で与えることもできます。
+<p>
+
+<pre>
+    Coq &lt; Definition f2: P-&gt;Q-&gt;Q := fun (H:P) (H1:Q) =&gt; q .
+    f2 is defined
+
+</pre>
+これを評価すると、
+<p>
+
+<pre>
+    Coq &lt; Eval compute in f2 p q.
+         = q
+         : Q
+    Coq &lt; Eval compute in f2 p . 
+         = fun _ : Q =&gt; q
+         : Q -&gt; Q
+
+</pre>
+となります。
+<p>
+
+<hr/>
+<h2><a name="content394">Coq と命題論理</a></h2>
+Coq では、証明はλ式に対応します。証明が終わると、それに対応するλ式が定義されます。
+<p>
+証明するべき式を定義します。
+<p>
+
+<pre>
+   Theorem hoge1 : P-&gt;Q-&gt;P.
+
+</pre>
+これを推論規則で変形していきます。変形には、tactics というコマンド使います。
+<p>
+
+<hr/>
+<h2><a name="content395">intro</a></h2>
+intro は、 以下の証明図に相当します。
+<p>
+
+<pre>
+        Γ |- Σ, P                    
+    ---------------------       
+        |- Γ → Σ, P            
+    Coq &lt; Theorem hoge1 : P-&gt;Q-&gt;P.
+    1 subgoal
+      
+      P : Prop
+      Q : Prop
+      R : Prop
+      ============================
+       P -&gt; Q -&gt; P
+    hoge1 &lt; intro.
+    1 subgoal
+      
+      P : Prop
+      Q : Prop
+      R : Prop
+      H : P
+      ============================
+       Q -&gt; P
+
+</pre>
+H というのが追加されて、P というのが仮定に入っていることがわかります。
+<p>
+もう一度、intro とすると、
+<p>
+
+<pre>
+    hoge1 &lt; intro.
+    1 subgoal
+      
+      P : Prop
+      Q : Prop
+      R : Prop
+      H : P
+      H0 : Q
+      ============================
+       P
+
+</pre>
+となり、H0 に Q という仮定が入ります。残った P という goal は、H の仮定そのものです。仮定は、そのまま正しい。
+<p>
+
+<pre>
+    ---------------------       
+        P, Σ  |- P                    
+
+</pre>
+そこで、仮定を使う assumption を入れると、
+<p>
+
+<pre>
+    hoge1 &lt; assumption.
+    No more subgoals.
+
+</pre>
+これで証明が終わります。そこで、Qed とすると、証明が定義されます。
+<p>
+
+<pre>
+    hoge1 &lt; Qed.
+    intro.
+    intro.
+    assumption.
+    hoge1 is defined
+    Coq &lt; Print hoge1.
+    hoge1 = fun (H : P) (_ : Q) =&gt; H
+         : P -&gt; Q -&gt; P
+
+</pre>
+
+<hr/>
+<h2><a name="content396">証明に対応するλ式</a></h2>
+
+<p>
+最後に定義された、
+<p>
+
+<pre>
+    hoge1 = fun (H : P) (_ : Q) =&gt; H
+         : P -&gt; Q -&gt; P
+
+</pre>
+は、fun (H : P) (_ : Q) =&gt; H が証明に対応しているλ式だということです。このように証明とλ式が対応しているのを、カーリーハワード対応と言います。
+<p>
+fun (H : P) (_ : Q) は、引数を二つ取り、最初の引数の型がP で、次の引数の型がQ だといういうことを表してます。H は引数の名前。_ は、とくに名前を付けない引数です。
+<p>
+戻り値は H ですが、これは P という型を持っています。
+<p>
+なので、このλ項は
+<p>
+
+<pre>
+         P -&gt; Q -&gt; P
+
+</pre>
+という型を持っています。そして、これが証明した式に対応します。なので、(型付)λ式の型は論式に対応します。
+<p>
+
+<hr/>
+<h2><a name="content397">証明の例</a></h2>
+
+<pre>
+    Lemma hoge02 : (P-&gt;P)-&gt;(P-&gt;P).
+    intros.
+    assumption.
+    Qed.
+
+</pre>
+この証明を
+<p>
+
+<pre>
+    Print hoge02.
+
+</pre>
+表示して得られるλ式は、
+<p>
+
+<pre>
+   Eval compute in (hoge02 (fun H:P =&gt; p) p1).
+
+</pre>
+などと使うことができますが、それ自体には、特別な意味はありません。
+<p>
+
+<hr/>
+<h2><a name="content398">intros と apply</a></h2>
+
+<pre>
+   Theorem hoge03: (P-&gt;Q)-&gt;(Q-&gt;R)-&gt;(P-&gt;R).
+   intro H H' H''.
+   intro H H'.
+   intro H.
+   intro .
+   Undo.
+   intros H H' H''.
+
+</pre>
+intros とすると、intro を複数適応してくれます。
+<p>
+使える assumption はありませんが、
+<p>
+
+<pre>
+    1 subgoal
+      
+      P : Prop
+      Q : Prop
+      R : Prop
+      p : P
+      q : Q
+      H : P -&gt; Q
+      H0 : Q -&gt; R
+      H1 : P
+      ============================
+       R
+
+</pre>
+H0: Q-&gt;R を使うと、Q という仮定が使えます。
+<p>
+
+<pre>
+   apply H0.
+   assumption.
+   Qed.
+
+</pre>
+
+<hr/>
+<h2><a name="content399">例題</a></h2>
+
+<p>
+intro, intros, assumption, apply を使って、以下の式を証明し、対応するλ式を示せ。
+<p>
+
+<pre>
+   Theorem imp_perm : (P-&gt;Q-&gt;R) -&gt; (Q-&gt;P-&gt;R).
+   Lemma ingore_Q : (P-&gt;R)-&gt;P-&gt;Q-&gt;R.
+
+</pre>
+
+<hr/>
+<h2><a name="content400">まとめ</a></h2>
+
+<p>
+Coq には Prop という型がある。
+<p>
+Section と Variable で変数を定義する。
+<p>
+fun でλ式を作る。
+<p>
+複数の引数を持つ関数をカーリー化で作る。
+<p>
+名前をつけた関数を定義する。
+<p>
+Check で型を調べる。
+<p>
+Eval compute で関数を適用する。
+<p>
+Theorem に intro, assumption , apply という tatctics を適用して証明する。
+<p>
+証明に対応するλ式を調べる。
+<p>
+</div>
+<ol class="side" id="menu">
+Coq
+<li><a href="#content387">  Sequent Calculus</a>
+<li><a href="#content388">  推論規則</a>
+<li><a href="#content389">  Coq</a>
+<li><a href="#content390">  Prop.</a>
+<li><a href="#content391">  Coq のλ式</a>
+<li><a href="#content392">  Curry 化</a>
+<li><a href="#content393">  関数に名前を付ける</a>
+<li><a href="#content394">  Coq と命題論理</a>
+<li><a href="#content395">  intro</a>
+<li><a href="#content396">  証明に対応するλ式</a>
+<li><a href="#content397">  証明の例</a>
+<li><a href="#content398">  intros と apply</a>
+<li><a href="#content399">  例題</a>
+<li><a href="#content400">  まとめ</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Tue May 28 13:09:35 2013
+</body></html>

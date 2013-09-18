@@ -1,0 +1,486 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Category</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Category</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+
+<hr/>
+<h2><a name="content000">よりみち</a></h2>
+<a href="../old/s02-perlmod/epkg.html"> easy package </a>
+自前の package を持つことの意味は何があるのか?
+<p>
+
+<hr/>
+<h2><a name="content002">Monoid</a></h2>
+Monoid は、集合T 上の結合律を満たす演算* と単位元1 からなる。
+<p>
+
+<pre>
+    a * (b * c) =  (a * b ) * c
+    1  * a = a 
+    a  * 1 = a 
+
+</pre>
+となる。このような演算を持つ T を Monoid と言う。
+<p>
+
+<hr/>
+<h2><a name="content003">Monoid </a></h2>
+
+<pre>
+   class Monoid a where
+      mempty :: a                --  単位元 1
+      mappend :: a -&gt; a -&gt; a     --  演算   *
+
+</pre>
+
+<hr/>
+<h2><a name="content004">List as a Monoid</a></h2>
+
+<p>
+
+<pre>
+    instance Monoid [a] where
+       mempty = []
+       mappend = (++)
+
+</pre>
+この単位元と演算により、List が Monoid になることを確かめよう。
+<p>
+
+<pre>
+      [1,2] ++ ([3,4] ++ [5,6]) == ([1,2] ++ [3,4]) ++ [5,6]
+      x ++ (y ++ z) = (x ++ y) ++ z
+      [] ++ x == x ++ []
+
+</pre>
+
+<hr/>
+<h2><a name="content005">Agda での list</a></h2>
+
+<p>
+<a href="assoc-list-proof-agda.html"> Agda での list の結合律の証明 </a>
+
+<hr/>
+<h2><a name="content007">Functor</a></h2>
+List の各要素に関数 f を作用させる関数を考える。
+<p>
+
+<pre>
+      map1 f [] = []
+      map1 f (h:t) =  (f h) : map1 f t 
+
+</pre>
+Nodes の map に相当する関数 treeMap を作ってみよう。
+<p>
+
+<pre>
+       treeMap f (Leaf a ) =  Leaf (f a)
+       treeMap f (Node  a b ) =  Node (treeMap f a) (treeMap f b)
+
+</pre>
+これらを Functor と言う。
+<p>
+
+<pre>
+     class Functor f where
+        fmap :: (a-&gt;b) -&gt; f a -&gt; f b
+
+</pre>
+map1 と treeMap が Functor の instance であることを確かめよ。(ヒント: 型を :t で表示すれば良い)
+<p>
+
+<hr/>
+<h2><a name="content008">Category </a></h2>
+Category とは、集合であるオブジェクト A と、オブジェクト間の写像である射 f の組。
+<p>
+
+<pre>
+    id(A) とは、A の要素を同じ要素に写像する射で必ず存在する 
+
+</pre>
+f: A-&gt;B, g: B-&gt;C に対して、射の合成がある。
+<p>
+
+<pre>
+    g ○ f : A-&gt;C
+
+</pre>
+順序が g ○ f なのは、 g(f(A)) : A-&gt;C  だから。
+<p>
+
+<pre>
+    h ○ (g ○ f )  = (h ○ g) ○ f )
+
+</pre>
+A-&gt;A への単位射がある。同じ値を同じ値に返す射。
+<p>
+
+<pre>
+    id_a : A-&gt;A
+
+</pre>
+
+<hr/>
+<h2><a name="content009">Category と Haskell</a></h2>
+
+<p>
+型をオブジェクトとし、Haskell の関数を射と考えよう。
+<p>
+合成と単位射は、どう考えればよいか。
+<p>
+<a href="func.hs"> Haskell での関数の結合 </a>
+
+<hr/>
+<h2><a name="content011">Category としての型</a></h2>
+Integer  から Integer への射は、もちろん、Integer から Integer への関数である。前に定義した関数の結合と、同じ値を返す関数で、Integer は Categry になる。このCategory は、対象(オブジェクト)は、Integer の型/集合ただ一つである。これは、Monoid でもある。
+<p>
+List も Monoid と考えることができる。List は List 自体を、それを結合する関数/射として見ることができる。
+<p>
+合成即を見るには、
+<p>
+
+<pre>
+    f: A -&gt; B    [1,2]
+    g: B -&gt; C    [3,4]
+
+</pre>
+この時、List の合成 g ○ f が[1,2,3,4] になれば良い。List が (:) と [] で表せることを思い出そう。
+<p>
+
+<pre>
+    [1,2] = (1:(2:[]))
+
+</pre>
+[1,2] を、λx.(1:(2:x)) だと考えると、これは、List から List への写像となる。
+<p>
+
+<pre>
+    [1,2] : A -&gt; (1:(2:A))
+
+</pre>
+同様に、
+<p>
+
+<pre>
+    [3,4] : A -&gt; (3:(4:A))
+
+</pre>
+この合成が
+<p>
+
+<pre>
+    [1,2,3,4] : A -&gt; (1:(2:(3:(4:A))))
+
+</pre>
+だと定義すれば良い。List の append が、射の合成となる。
+<p>
+[] は、id(List)となる。
+<p>
+
+<hr/>
+<h2><a name="content012">Category の射としての  Functor</a></h2>
+Functor F とは、Category C から D への写像。オブジェクトAをDのオブジェクトB対応させる写像をFとする。射の対応が、以下を満たす時に、F はFunctor と言う。
+<p>
+
+<pre>
+    (1) C の射 f:A-&gt;B を Dの射 F(f):F(A)-&gt;F(B) に割り当てる
+    (2) id(F(A)) = F(id(A))
+    (3) f: A-&gt;B, g: B-&gt;C に対して、
+        F(g) ○ F(f) : F(g○f)
+
+</pre>
+
+<hr/>
+<h2><a name="content013">Constructor としての Functor</a></h2>
+
+<p>
+Integer と List はどちらも Catgory であり、Integer から List を作る Constructor は、Category から Category への Functor に相当する。
+<p>
+つまり、List や Node を Functor として考えることができる。Functor は射の写像も持っている必要があり、fmap として(自分で)定義する。
+<p>
+
+<pre>
+     class Functor f where
+        fmap :: (a-&gt;b) -&gt; f a -&gt; f b
+
+</pre>
+fmap は要素の関数g: a-&gt;b  を List や Node の関数へ変換している。
+<p>
+この時、f は List や Node の要素を操作する一種の accesor になっている。つまり、
+<p>
+
+<pre>
+            T(f)
+      T ------------&gt; T
+
+</pre>
+は T の要素に f を作用させると考えて良い。Java では setter/getter を使って、
+<p>
+
+<pre>
+      a.srtAttr( f ( a.getAttr() ));
+
+</pre>
+こんな風に書くだろう。あるいは、
+<p>
+
+<pre>
+      class A {
+           int attr;
+           void f () {   attr = f( attr );
+      }
+
+</pre>
+Haskelll の場合は値を変更できないので、オブジェクト全体をコピーすることになる。
+<p>
+
+<hr/>
+<h2><a name="content014">fmap と Functor</a></h2>
+List を Monoid と考えた時に、fmap は Functor になっているだろうか?
+<p>
+要素がN (1,2,3...) の List N と、要素が String ("1","2",...) の List S を考えよう。これらは Category と考えることができる。
+<p>
+N から S への写像 show (1 を "1",2 を"2", ...) があった時に、 fmap show  は、
+<p>
+
+<pre>
+    fmap show [1,2,3] = ["1","2","3"]
+
+</pre>
+となる。List の fmap は、N から文字列への関数 show を List Integer から List String への関数 ( fmap show ) に変換している。
+<p>
+
+<pre>
+    [1] は λx.(1:x) 
+    ["1"] は λx.("1":x) 
+
+</pre>
+という射であって、s を使って、[1] から["1"] への写像を定義することができる。これは List N から List S 、つまりオブジェクトの対応も定義している。
+<p>
+そして、結合律
+<p>
+
+<pre>
+    F a = fmap show a
+    fmap show [1,2] == ["1","2"]
+    fmap show [3,4] == ["3","4"]
+
+</pre>
+の時に、
+<p>
+
+<pre>
+    fmap show  ([1,2]++[3,4]) == (fmap show [1,2]) ++ ( fmap show ([3,4]))
+
+</pre>
+が成り立つ。もちろん、
+<p>
+
+<pre>
+    fmap show [] == []
+
+</pre>
+これは、F id = id に相当する。
+<p>
+
+<hr/>
+<h2><a name="content015">問題5.1</a></h2>
+<a href="../exercise/028.html"> Excercise 5.1 </a> <!--- Exercise 5.1 ---> 
+
+<hr/>
+<h2><a name="content017">Natural Transformation 自然変換</a></h2>
+A から B へのFunctor F,G があるとする。ここでは、Functor は List や Node の constructor だと思って良い。
+<p>
+
+<pre>
+    a -&gt; Node a
+    data Nodes a = Node (Nodes a) (Nodes a)
+           |       Leaf a
+       deriving (Show)
+
+</pre>
+Nodes Haskell の型 a を、Nodes a に変換する Functor になっている。
+<p>
+
+<pre>
+    let x = Leaf 'a'
+
+</pre>
+型は集合なので、集合から集合へ変換する Functor である。Functor には対象の変換と、射の変換の二つがあることを思い出そう。射の変換は fmap で行われる。
+<p>
+
+<pre>
+    *Node&gt; let x = Node ( Leaf 3 ) ( Node ( Leaf 4 ) (Leaf 5 ) )
+    x :: Nodes Integer
+    *Node&gt; fmap (\x -&gt; x + 1) x
+    Node (Leaf 4) (Node (Leaf 5) (Leaf 6))
+    fmap :: Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+
+</pre>
+同じ型から Functor がF,G と二つ定義されていた時に、F(a) の型から G(a) の型への射 t(a) があって、元の型上の射、関数 f: a-&gt;b があった時に、以下の可換図が成立するとする。
+<p>
+<object data="fig/nat.svg" type="image/svg+xml" width="80%" height="600"></object>
+
+<p>
+その時に、t を F から G への自然変換(natural transformation) という。F(b) から G(b) への射は複数あったり、なかったりするが、その中の一つを取ると一つ自然変換が決まる。
+<p>
+
+<hr/>
+<h2><a name="content018">List から Nodes への自然変換</a></h2>
+flatten は、Nodes を List へ変換する。show は Integer から String への変換である。
+<p>
+
+<pre>
+    fmap show ( flatten x )
+
+</pre>
+と
+<p>
+
+<pre>
+    flatten ( fmap show x )
+
+</pre>
+は同じ結果を与える。
+<p>
+<object data="fig/flatten.svg" type="image/svg+xml" width="80%" height="600"></object>
+
+<p>
+ここで、flatten の型は、型変数によって、
+<p>
+
+<pre>
+    flatten : Nodes Integer -&gt; List Integer
+    flatten : Nodes String -&gt; List String
+
+</pre>
+のに種類になっている。
+<p>
+show 以外の任意の関数でも、flatten 型が対応して同じ等式がなりたつ。
+<p>
+
+<hr/>
+<h2><a name="content019">いろんな自然変換</a></h2>
+片方が1の場合。
+<p>
+T -&gt; 1 の場合。
+<p>
+<object data="fig/nat2.svg" type="image/svg+xml" width="80%" height="600"></object>
+
+<p>
+List の先頭要素を返す head を考えよう。Integer 上の fmap は fmap f x  = f x と考えれば良い。
+<p>
+
+<pre>
+    fmap show ( head  x ) =  head ( fmap show x )
+
+</pre>
+これは、head : 1_Integer -&gt; List String  という自然変換になっている。( x が [] の時には、どう考えれば良いか? ) 
+<p>
+1 -&gt; T の場合。
+<p>
+同じ要素を n 個並べた List を作る関数 nlist を考えよう。
+<p>
+
+<pre>
+    fmap show ( nlist 5  x ) =  nlist 5 ( fmap show x )
+
+</pre>
+TT -&gt; T の場合
+<p>
+<object data="fig/nat1.svg" type="image/svg+xml" width="80%" height="600"></object>
+
+<p>
+List ( List Integer ) を考えよう。flatten は、自然変換になっている。この場合、TT(f) は Nest した List のみに働く必要がある。
+<p>
+
+<pre>
+    T(f)  =&gt; fmap f
+    TT(f) =&gt; fmap (fmap f)
+
+</pre>
+行列の行列式を求める関数は、どのような Functor の自然変換になっているか考えよう。可能な射s f は行列の線形変換に限定する必要がある。
+<p>
+
+<hr/>
+<h2><a name="content020">natural transformation であることを証明する</a></h2>
+Agda を用いて、nlist が natural transformation であることを示そう。
+<p>
+
+<pre>
+   fmap f ( nlist h n ) ≡ nlist ( f h ) n
+
+</pre>
+を示せば良い。
+<p>
+<a href="list-nat.agda"> nlist </a>
+
+<hr/>
+<h2><a name="content022">問題5.2</a></h2>
+<a href="../exercise/029.html"> Excercise 5.2 </a> <!--- Exercise 5.2 ---> 
+</div>
+<ol class="side" id="menu">
+Category
+<li><a href="#content000">  よりみち</a>
+<li><a href="#content001">   * <a href="../old/s02-perlmod/epkg.html"> easy package </a>
+</a>
+<li><a href="#content002">  Monoid</a>
+<li><a href="#content003">  Monoid </a>
+<li><a href="#content004">  List as a Monoid</a>
+<li><a href="#content005">  Agda での list</a>
+<li><a href="#content006">   * <a href="assoc-list-proof-agda.html"> Agda での list の結合律の証明 </a>
+</a>
+<li><a href="#content007">  Functor</a>
+<li><a href="#content008">  Category </a>
+<li><a href="#content009">  Category と Haskell</a>
+<li><a href="#content010">   * <a href="func.hs"> Haskell での関数の結合 </a>
+</a>
+<li><a href="#content011">  Category としての型</a>
+<li><a href="#content012">  Category の射としての  Functor</a>
+<li><a href="#content013">  Constructor としての Functor</a>
+<li><a href="#content014">  fmap と Functor</a>
+<li><a href="#content015">  問題5.1</a>
+<li><a href="#content016">   * <a href="../exercise/028.html"> Excercise 5.1 </a> <!--- Exercise 5.1 ---> 
+</a>
+<li><a href="#content017">  Natural Transformation 自然変換</a>
+<li><a href="#content018">  List から Nodes への自然変換</a>
+<li><a href="#content019">  いろんな自然変換</a>
+<li><a href="#content020">  natural transformation であることを証明する</a>
+<li><a href="#content021">   * <a href="list-nat.agda"> nlist </a>
+</a>
+<li><a href="#content022">  問題5.2</a>
+<li><a href="#content023">   * <a href="../exercise/029.html"> Excercise 5.2 </a> <!--- Exercise 5.2 ---> 
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Tue Jul  9 16:36:03 2013
+</body></html>

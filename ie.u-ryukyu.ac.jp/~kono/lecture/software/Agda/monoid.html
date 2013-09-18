@@ -1,0 +1,600 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Sets と Monoid を使った Monad の例</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Sets と Monoid を使った Monad の例</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content125">Monad の例</a></h2>
+ここでは、実際に Monad を構成してみます。AをSet、M を Monoid (の射(Carrier)の集合 ) として、Functor T と自然変換ηとミューを以下のように定義します。
+<p>
+
+<pre>
+    T : A -&gt;  M x A
+    η : a -&gt; (ε, a)
+    μ : (m,(m',a) -&gt; (m∙m', a)
+
+</pre>
+(,) は Product (直積) です。εは Monoid の単位元。_∙_ が Monoid の演算です。T は Sets -&gt; Sets の Functor になります。
+<p>
+Haskell では<a href="examples/monoid.hs">以下</a>
+のように定義できます。ここでは Monoid として List を使っています。つまり List は Monoid なわけです。
+<p>
+
+<pre>
+    class Monad1 t where
+        eta :: a -&gt; t a
+        mu ::  t ( t a ) -&gt; t a
+    data T1 m a = T [m] a
+       deriving (Show)
+    instance Functor (T1 m) where
+        fmap f (T m a)  = T  m (f a)
+    instance Monad1 (T1 a) where
+        eta a          = T [] a
+        mu  (T m (T m' a)) =  T (m ++ m') a
+    instance Monad (T1 a) where
+        return a = eta a
+        (&gt;&gt;=)   = \t f -&gt; mu (fmap f t)
+    fact1 0 = T [] 1
+    fact1 n = fact1 (n -1) &gt;&gt;= \m -&gt;
+        T [n] (n * m )
+
+</pre>
+Monoid は結合律が成立する一つの演算と単位元、そして、Monoid の等号を持っています。Sets は圏ですが、その射は Agdaの関数で、対象はAgdaのSet、そして、射の等号は _≡_です。Monoid の等号を _≡_ にすると、推論で cong が使えるようになります。List でも使いました。圏の証明では、通常は cong は使わないようですが、ここでは必須です。cong の定義は、Binary.Relation/PropositionalEquality にあります。
+<p>
+
+<pre>
+    cong : ∀ {a b} {A : Set a} {B : Set b}
+           (f : A → B) {x y} → x ≡ y → f x ≡ f y
+    cong f refl = refl
+
+</pre>
+等しい物に同じ関数を作用させたものは等しいという普通の規則です。cong の引数は refl という constructor で等式を受け取り、refl で作った等式を返しています。Agda では、等式で困った時には refl と書くと通ることが多いようです。
+<p>
+圏の定義では、
+<p>
+
+<pre>
+    _≈_ : {A B : Obj} → Rel (Hom A B) ℓ
+
+</pre>
+となっていて、 _≈_ の constructor を直接使うことはできません。 IsCategory.isEquivalence.refl ( isCategory A ) で、右辺では等式を作成できますが、左辺に書くことはできないので、cong を証明することができません。その代わりに、
+<p>
+
+<pre>
+    o-resp-≈ : {A B C : Obj} {f g : Hom A B} {h i : Hom B C} → f ≈ g → h ≈ i → (h o f) ≈ (i o g)
+
+</pre>
+や Functor の cong を使うことができます。
+<p>
+
+<pre>
+    ≈-cong : {A B : Obj C} {f g : Hom C A B} → C [ f ≈ g ] → D [ FMap f ≈ FMap g ]
+
+</pre>
+
+<hr/>
+<h2><a name="content127">Sets</a></h2>
+
+<p>
+Sets は以下のようになっていました。
+<p>
+
+<pre>
+    module Category.Sets where
+    open import Category
+    open import Relation.Binary.Core
+    open import Relation.Binary
+    open import Level
+    _o_ : ∀{ℓ} {A B C : Set ℓ} → (f : B → C) → (g : A → B) → A → C
+    _o_ f g x = f (g x)
+    _-Set⟶_ : ∀{ℓ} → (A B : Set ℓ) → Set _
+    A -Set⟶ B = A → B
+    SetId : ∀{ℓ} {A : Set ℓ} → A → A
+    SetId x = x
+    Sets : ∀{ℓ} → Category _ _ ℓ
+    Sets {ℓ} = record { Obj = Set ℓ
+                      ; Hom = _-Set⟶_
+                      ; _o_ = _o_
+                      ; _≈_ = _≡_
+                      ; isCategory = isCategory
+                      }
+      where
+        isCategory : IsCategory (Set ℓ) _-Set⟶_ _≡_ _o_ SetId
+        isCategory = record { isEquivalence = record {refl = refl ; trans = ≡-trans ; sym = ≡-sym}
+                            ; identityL     = refl
+                            ; identityR     = refl
+                            ; o-resp-≈      = o-resp-≈
+                            ; associative   = refl
+                            }
+          where
+            o-resp-≈ : {A B C : Set ℓ} {f g : A -Set⟶ B} {h i : B -Set⟶ C}
+                     → f ≡ g → h ≡ i → h o f ≡ i o g
+            o-resp-≈ refl refl = refl
+
+</pre>
+o-resp-≈ のなどの証明に refl がたくさん使われています。困った時には refl です。また、射の等式が _≡_ であることもわかります。射は A → B な関数です。
+<p>
+
+<hr/>
+<h2><a name="content128">Product</a></h2>
+直積 M x A や、その要素 (ε, a) は、Data.Product に定義されています。
+<p>
+
+<pre>
+    record Σ {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
+      constructor _,_
+      field
+        proj₁ : A
+        proj₂ : B proj₁
+
+</pre>
+直積なのに何故か Σ。Π じゃないの? _,_ は Constructor なので左辺でも右辺でも使えます。結果は Set です。Σは、A B が対等ではないので、以下のように対等に扱えるように工夫します。
+<p>
+
+<pre>
+    _×_ : ∀ {a b} (A : Set a) (B : Set b) → Set (a ⊔ b)
+    A × B = Σ[ x ∈ A ] B
+
+</pre>
+Σを直接作るのではなく × で作ります。
+<p>
+
+<pre>
+    Lemma-MM33 : {a : Level} {b : Level} {A : Set a} {B : A → Set b}  {x :  Σ A B } →  (((proj₁ x) , proj₂ x ) ≡ x )
+    Lemma-MM33 =  _≡_.refl
+
+</pre>
+なので、(((proj₁ x) , proj₂ x ) ≡ x ) です。
+<p>
+
+<pre>
+    map : ∀ {a b p q}
+            {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q} →
+          (f : A → B) → (∀ {x} → P x → Q (f x)) →
+          Σ A P → Σ B Q
+    map f g (x , y) = (f x , g y)
+
+</pre>
+は、直積の要素に f g を作用させる関数です。
+<p>
+
+<hr/>
+<h2><a name="content129">Monoid を作る</a></h2>
+ここでは、Monoid を自分で作ります。
+<p>
+
+<pre>
+    record ≡-Monoid c : Set (suc c) where
+      infixl 7 _∙_
+      field
+        Carrier  : Set c
+        _∙_      : Op₂ Carrier
+        ε        : Carrier
+        isMonoid : IsMonoid _≡_ _∙_ ε
+
+</pre>
+こうすると、Monodi のCarrir(射)の等号が _≡_ と Sets と同じになり、cong が使えるようになります。
+<p>
+IsMonoid は Algebra.Structures に定義されています。
+<p>
+
+<pre>
+    record IsSemigroup {a ℓ} {A : Set a} (≈ : Rel A ℓ)
+                       (∙ : Op₂ A) : Set (a ⊔ ℓ) where
+      open FunctionProperties ≈
+      field
+        isEquivalence : IsEquivalence ≈
+        assoc         : Associative ∙
+        ∙-cong        : ∙ Preserves₂ ≈ ⟶ ≈ ⟶ ≈
+      open IsEquivalence isEquivalence public
+    record IsMonoid {a ℓ} {A : Set a} (≈ : Rel A ℓ)
+                    (∙ : Op₂ A) (ε : A) : Set (a ⊔ ℓ) where
+      open FunctionProperties ≈
+      field
+        isSemigroup : IsSemigroup ≈ ∙
+        identity    : Identity ε ∙
+
+</pre>
+identity とか assoc 、そして、 ∙-cong  がありますが、普通のcongが使えるので必要ありません。
+<p>
+
+<hr/>
+<h2><a name="content130">Monad の要素を作る</a></h2>
+<a href="examples/monoid-monad.agda">これ</a>
+で、道具立てはそろったので、実際に、
+<p>
+
+<pre>
+    T : A -&gt;  M x A
+    η : a -&gt; (ε, a)
+    μ : (m,(m',a) -&gt; (m∙m', a)
+
+</pre>
+を構成します。
+<p>
+
+<pre>
+    postulate M : ≡-Monoid c
+    open ≡-Monoid
+    A = Sets {c}
+
+</pre>
+として置くと便利です。
+<p>
+
+<pre>
+    T : Functor A A
+    T = record {
+            FObj = λ a → (Carrier M) × a
+            ; FMap = λ f → map ( λ x → x ) f
+            ; isFunctor = record {
+                 identity = IsEquivalence.refl (IsCategory.isEquivalence  ( Category.isCategory Sets ))
+                 ; distr = (IsEquivalence.refl (IsCategory.isEquivalence  ( Category.isCategory Sets )))
+                 ; ≈-cong = cong1
+            }
+        } where
+            cong1 : {ℓ′ : Level} → {a b : Set ℓ′} { f g : Hom (Sets {ℓ′}) a b} →
+                       Sets [ f ≈ g ] → Sets [ map (λ (x : Carrier M) → x) f ≈ map (λ (x : Carrier M) → x) g ]
+            cong1 _≡_.refl = _≡_.refl
+    open Functor
+
+</pre>
+FObj = λ a → (Carrier M) × a は、A -&gt;  M x A そのものです。これは Sets から Sets への Functor ですが、Carrier M も、その直積もそのまま Sets の要素として受け入れてもらえます。Agda の対象はすべて Set なので、こういうことになります。
+<p>
+FMap = λ f → map ( λ x → x ) f では、M の方はそのままで、A の方にだけ f を作用させています。直積の射は map なわけです。
+<p>
+identity などの証明は refl ですが、 ≈-cong は左辺に refl を書く必要があるので、cong1 を呼び出しています。直接 iedentity field に書いた方が、黄色が出なくて良いことがあります。
+<p>
+これで Functor T はできました。
+<p>
+次は、 η : a -&gt; (ε, a) です。
+<p>
+
+<pre>
+    Lemma-MM1 :  {a b : Obj A} {f : Hom A a b} →
+            A [ A [ FMap T f o (λ x → ε M , x) ] ≈
+            A [ (λ x → ε M , x) o f ] ]
+    Lemma-MM1 {a} {b} {f} = let open ≈-Reasoning A renaming ( _o_ to _*_ ) in
+            begin
+                 FMap T f o (λ x → ε M , x)
+            ≈⟨⟩
+                 (λ x → ε M , x) o f
+            ∎
+    -- η : a → (ε,a)                                                                                                                       
+    η : NTrans  A A identityFunctor T
+    η = record {
+           TMap = λ a → λ(x : a) → ( ε M , x ) ;
+           isNTrans = record {
+                commute = Lemma-MM1
+           }
+      }
+
+</pre>
+ここではわざわざ、Lemma を呼び出していますが、refl と書いても問題ありません。名前の重複を避けるために _≡_.refl と書くことになります。しかし、要求している性質(を表す型)を明示するためには別に書いた方が良いわけです。Reasoning を呼び出す時に、Reasoning 内部の _o_ の名前を変えて重複を避けるようにしています。Monomorphic な Agda では、こういうことが必要になります。
+<p>
+実体は、
+<p>
+
+<pre>
+           TMap = λ a → λ(x : a) → ( ε M , x ) ;
+
+</pre>
+だけで、 η : a -&gt; (ε, a)  そのものです。Sets の射は Set から Set なので、一段、λ(x : a) で要素に受け直さないといけません。
+<p>
+そして、 μ : (m,(m',a) -&gt; (m∙m', a) は、
+<p>
+
+<pre>
+    muMap : (a : Obj A  ) → FObj T ( FObj T a ) → Σ (Carrier M) (λ x → a )
+    muMap a ( m , ( m' , x ) ) = ( _∙_ M m  m'  ,  x )
+    Lemma-MM2 :  {a b : Obj A} {f : Hom A a b} →
+            A [ A [ FMap T f o (λ x → muMap a x) ] ≈
+            A [ (λ x → muMap b x) o FMap (T ○ T) f ] ]
+    Lemma-MM2 {a} {b} {f} =  let open ≈-Reasoning A renaming ( _o_ to _*_ ) in
+            begin
+                 FMap T f o (λ x → muMap a x)
+            ≈⟨⟩
+                 (λ x → muMap b x) o FMap (T ○ T) f
+            ∎
+    μ : NTrans  A A ( T ○ T ) T
+    μ = record {
+           TMap = λ a → λ x  → muMap a x ;
+           isNTrans = record {
+                commute = λ{a} {b} {f} → Lemma-MM2 {a} {b} {f}
+           }
+      }
+
+</pre>
+となります。引数を明示しているのは黄色を避けるためです。これもμの可換性を明示するためだけに証明を書いています。
+<p>
+
+<pre>
+    muMap : (a : Obj A  ) → FObj T ( FObj T a ) → Σ (Carrier M) (λ x → a )
+
+</pre>
+muMap の型は少し複雑ですが、μは自然変換で μ(a) の a は Obj A であり、これが Sets の射、
+<p>
+
+<pre>
+      FObj T ( FObj T a ) → Σ (Carrier M) (λ x → a )
+
+</pre>
+を返します。  μ : (m,(m',a) -&gt; (m∙m', a) は、そういうものを表しているわけです。μは Monad の結合の実装であり、Monad のMeta computation そのものです。つまり、ここでは、データはFunctor であり、プログラムは自然変換であるわけです。
+<p>
+
+<hr/>
+<h2><a name="content132">Monad を作る</a></h2>
+最終的に Monad を作るには、Monad 則を証明する必要があります。
+<p>
+
+<pre>
+    MonoidMonad : Monad A T η μ
+    MonoidMonad = record {
+           isMonad = record {
+               unity1 = Lemma-MM3 ;
+               unity2 = Lemma-MM4 ;
+               assoc  = Lemma-MM5
+           }
+       } where
+           Lemma-MM3 : {a : Obj A} → A [ A [ TMap μ a o TMap η ( FObj T a ) ] ≈ Id {_} {_} {_} {A} (FObj T a) ]
+           Lemma-MM3 {a} = let open ≈-Reasoning (A) renaming ( _o_ to _*_ ) in
+                    begin
+                         TMap μ a o TMap η ( FObj T a )
+                    ≈⟨⟩
+                        ( λ x → ((M ∙ ε M) (proj₁ x) , proj₂ x ))
+                    ≈⟨  cong ( λ f → ( λ x →  ( ( f (proj₁ x) ) , proj₂ x ))) ( Lemma-MM9 )  ⟩
+                        ( λ (x : FObj T a) → (proj₁ x) , proj₂ x )
+                    ≈⟨⟩
+                        ( λ x → x )
+                    ≈⟨⟩
+                         Id {_} {_} {_} {A} (FObj T a)
+                    ∎
+           Lemma-MM4 : {a : Obj A} → A [ A [ TMap μ a o (FMap T (TMap η a ))] ≈ Id {_} {_} {_} {A} (FObj T a) ]
+           Lemma-MM4 {a} = let open ≈-Reasoning (A) renaming ( _o_ to _*_ ) in
+                    begin
+                         TMap μ a o (FMap T (TMap η a ))
+                    ≈⟨⟩
+                        ( λ x → (M ∙ proj₁ x) (ε M) , proj₂ x )
+                    ≈⟨  cong ( λ f → ( λ x →  ( f (proj₁ x) ) , proj₂ x )) ( Lemma-MM10 )  ⟩
+                        ( λ x → (proj₁ x) , proj₂ x )
+                    ≈⟨⟩
+                        ( λ x → x )
+                    ≈⟨⟩
+                         Id {_} {_} {_} {A} (FObj T a)
+                    ∎
+           Lemma-MM5 : {a : Obj A} → A [ A [ TMap μ a o TMap μ ( FObj T a ) ] ≈  A [  TMap μ a o FMap T (TMap μ a) ] ]
+           Lemma-MM5 {a} = let open ≈-Reasoning (A) renaming ( _o_ to _*_ ) in
+                    begin
+                          TMap μ a o TMap μ ( FObj T a )
+                    ≈⟨⟩
+                          ( λ x → (M ∙ (M ∙ proj₁ x) (proj₁ (proj₂ x))) (proj₁ (proj₂ (proj₂ x))) , proj₂ (proj₂ (proj₂ x)))
+                    ≈⟨ cong ( λ f → ( λ x →
+                             (( f ( proj₁ x ) ((proj₁ (proj₂ x))) ((proj₁ (proj₂ (proj₂ x)))  )) ,  proj₂ (proj₂ (proj₂ x)) )
+                             )) Lemma-MM11  ⟩
+                          ( λ x → (M ∙ proj₁ x) ((M ∙ proj₁ (proj₂ x)) (proj₁ (proj₂ (proj₂ x)))) , proj₂ (proj₂ (proj₂ x)))
+                    ≈⟨⟩
+                          TMap μ a o FMap T (TMap μ a)
+                    ∎
+
+</pre>
+重要な部分は Lemma にして、そとに出しています。ここでの推論は定義の展開と、直積の中の部分の抜き出しを行なっているだけです。
+<p>
+
+<pre>
+                        ( λ x → ((M ∙ ε M) (proj₁ x) , proj₂ x ))
+                    ≈⟨  cong ( λ f → ( λ x →  ( ( f (proj₁ x) ) , proj₂ x ))) ( Lemma-MM9 )  ⟩
+
+</pre>
+では、M ∙ ε M) (proj₁ x) つまり、ε ∙ (proj₁ x)  が x になる部分だけを抜き出しています。 証明するべき Lemma-MM9  の型は、
+<p>
+
+<pre>
+    Lemma-MM9  : ( λ(x : Carrier M) → ( M ∙ ε M ) x )  ≡ ( λ(x : Carrier M) → x )
+
+</pre>
+です。、Monoid の性質から、
+<p>
+
+<pre>
+    Lemma-MM34 : ∀{ x : Carrier M  } → ( (M ∙ ε M) x ≡ x  )
+    Lemma-MM34  {x} = (( proj₁ ( IsMonoid.identity ( isMonoid M )) ) x )
+
+</pre>
+は証明することができます。 残念ながら、これは別な式であって、Lemma-MM9 の証明ではありません。問題は、
+<p>
+
+<pre>
+         λ x
+
+</pre>
+です。
+<p>
+
+<pre>
+    Extensionality : {f g : Carrier M → Carrier M } → (∀ {x} → (f x ≡ g x))  → ( f ≡ g )
+
+</pre>
+があれば、このλを取り除くことができます。これは、Functional Extensionality と呼ばれるもので、集合の外延性の公理と似ています。これを公理として仮定してやる必要があります。つまり、Functional Extensionality  は Agda では証明できません。
+<p>
+postulate できるように、Relation.Binary.PropositionalEquality に定義が書いてあります。
+<p>
+
+<pre>
+    Extensionality : (a b : Level) → Set _
+    Extensionality a b =
+      {A : Set a} {B : A → Set b} {f g : (x : A) → B x} →
+      (∀ x → f x ≡ g x) → f ≡ g
+
+</pre>
+これを以下のように呼び出します。
+<p>
+
+<pre>
+    -- Functional Extensionality Axiom (We cannot prove this in Agda / Coq, just assumming )
+    import Relation.Binary.PropositionalEquality
+    -- postulate extensionality : { a b : Obj A } {f g : Hom A a b } →  Relation.Binary.PropositionalEquality.Extensionality c c
+    postulate extensionality : Relation.Binary.PropositionalEquality.Extensionality c c
+
+</pre>
+結局、
+<pre>
+                                        
+    Lemma-MM9  : ( λ(x : Carrier M) → ( M ∙ ε M ) x )  ≡ ( λ(x : Carrier M) → x )
+    Lemma-MM9  = extensionality Lemma-MM34
+
+</pre>
+という証明になります。残りも、ほとんど同じです。
+<p>
+
+<pre>
+    Lemma-MM35 : ∀{ x : Carrier M  } → ((M ∙ x) (ε M))  ≡ x
+    Lemma-MM35  {x} = ( proj₂  ( IsMonoid.identity ( isMonoid M )) ) x
+    Lemma-MM36 : ∀{ x y z : Carrier M } → ((M ∙ (M ∙ x) y) z)  ≡ (_∙_ M  x (_∙_ M y z ) )
+    Lemma-MM36  {x} {y} {z} = ( IsMonoid.assoc ( isMonoid M ))  x y z
+    Lemma-MM9  : ( λ(x : Carrier M) → ( M ∙ ε M ) x )  ≡ ( λ(x : Carrier M) → x ) 
+    Lemma-MM9  = extensionality Lemma-MM34
+    Lemma-MM10 : ( λ x →   ((M ∙ x) (ε M)))  ≡ ( λ x → x ) 
+    Lemma-MM10  = extensionality Lemma-MM35
+
+</pre>
+Lemma-MM36 は、 ∀{ x y z : Carrier M } となっていて、そのままでは extensionality が使えません。引数三つの Functional Extensionality は以下のように作ります。
+<p>
+
+<pre>
+    -- Multi Arguments Functional Extensionality
+    extensionality30 : {f g : Carrier M → Carrier M → Carrier M → Carrier M } → 
+                   (∀ x y z  → f x y z ≡ g x y z )  → ( f ≡ g ) 
+    extensionality30 eq = extensionality ( \x -&gt; extensionality ( \y -&gt; extensionality (eq x y) ) )
+    Lemma-MM11 : (λ x y z → ((M ∙ (M ∙ x) y) z))  ≡ (λ x y z → ( _∙_ M  x (_∙_ M y z ) ))
+    Lemma-MM11 = Extensionality30 Lemma-MM36
+
+</pre>
+extensionality30 どうやって作るかというと、
+<pre>
+    extensionality30 eq = extensionality ?
+
+</pre>
+
+としてみます。
+<pre>
+    ?0 : (x : Carrier M) → .f x ≡ .g x
+
+</pre>
+
+なので、引数を受け取る必要があることがわかります。
+<pre>
+    extensionality30 eq = extensionality (  λ x → extensionality ? )
+
+</pre>
+とすると、
+<pre>
+    ?0 : (x₁ : Carrier M) → .f x x₁ ≡ .g x x
+
+</pre>
+
+となります。もう一段、
+<pre>
+    extensionality31 eq = extensionality ( \x -&gt; extensionality ( \y -&gt; extensionality { }0 ) )
+
+</pre>
+とすると、
+<pre>
+    ?0 : (x₁ : Carrier M) → .f x y x₁ ≡ .g x y x₁
+
+</pre>
+となり、これは、 (∀ x y z  → f x y z ≡ g x y z ) の引数 x y を指定したものだということがわかります。
+<p>
+∀ は、Agda では、λとあまり変わりません。何も制約を付けずに λ x と書くのと、∀ x と書くのは同等なわけです。
+<p>
+これで Monad を構成することができました。
+<p>
+join の定義を見るために、
+<p>
+
+<pre>
+    \f -&gt; \g -&gt; Monad.join MonoidMonad f g
+
+</pre>
+C-c C-n すると、
+<p>
+
+<pre>
+    λ f g x →
+      (M ∙ proj₁ (g x)) (proj₁ (f (proj₂ (g x)))) ,
+      proj₂ (f (proj₂ (g x)))
+
+</pre>
+だということがわかります。いや、わからないですね。もっと具体的に f g を与えて、
+<p>
+
+<pre>
+    F  : (m : Carrier M) -&gt; { a b : Obj A } -&gt; ( f : a -&gt; b ) -&gt; Hom A a ( FObj T b )
+    F m {a} {b} f =  \(x : a ) -&gt; ( m , ( f x) )
+    postulate m m' : Carrier M
+    postulate a b c' : Obj A
+    postulate f :  b -&gt; c'
+    postulate g :  a -&gt; b
+    Lemma-MM12 =  Monad.join MonoidMonad (F m f) (F m' g)
+
+</pre>
+として、C-c C-n LemmaMM12 とすると、
+<p>
+
+<pre>
+    λ x → (M ∙ m') m , f (g x)
+
+</pre>
+と見やすい形になります。f g の関数の合成と同時に Monoid の演算が行われています。
+<p>
+<a href="kleisli.html"> Next : Kleisli 圏の構成  </a>
+</div>
+<ol class="side" id="menu">
+Sets と Monoid を使った Monad の例
+<li><a href="#content124">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content125">  Monad の例</a>
+<li><a href="#content126">   * <a href="examples/monoid.hs">以下</a>
+</a>
+<li><a href="#content127">  Sets</a>
+<li><a href="#content128">  Product</a>
+<li><a href="#content129">  Monoid を作る</a>
+<li><a href="#content130">  Monad の要素を作る</a>
+<li><a href="#content131">   * <a href="examples/monoid-monad.agda">これ</a>
+</a>
+<li><a href="#content132">  Monad を作る</a>
+<li><a href="#content133">   * <a href="kleisli.html"> Next : Kleisli 圏の構成  </a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 09:09:04 2013
+</body></html>

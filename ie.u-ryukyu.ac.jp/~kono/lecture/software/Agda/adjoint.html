@@ -1,0 +1,260 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Adjoint から Monad を導く</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Adjoint から Monad を導く</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content007">随伴関手</a></h2>
+圏には随伴関手 Adjoint Functor というものがあり、重要だとされています。Adjoint は二つの圏A,Bと二つの関手F,U (と二つの自然変換η、μ)の関係です。これが一体なんなのかを理解するのが圏論の一つの目標です。
+<p>
+
+<pre>
+      U : Functor B A 
+      F : Functor A B 
+      η : NTrans A A identityFunctor ( U ○ F ) 
+      ε : NTrans B B  ( F ○  U ) identityFunctor 
+
+</pre>
+U ○ F は Functor の結合で、Category.Cat で定義されています。identityFunctor からFunctorへの自然変換ηは、Monad でも出てきました。これから、Monad ( U ○ F, η, UεF ) を Adjunction から導くので、まさに同じものです。
+<p>
+Adjunction の定義は以下の通りです。
+<p>
+
+<pre>
+        record IsAdjunction  {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                         ( U : Functor B A )
+                         ( F : Functor A B )
+                         ( η : NTrans A A identityFunctor ( U ○ F ) )
+                         ( ε : NTrans B B  ( F ○  U ) identityFunctor )
+                         : Set (suc (c₁ ⊔ c₂ ⊔ ℓ ⊔ c₁' ⊔ c₂' ⊔ ℓ' )) where
+           field
+               adjoint1 :   { b : Obj B } →
+                             A [ A [ ( FMap U ( TMap ε b ))  o ( TMap η ( FObj U b )) ]  ≈ id1 A (FObj U b) ]
+               adjoint2 :   {a : Obj A} →
+                             B [ B [ ( TMap ε ( FObj F a ))  o ( FMap F ( TMap η a )) ]  ≈ id1 B (FObj F a) ]
+        record Adjunction {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                         ( U : Functor B A )
+                         ( F : Functor A B )
+                         ( η : NTrans A A identityFunctor ( U ○  F ) )
+                         ( ε : NTrans B B  ( F ○  U ) identityFunctor )
+                         : Set (suc (c₁ ⊔ c₂ ⊔ ℓ ⊔ c₁' ⊔ c₂' ⊔ ℓ' )) where
+            field
+               isAdjunction : IsAdjunction A B U F η ε
+
+</pre>
+登場するものの数は多いですが、等式は二つです。
+<p>
+
+<pre>
+             A [ A [ ( FMap U ( TMap ε b ))  o ( TMap η ( FObj U b )) ]  ≈ id1 A (FObj U b) ]
+             B [ B [ ( TMap ε ( FObj F a ))  o ( FMap F ( TMap η a )) ]  ≈ id1 B (FObj F a) ]
+
+</pre>
+教科書風に書くと、UεoηU = 1_U, εFoFη = 1_F です。
+<p>
+Hom A a (FObj U b )  と Hom B (FObj F a ) b が一対一であるという性質でもあります。また、Universal mapping problem (普遍写像問題)とも対応しています。残念ながら、これらの証明は煩雑なので、ちょっと後回しにして、Monad との対応を先に示します。
+<p>
+まず、UεF を定義します。これは U(ε(F(a))) だったりするので、自然変換とFunctor の結合を先に定義します。
+<p>
+
+<pre>
+        Functor*Nat :  {c₁ c₂ ℓ c₁' c₂' ℓ' c₁'' c₂'' ℓ'' : Level} (A : Category c₁ c₂ ℓ) {B : Category c₁' c₂' ℓ'} (C : Category c₁'' c₂'' ℓ'')
+            (F : Functor B C) -&gt; { G H : Functor A B } -&gt; ( n : NTrans A B G H ) -&gt; NTrans A C (F ○  G) (F ○ H)
+        Functor*Nat A {B} C F {G} {H} n = record {
+               TMap  = \a -&gt; FMap F (TMap n a)
+               ; isNTrans = record {
+                    commute = commute
+               }
+            } where
+                 commute : {a b : Obj A} {f : Hom A a b}
+                    → C [ C [ (FMap F ( FMap H f )) o  ( FMap F (TMap n a)) ]  ≈ C [ (FMap F (TMap n b )) o  (FMap F (FMap G f))  ] ]
+                 commute  {a} {b} {f}  = let open ≈-Reasoning (C) in
+                    begin
+                       (FMap F ( FMap H f )) o  ( FMap F (TMap n a))
+                    ≈⟨ sym (distr F) ⟩
+                       FMap F ( B [ (FMap H f)  o TMap n a ])
+                    ≈⟨ IsFunctor.≈-cong (isFunctor F) ( nat n ) ⟩
+                       FMap F ( B [ (TMap n b ) o FMap G f ] )
+                    ≈⟨ distr F ⟩
+                       (FMap F (TMap n b )) o  (FMap F (FMap G f))
+                    ∎
+        Nat*Functor :  {c₁ c₂ ℓ c₁' c₂' ℓ' c₁'' c₂'' ℓ'' : Level} (A : Category c₁ c₂ ℓ) {B : Category c₁' c₂' ℓ'} (C : Category c₁'' c₂'' ℓ'')
+            { G H : Functor B C } -&gt; ( n : NTrans B C G H ) -&gt; (F : Functor A B) -&gt; NTrans A C (G ○  F) (H ○ F)
+        Nat*Functor A {B} C {G} {H} n F = record {
+               TMap  = \a -&gt; TMap n (FObj F a)
+               ; isNTrans = record {
+                    commute = commute
+               }
+            } where
+                 commute : {a b : Obj A} {f : Hom A a b}
+                    → C [ C [ ( FMap H (FMap F f )) o  ( TMap n (FObj F a)) ]  ≈ C [ (TMap n (FObj F b )) o  (FMap G (FMap F f))  ] ]
+                 commute  {a} {b} {f}  =  IsNTrans.commute ( isNTrans n)
+
+</pre>
+証明なので長くなりますが、
+<p>
+
+<pre>
+               Fη : TMap  = \a -&gt; FMap F (TMap η a)
+               ηF : TMap  = \a -&gt; TMap η (FObj F a)
+
+</pre>
+というだけです。Functor は対象と射の二つの写像を持ってますが、同じ記号を polymorphic に使っているわけですが、Agda では FObj, FMap
+と違う名前になっています。Functor の分配法則があるので、Fηが正しく定義されるわけです。
+<p>
+これを使って、UεF を定義します。
+<p>
+
+<pre>
+    UεF :  {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                     ( U : Functor B A )
+                     ( F : Functor A B )
+                     ( ε : NTrans B B  ( F ○  U ) identityFunctor ) → NTrans A A  (( U ○  F ) ○ ( U ○  F )) ( U ○  F )
+    UεF A B U F ε =  lemma11  (
+         Functor*Nat A {B} A U {( F ○ U) ○ F} {identityFunctor ○ F} ( Nat*Functor A {B} B { F ○  U} {identityFunctor} ε F)  ) where
+             lemma11 :   NTrans A A   ( U ○ ((F  ○  U) ○  F )) ( U ○  (identityFunctor ○ F) )
+                      →  NTrans A A  (( U ○  F ) ○ ( U ○  F )) ( U ○  F )
+             lemma11  n = record { TMap = \a → TMap n a; isNTrans = record { commute = IsNTrans.commute ( isNTrans n ) }}
+
+</pre>
+一つ、lemma  を挟んでいるのでは、(( U ○  F ) ○ ( U ○  F )) ( U ○  F ) という要求されている型 T ○ T -&gt; T に変換するためです。一度、record に分解してしまえば、Functor の合成は写像の合成ですから、Agda が推論してくれるわけです。射の結合の場合は手で assoc とかやらないといけなかったのですが、これは楽です。lemma11 の引数 n に Functor*Nat で作成した自然変換が入っています。
+<p>
+そして、Monad を作ります。
+<p>
+
+<pre>
+    Adj2Monad : {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                     { U : Functor B A }
+                     { F : Functor A B }
+                     { η : NTrans A A identityFunctor ( U ○  F ) }
+                     { ε : NTrans B B  ( F ○  U ) identityFunctor } →
+          Adjunction A B U F η ε  → Monad A (U ○  F) η (UεF A B U F ε)
+    Adj2Monad A B {U} {F} {η} {ε} adj = record {
+             isMonad = record {
+                        assoc = assoc1;
+                        unity1 = unity1;
+                        unity2 = unity2
+                  }
+          }  where
+               T : Functor A A
+               T = U  ○ F
+               μ : NTrans A A ( T ○ T ) T
+               μ = UεF A B U F ε
+
+</pre>
+record の要素を定義していけば良いだけですが、三つの性質を証明する必要があります。ηは既に定義されています。
+<p>
+
+<pre>
+           unity1 : {a : Obj A} → A [ A [ TMap μ a o TMap η ( FObj T a ) ] ≈ Id {_} {_} {_} {A} (FObj T a) ]
+           unity1 {a} = let open ≈-Reasoning (A) in
+             begin
+               TMap μ a o TMap η ( FObj T a )
+             ≈⟨⟩
+               (FMap U (TMap ε ( FObj F a ))) o TMap η ( FObj U ( FObj F  a ))
+             ≈⟨ IsAdjunction.adjoint1 ( isAdjunction adj ) ⟩
+               id (FObj U ( FObj F a ))
+             ≈⟨⟩
+               id (FObj T a)
+             ∎
+
+</pre>
+unity1 は比較的簡単です。展開すると Adjoint の性質をすぐに使うことができます。
+<p>
+
+<pre>
+           unity2 : {a : Obj A} → A [ A [ TMap μ a o (FMap T (TMap η a ))] ≈ Id {_} {_} {_} {A} (FObj T a) ]
+           unity2 {a} = let open ≈-Reasoning (A) in
+             begin
+                TMap μ a o (FMap T (TMap η a ))
+             ≈⟨⟩
+                (FMap U (TMap ε ( FObj F a ))) o (FMap U ( FMap F (TMap η a )))
+             ≈⟨ sym (distr U ) ⟩
+                FMap U ( B [  (TMap ε ( FObj F a )) o ( FMap F (TMap η a )) ])
+             ≈⟨ (IsFunctor.≈-cong (isFunctor U)) (IsAdjunction.adjoint2 ( isAdjunction adj )) ⟩
+                FMap U ( id1 B (FObj F a) )
+             ≈⟨ IsFunctor.identity ( isFunctor U ) ⟩
+                id (FObj T a)
+             ∎
+
+</pre>
+unity2 も若干の展開が必要なだけです。T と  U ○  F の変換はAgdaの型推論の範囲内であり、わざわざ推論する必要はありません。unity1、unity2 が、それぞれ adjoin1, adjoin2 と対応していることがわかります。
+<p>
+
+<pre>
+           assoc1 : {a : Obj A} → A [ A [ TMap μ a o TMap μ ( FObj T a ) ] ≈  A [  TMap μ a o FMap T (TMap μ a) ] ]
+           assoc1 {a} = let open ≈-Reasoning (A) in
+             begin
+                TMap μ a o TMap μ ( FObj T a )
+             ≈⟨⟩
+                (FMap U (TMap ε ( FObj F a ))) o (FMap U (TMap ε ( FObj F ( FObj U (FObj F  a )))))
+             ≈⟨ sym (distr U) ⟩
+                FMap U (B [ TMap ε ( FObj F a )  o TMap ε ( FObj F ( FObj U (FObj F a ))) ] )
+             ≈⟨  (IsFunctor.≈-cong (isFunctor U)) (lemma-assoc1 ( TMap ε (FObj F a ))) ⟩
+                FMap U (B [ (TMap ε ( FObj F a )) o FMap F (FMap U (TMap ε ( FObj F a ))) ] )
+             ≈⟨ distr U ⟩
+                (FMap U (TMap ε ( FObj F a ))) o FMap U (FMap F (FMap U (TMap ε ( FObj F a ))))
+             ≈⟨⟩
+                TMap μ a o FMap T (TMap μ a)
+             ∎
+
+</pre>
+問題は assoc です。cong を使いたいところですが、≈-cong でなんとかします。
+<p>
+
+<pre>
+           lemma-assoc1 : {a b : Obj B} → ( f : Hom B a b) →
+                 B [ B [ f o TMap ε a ] ≈ B [ TMap ε b o FMap F (FMap U f ) ] ]
+           lemma-assoc1 f =  IsNTrans.commute ( isNTrans ε )
+
+</pre>
+ここで、εの可換性を使っています。Adjoint の性質は、二つの等式だけでなく、自然変換やFunctor自体の性質も含まれているわけです。
+<p>
+これで、Adjoint から Monad を導くことができました。
+<p>
+<a href="kleisli-resolution.html"> Next : Kleisli 圏による Monad の Resolution   </a>
+
+<pre>
+ 
+</div>
+<ol class="side" id="menu">
+Adjoint から Monad を導く
+<li><a href="#content006">   * <a href="index.html"> top Agda による圏論入門 </a>
+</a>
+<li><a href="#content007">  随伴関手</a>
+<li><a href="#content008">   * <a href="kleisli-resolution.html"> Next : Kleisli 圏による Monad の Resolution   </a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 05:50:31 2013
+</body></html>

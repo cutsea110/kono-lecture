@@ -1,0 +1,740 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Category module に関して</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Category module に関して</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content020">Agda と圏論</a></h2>
+Agda で圏論を勉強している人はたくさんいるでしょう。そのうちのいくつかは github などで公開されています。
+<p>
+ここでは、石井ひろみ氏による
+<p>
+<a href="https://github.com/konn/category-agda">  https://github.com/konn/category-agda </a>
+を使います。
+<p>
+<a href="https://github.com/copumpkin/categories">https://github.com/copumpkin/categories </a> 
+も良いのですが、最初に見つけたのが前者だったので。
+<p>
+圏論は勉強するとキリがありませんが、ここでは、
+<p>
+＊　 自然変換の定義＊　 圏のMonadの定義＊　 Haskell の Monad の元の Kleisli 圏の射の結合則の証明
+<p>
+をとりあえずの目標にします。Agda で Cagegory の定義を除いて、700 行程度。
+<p>
+さらに、
+<p>
+＊　 随伴関手から、Universal mapping  の解を導く＊　 Universal mapping  の解法から随伴関手を導く
+<p>
+と、さらに先の目標として、
+<p>
+＊　Monad を随伴関手から導く＊　Kleisli 圏による Monad の Resolution ( 随伴関手の導出)＊　Kleisli 圏に対する Comparison Functor
+＊　Eleinberg-Moore 圏による Monad の Resolution ( 随伴関手の導出)＊　Eleinberg-Moore 圏に対する Comparison Functor
+<p>
+を目指します。Agda で2600行程度になる。
+<p>
+Limiti とか Equlizer がないのがちょっと足りないけど、気が向いたら足すでしょう。
+<p>
+ここでは、Category module を少し見てみます。
+<p>
+
+<hr/>
+<h2><a name="content023">Category module の構成</a></h2>
+Agda の Library は適切な場所に置き、Emacs の customise で指定します。 top level に Category.agda があり、そこに圏の定義が書いてあります。<a href="record.agda"> record </a> で書いたように、圏の公理が record の中に書いてあるという形式です。93行と短いですが、Agda なのであなどれません。
+
+<p>
+Category directory 以下に、実際に構成した圏があります。ここで使うのは Cat.agda つまり圏の圏のみです。Identity Functor や Functor の合成が Cat.agda に記述されています。
+<p>
+
+<hr/>
+<h2><a name="content025">Category.agda</a></h2>
+圏の簡単な入門は、
+<p>
+<a href="../s05/lecture.html"> Category </a> 
+を見てもらうと良いと思います。重要なのは Object (対象)と、Object 間の Hom ( Homomorphism / 射 ) 定義です。公理自体は式でしかないが、Object と Hom が何物なのかを理解しないと操作できません。
+<p>
+IsCategory という record に圏の公理が記述されています。
+<p>
+
+<pre>
+    record IsCategory {c₁ c₂ ℓ : Level} (Obj : Set c₁)
+                      (Hom : Obj → Obj → Set c₂)
+                      (_≈_ : {A B : Obj} → Rel (Hom A B) ℓ)
+                      (_o_ : {A B C : Obj} → Hom B C → Hom A B → Hom A C)
+                      (Id  : {A : Obj} → Hom A A) : Set (suc (c₁ ⊔ c₂ ⊔ ℓ)) where
+      field
+        isEquivalence : {A B : Obj} → IsEquivalence {c₂} {ℓ} {Hom A B} _≈_ 
+        identityL : {A B : Obj} → {f : Hom A B} → (Id o f) ≈ f
+        identityR : {A B : Obj} → {f : Hom A B} → (f o Id) ≈ f
+        o-resp-≈ : {A B C : Obj} {f g : Hom A B} {h i : Hom B C} → f ≈ g → h ≈ i → (h o f) ≈ (i o g)
+        associative : {A B C D : Obj} {f : Hom C D}  {g : Hom B C} {h : Hom A B}
+                                      → (f o (g o h)) ≈ ((f o g) o h)
+
+</pre>
+Obj と Hom はそれぞれ Set c₁ と  Set c₂ という集合です。Hom には引数が二つあります。Domain と Codomain 、つまり、元のObjのSet(入力の型(集合))と行き先の Obj のSet 値域です。それぞれに別な集合の Level が割り当てられています。
+<p>
+Hom は写像に相当しますが、写像そのもの (Obj -&gt; Obj) ではなくて、写像の集合だというわけです。その中の一つが実際の射 (写像 )です。これらは ( 後で説明する別な record を通して) 、
+<p>
+
+<pre>
+    a b : Obj A
+    f g : Hom A a b
+
+</pre>
+という形で使います。a b が Obj で、f g は a から b への射というわけです。Hom A a b は、a から b  への射の全体を表す集合です。
+<p>
+
+<pre>
+   (_≈_ : {A B : Obj} → Rel (Hom A B) ℓ)
+
+</pre>
+は射の等号です。Rel は Relation.Binary.Core に定義されていて、
+<p>
+
+<pre>
+    -- Heterogeneous binary relations
+    REL : ∀ {a b} → Set a → Set b → (ℓ : Level) → Set (a ⊔ b ⊔ suc ℓ)
+    REL A B ℓ = A → B → Set ℓ
+    -- Homogeneous binary relations
+    Rel : ∀ {a} → Set a → (ℓ : Level) → Set (a ⊔ suc ℓ)
+    Rel A ℓ = REL A A ℓ
+
+</pre>
+と定義されています。Rel は集合で Level として a ⊔ suc ℓ を持っています。ここでの集合は、例えば、前に作成した、
+<p>
+
+<pre>
+   data _==_  {A : Set } :  List A -&gt; List A -&gt; Set  where
+      reflection  : {x : List A} -&gt; x == x
+
+</pre>
+とかが来ることが期待されいますが、何が来るかは、ここでは指定していません。抽象的な圏は等号がありさせすれば良くて、その具体的な実現とは関係ないわけです。
+<p>
+
+<pre>
+    (_o_ : {A B C : Obj} → Hom B C → Hom A B → Hom A C)
+
+</pre>
+が、射の合成です。ここで指定されているのは合成の型だけです。ここでも実体はありません。
+<p>
+最後に、
+<p>
+
+<pre>
+    (Id  : {A : Obj} → Hom A A) : Set (suc (c₁ ⊔ c₂ ⊔ ℓ)) where
+
+</pre>
+自己射である Id (の型)が定義されています。ここで一つ集合のレベルが上がっているのは、Hom が  Set (a ⊔ suc ℓ) だからです。
+<p>
+Obj 、Hom、射の等号、射の合成、そして射の単位元、この5つで圏の定義に含まれる要素のすべてです。
+<p>
+
+<hr/>
+<h2><a name="content027">圏の公理</a></h2>
+圏の公理も5つしかありません。
+<p>
+
+<pre>
+        isEquivalence : {A B : Obj} → IsEquivalence {c₂} {ℓ} {Hom A B} _≈_ 
+        identityL : {A B : Obj} → {f : Hom A B} → (Id o f) ≈ f
+        identityR : {A B : Obj} → {f : Hom A B} → (f o Id) ≈ f
+        o-resp-≈ : {A B C : Obj} {f g : Hom A B} {h i : Hom B C} → f ≈ g → h ≈ i → (h o f) ≈ (i o g)
+        associative : {A B C D : Obj} {f : Hom C D}  {g : Hom B C} {h : Hom A B}
+                                      → (f o (g o h)) ≈ ((f o g) o h)
+
+</pre>
+最初の IsEquivalence  は、やはり、 Relation.Binary.Core  に定義されていて、
+<p>
+
+<pre>
+    -- Equivalence relations
+    -- The preorders of this library are defined in terms of an underlying
+    -- equivalence relation, and hence equivalence relations are not
+    -- defined in terms of preorders.
+    record IsEquivalence {a ℓ} {A : Set a}
+                         (_≈_ : Rel A ℓ) : Set (a ⊔ ℓ) where
+      field
+        refl  : Reflexive _≈_
+        sym   : Symmetric _≈_
+        trans : Transitive _≈_
+      reflexive : Dummy._≡_ ⇒ _≈_
+      reflexive Dummy.refl = refl
+
+</pre>
+となっています。これらは、そこに、
+<p>
+
+<pre>
+    -- Reflexivity of _∼_ can be expressed as _≈_ ⇒ _∼_, for some
+    -- underlying equality _≈_. However, the following variant is often
+    -- easier to use.
+    Reflexive : ∀ {a ℓ} {A : Set a} → Rel A ℓ → Set _
+    Reflexive _∼_ = ∀ {x} → x ∼ x
+    -- Generalised symmetry.
+    Sym : ∀ {a b ℓ₁ ℓ₂} {A : Set a} {B : Set b} →
+          REL A B ℓ₁ → REL B A ℓ₂ → Set _
+    Sym P Q = P ⇒ flip Q
+    Symmetric : ∀ {a ℓ} {A : Set a} → Rel A ℓ → Set _
+    Symmetric _∼_ = Sym _∼_ _∼_
+    -- Generalised transitivity.
+    Trans : ∀ {a b c ℓ₁ ℓ₂ ℓ₃} {A : Set a} {B : Set b} {C : Set c} →
+            REL A B ℓ₁ → REL B C ℓ₂ → REL A C ℓ₃ → Set _
+    Trans P Q R = ∀ {i j k} → P i j → Q j k → R i k
+    Transitive : ∀ {a ℓ} {A : Set a} → Rel A ℓ → Set _
+    Transitive _∼_ = Trans _∼_ _∼_ _∼_
+
+</pre>
+と定義されています。これらの公理を集めた record が IsEquivalence なわけです。これらの公理はいつでも呼び出すことができます。∼ は、 Reflexive _≈_ とかで呼び出す時に ≈ に置き換えられていることになります。
+<p>
+
+<pre>
+    Reflexive _∼_ = ∀ {x} → x ∼ x
+
+</pre>
+は x ≈ x ですが、data で記述されているわけではないので、パターンマッチとして使うことはできません。
+<p>
+Sym に出てくる flip は Function.agda に
+<p>
+
+<pre>
+    flip : ∀ {a b c} {A : Set a} {B : Set b} {C : A → B → Set c} →
+           ((x : A) (y : B) → C x y) → ((y : B) (x : A) → C x y)
+    flip f = λ y x → f x y
+
+</pre>
+とあります。引数の順序を変えているだけです。つまり、x ≈ y -&gt; y ≈ x です。
+<p>
+
+<pre>
+    Trans P Q R = ∀ {i j k} → P i j → Q j k → R i k
+
+</pre>
+は、
+<pre>
+      x ≈ y -&gt; y ≈ z -&gt; x ≈ z 
+
+</pre>
+です。
+<p>
+
+<hr/>
+<h2><a name="content028">射の Equivalence の制限</a></h2>
+
+<pre>
+  data _≡_ {a} {A : Set a} (x : A) : A → Set a where
+    refl : x ≡ x
+
+</pre>
+が Relation.Binary.Core にありますが、これは直接に使わないように工夫されているようです。その工夫に従って証明していきます。具体的には、射の等号では、
+<p>
+
+<pre>
+  ☓  cong-≈ :  { c₁′ c₂′ ℓ′ : Level}  {B : Category c₁′ c₂′ ℓ′} {x y : Obj B } { a b : Hom B x y } {x' y' : Obj A }  → 
+  ☓             B [ a ≈ b ] → (f : Hom B x y → Hom A x' y' ) →  f a ≈ f b
+  ☓  cong-≈ eq f = ?
+
+</pre>
+がありません。これは、本来は、
+<p>
+
+<pre>
+  ☓    cong-≈ refl f = refl
+
+</pre>
+という形の証明を持つはずなのですが、_≈_ は data として定義されていないので、これを証明することができません。(できるのかも知れないけど、僕はできませんでした)
+<p>
+≡ から ≈ を導くことは可能です。
+<p>
+
+<pre>
+    -- How to prove this?
+      ≡-≈ : {a b : Obj A } { x y : Hom A a b } →  (x≈y : x ≡ y ) → x ≈ y
+      ≡-≈  refl = refl-hom
+      ≡-cong : { c₁′ c₂′ ℓ′ : Level}  {B : Category c₁′ c₂′ ℓ′} {x y : Obj B } { a b : Hom B x y } {x' y' : Obj A }  →
+                 a ≡ b  → (f : Hom B x y → Hom A x' y' ) →  f a  ≈  f b
+      ≡-cong refl f =  ≡-≈ refl
+
+</pre>
+しかし、逆はできません。
+<p>
+
+<pre>
+  ☓   ≈-≡ : {a b : Obj A } { x y : Hom A a b } →  (x≈y : x ≈ y ) → x ≡ y
+  ☓   ≈-≡  x≈y = ?
+
+</pre>
+自分で作る圏の公理として導入することは可能です。
+<p>
+経験的に cong 抜きで、ほとんどの証明が可能ですが、それが圏の要請なのかどうかは良くわかりません。
+<p>
+cong の代わりに使えるのは、o-resp です。
+<p>
+
+<pre>
+        o-resp-≈ : {A B C : Obj} {f g : Hom A B} {h i : Hom B C} → f ≈ g → h ≈ i → (h o f) ≈ (i o g)
+
+</pre>
+確かに cong に似ています。関数の代わりに h g という等しい射を付加することができます。この公理は圏論の本で記述されていることは、ほとんどありません。おそらく、cong を仮定するからでしょう。
+<p>
+
+<hr/>
+<h2><a name="content029">Identity と結合則</a></h2>
+
+<pre>
+        identityL : {A B : Obj} → {f : Hom A B} → (Id o f) ≈ f
+        identityR : {A B : Obj} → {f : Hom A B} → (f o Id) ≈ f
+
+</pre>
+Id は型しか規定されていなかったので、実際に Identity として使えることを示すのが、この公理です。等式を生成するように使用します。
+<p>
+
+<pre>
+        associative : {A B C D : Obj} {f : Hom C D}  {g : Hom B C} {h : Hom A B}
+                                      → (f o (g o h)) ≈ ((f o g) o h)
+
+</pre>
+が結合則を表しています。面倒なのは、
+<p>
+
+<pre>
+      {f : Hom C D}  {g : Hom B C} {h : Hom A B}
+
+</pre>
+この順番です。
+<p>
+
+<pre>
+      f は C から D への射 (arrow)、左から右
+
+</pre>
+ですが、結合は、
+<p>
+
+<pre>
+     f o g = \x -&gt; f ( g ( x ) )
+
+</pre>
+つまり、右から左。x は A から始まるので、後ろの方から h : A -&gt; B, g : B -&gt; C, f : C -&gt; D とします。
+<p>
+しかし、{h : Hom A B}  {g : Hom B C} {f : Hom C D} という順番にするのは式に出てくる順序と暗黙の引数の順序が異なるのでよろしくありません。
+<p>
+日本語的に、
+<p>
+
+<pre>
+     x を f してから g する
+     f o g = \x -&gt;  ( ( x ) f ) g
+
+</pre>
+とすれば結合も、左から右になって、
+<p>
+
+<pre>
+        nihon-associative : {A B C D : Obj} {f : Hom A B}  {g : Hom B C} {h : Hom C D}
+                                      → (f * (g * h)) ≈ ((f * g) * h)
+
+</pre>
+となったのでしょうけどね。Forth や PostScript という言語では、こういう後置記法が採用されています。それなりに便利ですが、あまり広まりませんでした。
+<p>
+
+<hr/>
+<h2><a name="content030">圏の Constructor</a></h2>
+IsCategory は圏の公理だけを記述しています。実際に圏を構成する場合は、以下の record を使います。
+<p>
+
+<pre>
+    record Category c₁ c₂ ℓ : Set (suc (c₁ ⊔ c₂ ⊔ ℓ)) where
+      infixr 9 _o_
+      infix  4 _≈_
+      field
+        Obj : Set c₁
+        Hom : Obj → Obj → Set c₂
+        _o_ : {A B C : Obj} → Hom B C → Hom A B → Hom A C
+        _≈_ : {A B : Obj} → Rel (Hom A B) ℓ
+        Id  : {A : Obj} → Hom A A
+        isCategory : IsCategory Obj Hom _≈_ _o_ Id
+      dom : {A B : Obj} → Hom A B → Obj
+      dom {A} _ = A
+      cod : {A B : Obj} → Hom A B → Obj
+      cod {B = B} _ = B
+
+</pre>
+ちょっと省略しています。このように二段の record で数学的なものを表現するのが定番の方法のようです。Category は Constructor で、IsCategory が性質を表したものだということでしょう。infix などの優先順位はこちらに書きます。Obj や Hom は二度同じ物を書くことになります。しかし、これにょり、Obj や Hom にアクセスしやすくなります。
+<p>
+field だけでなく、関数もも記述することができます。中で、Obj などを呼び出すことができます。これは、オブジェクトのインスタンスメソッドと同じ働きをします。dom と cod は、射の元の Obj と行き先のObj を取り出すメソッドです。暗黙の入力変数を推論させて、推論した値を返す方法で、引数の中身を取り出しています。Hom
+が record ならば、record 経由で取り出すことができますが、この定義では「Hom が何か」をはっきりとは決めてないので、このような方法になります。
+<p>
+field 定義の中でも field を呼び出すことができますが、物理的に前の行で前もって定義されていることが必要です。つまり、field の順序を勝手に変えることはできません。関数の方は where などを使って順序を工夫することができます。
+<p>
+Category record は、もちろん field を指定して作ることもできますが、「とにかく、何かの Category がある仮定する」ことができます。<a href="category-ex.agda"> category-ex.agda </a>
+
+<p>
+
+<pre>
+    open import Level
+    open import Category
+    postulate c₁ c₂ ℓ : Level
+    postulate A : Category c₁ c₂ ℓ
+
+</pre>
+これで、待望の「純粋に抽象的な Cateogry 」が Agda の中で手に入りました。対象と射は以下のようにします。
+<p>
+
+<pre>
+    postulate a b : Obj A
+    postulate f g : Hom A a b
+
+</pre>
+Obj は record の field なので、引数として Category A の A を取っています。つまり、「 method object 」というメソッド呼び出しに相当します。Agda は mononorphic なので、メソッド名( = record の field 名 ) は、他と重なることはできません。同時に開けなければ重なってもかまいせんが、同時に使う場合には、module 呼び出し時に名前を変えるなどの工夫が必要となります。
+<p>
+
+<hr/>
+<h2><a name="content032">射の式</a></h2>
+次に射の結合をしたいわけですが、_o_ は、record の field なので、
+<p>
+
+<pre>
+     _o_  A f g
+
+</pre>
+と書く必要があります。
+<p>
+
+<pre>
+   b != a of type (Category.Category.Obj A)
+
+</pre>
+というエラーが出ます。 Hom を結合するためには、a -&gt; b, b -&gt; c でなければなりません。
+<p>
+
+<pre>
+    postulate a b c : Obj A
+    postulate g : Hom A a b
+    postulate f : Hom A b c
+    open Category.Category
+    h = _o_  A f g
+
+</pre>
+これで結合ができました。でも、せっかく、 _o_  は infix にしたのに、これでは残念な感じです。Category.agda では、三項演算子を使っています。
+<p>
+
+<pre>
+    _[_≈_] : ∀{c₁ c₂ ℓ} → (C : Category c₁ c₂ ℓ) → {A B : Obj C} → Rel (Hom C A B) ℓ
+    C [ f ≈ g ] = Category._≈_ C f g
+    _[_o_] : ∀{c₁ c₂ ℓ} → (C : Category c₁ c₂ ℓ) → {a b c : Obj C} → Hom C b c → Hom C a b → Hom C a c
+    C [ f o g ] = Category._o_ C f g
+
+</pre>
+なるほど。
+<p>
+
+<pre>
+    i = A [ f o g ]
+
+</pre>
+となります。
+<p>
+
+<hr/>
+<h2><a name="content033">Functor の定義</a></h2>
+Functor も同じように二段階の record で定義されています。
+<p>
+
+<pre>
+    record IsFunctor {c₁ c₂ ℓ c₁′ c₂′ ℓ′ : Level} (C : Category c₁ c₂ ℓ) (D : Category c₁′ c₂′ ℓ′)
+                     (FObj : Obj C → Obj D)
+                     (FMap : {A B : Obj C} → Hom C A B → Hom D (FObj A) (FObj B))
+                     : Set (suc (c₁ ⊔ c₂ ⊔ ℓ ⊔ c₁′ ⊔ c₂′ ⊔ ℓ′)) where
+      field
+        ≈-cong : {A B : Obj C} {f g : Hom C A B} → C [ f ≈ g ] → D [ FMap f ≈ FMap g ]
+        identity : {A : Obj C} →  D [ (FMap {A} {A} (Id {_} {_} {_} {C} A)) ≈ (Id {_} {_} {_} {D} (FObj A)) ]
+        distr : {a b c : Obj C} {f : Hom C a b} {g : Hom C b c}
+          → D [ FMap (C [ g o f ]) ≈ (D [ FMap g o FMap f ] )]
+    record Functor {c₁ c₂ ℓ c₁′ c₂′ ℓ′ : Level} (domain : Category c₁ c₂ ℓ) (codomain : Category c₁′ c₂′ ℓ′)
+      : Set (suc (c₁ ⊔ c₂ ⊔ ℓ ⊔ c₁′ ⊔ c₂′ ⊔ ℓ′)) where
+      field
+        FObj : Obj domain → Obj codomain
+        FMap : {A B : Obj domain} → Hom domain A B → Hom codomain (FObj A) (FObj B)
+        isFunctor : IsFunctor domain codomain FObj FMap
+
+</pre>
+関手 (Functor )は、対象の写像 FObj と、射の写像 FMap を持っています。そして、分配法則と単元の保存が射について定義されています。射の cong はないので、代わりに ≈-cong があるというわけです。
+<p>
+{_} は暗黙の引数の位置を確定するために使っています。Functor は射を扱うので集合の Level が一つ上がっています。
+<p>
+射の式が入れ子になるたびに D [ ] と書かなければなりません。Agda では、どこに空白を入れるかは重要ですが、() だけは空白を入れずに書くことができます。しかし、[] は、そうはいきません。必ず、空白が必要です。
+<p>
+この分配法則を呼び出すには、以下のようにします。
+<p>
+
+<pre>
+    --T(g f) = T(g) T(f)                                                                                                                   
+    open Functor
+    Lemma1 : {c₁ c₂ l : Level} {A : Category c₁ c₂ l} (T : Functor A A) →  {a b c : Obj A} {g : Hom A b c} { f : Hom A a b }
+         → A [ ( FMap T (A [ g o f ] ))  ≈ (A [ FMap T g o FMap T f ]) ]
+    Lemma1 = \t → IsFunctor.distr ( isFunctor t )
+
+</pre>
+open Functor したので isFunctor を使えて、open IsFunctor してないので、IsFunctor.distr  と record を明示した中途半端な呼び出しですが、これが便利なようです。
+<p>
+これが圏論での最初の証明(公理である)です。射の等式があり、証明として、IsFunctor.distr ( isFunctor t ) があります。AとかTとかの圏や関手は入力変数として仮定されています。これらは、暗黙の引数であり、
+<p>
+
+<pre>
+     A [ ( FMap T (A [ g o f ] )) ≈ (A [ FMap T g o FMap T f ]) ]
+
+</pre>
+の隠れた仮定になっています。圏の教科書に載っている
+<p>
+
+<pre>
+    T(g f) = T(g) T(f)                                                                                                                   
+
+</pre>
+を上のように翻訳すれば良いわけです。
+<p>
+関手は圏から圏への射なので、異なる圏二つが出てくる場合もあります。その場合には A とか B とかを丁寧に指定することになります。A や B を暗黙の引数にして推論させることもできますが、Agda が非常に重くなります。
+<p>
+Haskell では Functor は fmap :: ( a -&gt; b ) -&gt; ( t a -&gt; t b ) という型を持ちますが、ここでは射から射を得る型になっています。
+<p>
+
+<pre>
+        FMap : {A B : Obj domain} → Hom domain A B → Hom codomain (FObj A) (FObj B)
+
+</pre>
+
+<hr/>
+<h2><a name="content034">圏の例</a></h2>
+
+<p>
+Category はある意味ではありふれたものです。ここでは三種類の見慣れたものが Category であることを示しましょう。
+<p>
+<a href="examples/list-monoid-cat.agda"> 圏としての List と Monoid  </a>
+最初の例は List です。既に結合則を証明しています。
+<p>
+
+<pre>
+    infixr 40 _::_
+    data  List  (A : Set ) : Set  where
+       [] : List A
+       _::_ : A -&gt; List A -&gt; List A
+    infixl 30 _++_
+    _++_ :   {A : Set } -&gt; List A -&gt; List A -&gt; List A
+    []        ++ ys = ys
+    (x :: xs) ++ ys = x :: (xs ++ ys)
+    data ListObj : Set where
+      * : ListObj
+
+</pre>
+List の対象はただ一つの要素からなる集合です。ここでは data として作っています。_++_ が List の圏の射の演算です。
+<p>
+
+<pre>
+    open  import  Relation.Binary.Core
+    open  import  Relation.Binary.PropositionalEquality
+    ≡-cong = Relation.Binary.PropositionalEquality.cong 
+    isListCategory : (A : Set) -&gt; IsCategory ListObj (\a b -&gt; List A) _≡_  _++_  []
+    isListCategory  A = record  { isEquivalence =  isEquivalence1 {A}
+                        ; identityL =   list-id-l
+                        ; identityR =   list-id-r
+                        ; o-resp-≈ =    o-resp-≈ {A}
+                        ; associative = \{a} {b} {c} {d} {x} {y} {z} -&gt; list-assoc {A} {x} {y} {z}
+                        }
+         where
+            list-id-l : { A : Set } -&gt; { x : List A } -&gt;  [] ++ x ≡ x
+            list-id-l {_} {_} = refl
+            list-id-r : { A : Set } -&gt; { x : List A } -&gt;  x ++ [] ≡ x
+            list-id-r {_} {[]} =   refl
+            list-id-r {A} {x :: xs} =  ≡-cong ( \y -&gt; x :: y ) ( list-id-r {A} {xs} ) 
+            list-assoc : {A : Set} -&gt; { xs ys zs : List A } -&gt;
+                  ( xs ++ ( ys ++ zs ) ) ≡ ( ( xs ++ ys ) ++ zs )
+            list-assoc  {_} {[]} {_} {_} = refl
+            list-assoc  {A} {x :: xs}  {ys} {zs} = ≡-cong  ( \y  -&gt; x :: y ) 
+                     ( list-assoc {A} {xs} {ys} {zs} )
+            o-resp-≈ :  {A : Set} -&gt;  {f g : List A } → {h i : List A } → 
+                              f ≡  g → h ≡  i → (h ++ f) ≡  (i ++ g)
+            o-resp-≈  {A} refl refl = refl
+            isEquivalence1 : {A : Set} -&gt; IsEquivalence {_} {_} {List A }  _≡_ 
+            isEquivalence1 {A} =      -- this is the same function as A's equivalence but has different types
+               record { refl  = refl
+                 ; sym   = sym
+                 ; trans = trans
+                 } 
+    ListCategory : (A : Set) -&gt; Category _ _ _
+    ListCategory A =
+      record { Obj = ListObj
+             ; Hom = \a b -&gt; List  A
+             ; _o_ = _++_ 
+             ; _≈_ = _≡_
+             ; Id  =  []
+             ; isCategory = ( isListCategory A )
+              }
+
+</pre>
+圏の性質は、List が満たす定理として証明していきます。
+<p>
+もう一つの例は Monoid です。Monoid は結合則と単位元を持つただ一つの演算を持つ代数です。
+<p>
+やはりただ一つの要素からなる対象を持ちます。
+<p>
+
+<pre>
+    open import Algebra.Structures
+    open import Algebra.FunctionProperties using (Op₁; Op₂)
+    data MonoidObj : Set c where
+      ! : MonoidObj
+    record ≡-Monoid c : Set (suc c) where
+      infixl 7 _∙_
+      field
+        Carrier  : Set c
+        _∙_      : Op₂ Carrier
+        ε        : Carrier
+        isMonoid : IsMonoid _≡_ _∙_ ε
+    open ≡-Monoid 
+    open import Data.Product
+    isMonoidCategory : (M :  ≡-Monoid c) -&gt; IsCategory MonoidObj (\a b -&gt; Carrier M ) _≡_  (_∙_  M) (ε M)
+    isMonoidCategory  M = record  { isEquivalence =  isEquivalence1 {M}
+                        ; identityL =   \{_} {_} {x} -&gt; (( proj₁ ( IsMonoid.identity ( isMonoid M )) ) x )
+                        ; identityR =   \{_} {_} {x} -&gt; (( proj₂ ( IsMonoid.identity ( isMonoid M )) ) x )
+                        ; associative = \{a} {b} {c} {d} {x} {y} {z} -&gt; sym ( (IsMonoid.assoc ( isMonoid M )) x y z )
+                        ; o-resp-≈ =    o-resp-≈ {M}
+                        }
+         where
+            o-resp-≈ :  {M :  ≡-Monoid c} -&gt;  {f g : Carrier M } → {h i : Carrier M } → 
+                              f ≡  g → h ≡  i → (_∙_ M  h f) ≡  (_∙_ M i g)
+            o-resp-≈  {A} refl refl = refl
+            isEquivalence1 : {M :  ≡-Monoid c} -&gt; IsEquivalence {_} {_} {Carrier M }  _≡_ 
+            isEquivalence1 {A} =      -- this is the same function as A's equivalence but has different types
+               record { refl  = refl
+                 ; sym   = sym
+                 ; trans = trans
+                 } 
+    MonoidCategory : (M : ≡-Monoid c) -&gt; Category _ _ _
+    MonoidCategory M =
+      record { Obj = MonoidObj
+             ; Hom = \a b -&gt; Carrier M 
+             ; _o_ = _∙_  M
+             ; _≈_ = _≡_
+             ; Id  =  ε M
+             ; isCategory = ( isMonoidCategory M )
+              }
+
+</pre>
+圏の性質は、Monoid の性質そのものです。List は Free Monoid であり、Universal mapping property で結びついています。<a href="univmap.html"> これ </a>
+は後で詳しく見ます。
+<p>
+最後は Sets 集合の圏です。射は、Set 間の写像です。圏の性質のほとんどは自明 (refl ) です。_o_ = _o_ のような同じようで違う記号が出てくるのが Agda らしいところです。
+<p>
+
+<pre>
+    module Category.Sets where
+    open import Category
+    open import Relation.Binary.Core
+    open import Relation.Binary
+    open import Level
+    _o_ : ∀{ℓ} {A B C : Set ℓ} → (f : B → C) → (g : A → B) → A → C
+    _o_ f g x = f (g x)
+    _-Set⟶_ : ∀{ℓ} → (A B : Set ℓ) → Set _
+    A -Set⟶ B = A → B
+    SetId : ∀{ℓ} {A : Set ℓ} → A → A
+    SetId x = x
+    Sets : ∀{ℓ} → Category _ _ ℓ
+    Sets {ℓ} = record { Obj = Set ℓ
+                      ; Hom = _-Set⟶_
+                      ; _o_ = _o_
+                      ; _≈_ = _≡_
+                      ; isCategory = isCategory
+                      }
+      where
+        isCategory : IsCategory (Set ℓ) _-Set⟶_ _≡_ _o_ SetId
+        isCategory = record { isEquivalence = record {refl = refl ; trans = ≡-trans ; sym = ≡-sym}
+                            ; identityL     = refl
+                            ; identityR     = refl
+                            ; o-resp-≈      = o-resp-≈
+                            ; associative   = refl
+                            }
+          where
+            o-resp-≈ : {A B C : Set ℓ} {f g : A -Set⟶ B} {h i : B -Set⟶ C}
+                     → f ≡ g → h ≡ i → h o f ≡ i o g
+            o-resp-≈ refl refl = refl
+
+</pre>
+Sets はある Level の Set に対して定義されています。この三つの圏の特徴は、_≈_ = _≡_　であることです。このために、cong : x ≡ y -&gt; f x ≡ f y を使うことができます。
+<p>
+このSets は、Monoid と組み合わせて<a hrf="monoid.html"> Monad の例 </a>
+で使います。
+<p>
+
+<pre>
+ 
+
+</pre>
+<a href="nat.html"> Next : 自然変換 </a> 
+
+<p>
+</div>
+<ol class="side" id="menu">
+Category module に関して
+<li><a href="#content019">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content020">  Agda と圏論</a>
+<li><a href="#content021">   * <a href="https://github.com/konn/category-agda">  https://github.com/konn/category-agda </a>
+</a>
+<li><a href="#content022">   * <a href="https://github.com/copumpkin/categories">https://github.com/copumpkin/categories </a> 
+</a>
+<li><a href="#content023">  Category module の構成</a>
+<li><a href="#content024">   * <a href="record.agda"> record </a> で書いたように、圏の公理が record の中に書いてあるという形式です。93行と短いですが、Agda なのであなどれません。
+</a>
+<li><a href="#content025">  Category.agda</a>
+<li><a href="#content026">   * <a href="../s05/lecture.html"> Category </a> 
+</a>
+<li><a href="#content027">  圏の公理</a>
+<li><a href="#content028">  射の Equivalence の制限</a>
+<li><a href="#content029">  Identity と結合則</a>
+<li><a href="#content030">  圏の Constructor</a>
+<li><a href="#content031">   * <a href="category-ex.agda"> category-ex.agda </a>
+</a>
+<li><a href="#content032">  射の式</a>
+<li><a href="#content033">  Functor の定義</a>
+<li><a href="#content034">  圏の例</a>
+<li><a href="#content035">   * <a href="examples/list-monoid-cat.agda"> 圏としての List と Monoid  </a>
+</a>
+<li><a href="#content036">   * <a href="univmap.html"> これ </a>
+</a>
+<li><a href="#content037">   * <a hrf="monoid.html"> Monad の例 </a>
+</a>
+<li><a href="#content038">   * <a href="nat.html"> Next : 自然変換 </a> 
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 09:16:30 2013
+</body></html>

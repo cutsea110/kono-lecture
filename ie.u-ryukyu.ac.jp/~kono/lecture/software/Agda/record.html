@@ -1,0 +1,183 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>record type in Agda</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>record type in Agda</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content150">data 型の復習</a></h2>
+record type に相当するものは Haskell にはありません。なので、使い方と data との使い分けを意識する必要があります。
+<p>
+
+<pre>
+    data _∨_  (A B : Set) : Set where
+      or1 : A -&gt; A ∨ B
+      or2 : B -&gt; A ∨ B
+
+</pre>
+この or1、or2 は Constructor つまり、∨ introduction として使われます。
+<p>
+
+<pre>
+           A
+      ----------- or1
+         A ∨ B
+
+</pre>
+λ式としては、 or1 b のように呼び出します。data _∨_ は、or1 か or2 であり、パターンマッチとして使うことができます。
+<p>
+
+<pre>
+     f (or1 a) = ...
+     f (or2 b) = ...
+
+</pre>
+これによって、中身を取り出しますことができます。
+<p>
+
+<pre>
+    data _∨_  (A B : Set) : Set where
+          or1 : A -&gt; A ∨ B
+          or2 : B -&gt; A ∨ B
+    postulate A B C : Set
+    postulate a1 a2 a3 : A
+    postulate b1 b2 b3 : B
+    x : ( A ∨ B )
+    x = or1 a1
+    y : ( A ∨ B )
+    y = or2 b1
+    f : ( A ∨ B ) -&gt; A
+    f (or1 a) = a
+    f (or2 b) = a1
+
+</pre>
+or1 と or2 は射であって、
+<p>
+
+<pre>
+        or1            or2
+     A -----&gt; A ∨ B &lt;------ B
+
+</pre>
+となっています。
+<p>
+
+<hr/>
+<h2><a name="content151">record 型の復習</a></h2>
+record は、
+<p>
+
+<pre>
+    record _∧_ (A B : Set) : Set where
+       field
+          and1 : A
+          and2 : B
+
+</pre>
+record { and1 = hoge; and2 = fuga } が  Constructor になります。and1, and2 は accessor に相当します。　推論規則では _∧_ elimmination です。
+<p>
+
+<pre>
+         A ∧ B
+      ----------- _∧_.and1
+           A
+
+</pre>
+実際、
+<p>
+
+<pre>
+    z : A ∧ B
+    z = record { and1 = a1 ; and2 = b2 }
+    xa : A
+    xa = _∧_.and1 z
+    xb : B
+    xb = _∧_.and2 z
+
+</pre>
+となります。 and1 と and2 は射であって、
+<p>
+
+<pre>
+         and1        and2
+     A &lt;----- A ∧ B ------&gt; B
+
+</pre>
+となっています。open _∧_ すると、_∧_. は省略できます。
+<p>
+
+<pre>
+    open _∧_
+    ya : A
+    ya = and1 z
+
+</pre>
+
+<hr/>
+<h2><a name="content152">ある性質を満たすものを表す record</a></h2>
+
+<p>
+Mod 3 を考えましょう。3で割った余りが等しければ等しいとします。record Mod3 の要素 x の field に、この性質を記述すると、mod3 x は、その性質の型を持ちます。つまり、その性質を公理としていつでも呼び出せます。例えば、4  ≡ 1 ならば以下のように証明できます。
+<p>
+
+<pre>
+    open  import  Relation.Binary.PropositionalEquality
+    data Nat : Set where
+       zero : Nat
+       suc  : Nat -&gt; Nat
+    record Mod3 (m : Nat) : Set where
+       field
+          mod3 : (suc (suc (suc m ))) ≡ m
+       n : Nat
+       n = m
+    open Mod3
+    Lemma1 :  ( x : Mod3 ( suc (suc (suc (suc zero))))) ( y : Mod3 ( suc zero ) ) -&gt; n x  ≡ n y
+    Lemma1 x y =  mod3 y
+
+</pre>
+ここでは、パターンとしての型に data を使い、その data が満たす公理を recod に記述しています。
+<p>
+<a href="reasoning.html"> Next : Agda のReasoning 　</a>
+</div>
+<ol class="side" id="menu">
+record type in Agda
+<li><a href="#content149">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content150">  data 型の復習</a>
+<li><a href="#content151">  record 型の復習</a>
+<li><a href="#content152">  ある性質を満たすものを表す record</a>
+<li><a href="#content153">   * <a href="reasoning.html"> Next : Agda のReasoning 　</a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 09:42:22 2013
+</body></html>

@@ -1,0 +1,85 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Agda での命題論理式の証明</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Agda での命題論理式の証明</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+以下の論理式の証明図に対応する Lambda 式を Agda で作れ。
+<p>
+
+<pre>
+   (1)  A -&gt; A
+   (2)  A -&gt; (B -&gt; A)
+   (3)  (A ∧ (A -&gt; B)) -&gt; B
+   (4)  B -&gt; (B ∧ (A -&gt; B))
+
+</pre>
+作成した Lambda 式の型が、上の式に一致するはずである。
+<p>
+∧ は以下の定義を使ってみよう。
+<p>
+
+<pre>
+    record ^ (A B : Set) : Set where
+       field
+          and1 : A
+          and2 : B
+    data _^d_ ( A B : Set ) : Set where
+      and : A -&gt; B -&gt; A ^d B
+
+</pre>
+
+<hr/>
+<h2><a name="content000">ヒント</a></h2>
+
+<p>
+(A ∧ B ) -&gt; A  は、\a -&gt; _∧_.and1 a で証明できるが、
+<p>
+
+<pre>
+   (3)  (A ∧ (A -&gt; B)) -&gt; B
+
+</pre>
+は、かなり難しい。
+<p>
+_∧_.and1 a と _∧_.and2 b  をいじって、直接構成してもなんとかできるはずだが、
+<p>
+
+<pre>
+   lemma31  (A ∧ (A -&gt; B)) -&gt; (A -&gt; B)
+   lemma32  (A ∧ (A -&gt; B)) -&gt;  A
+   lemma33  A -&gt; ( A -&gt; B ) -&gt; B
+
+</pre>
+の三つに分解すると簡単になる。(3-1) は  (A ∧ B) -&gt; B と同じ。この三つの lemma を組み合わせて証明を作ると良い。
+<p>
+</div>
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Tue Jul 16 17:46:46 2013
+</body></html>

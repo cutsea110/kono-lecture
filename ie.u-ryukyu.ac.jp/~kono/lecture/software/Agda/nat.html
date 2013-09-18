@@ -1,0 +1,377 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>自然変換</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>自然変換</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content135">可換図</a></h2>
+自然変換を理解すれば圏論は終わったようなものですが、さらっと可換とか書いてある割に良くわからないものです。そもそも自然変換とはなんなんのか? Agda を使うと理解できるようになるんでしょうか?
+<p>
+自然変換は二つの Functor : A -&gt; B に対して定義されます。ということは、二つの圏A,B が関係しています。以下の図が可換になると簡単に説明されているのが普通です。
+<p>
+
+<pre>
+        F(f)
+   F(a) ---→ F(b)
+    |          |
+    |t(a)      |t(b)    G(f)t(a) = t(b)F(f)
+    |          |
+    v          v
+   G(a) ---→ G(b)
+        G(f)
+
+</pre>
+これは、可換あるいは可換図の定義だと思うべきです。図は人用のもので、Agda にとっては、 等式
+<p>
+
+<pre>
+        G(f)t(a) = t(b)F(f)
+
+</pre>
+だけが重要です。図と違って、こちらには F(a) が出て来ませんが、Agda で書くと暗黙の変数として、こそこそ書かれていることがわかります。Functor に習って自然変換の定義を以下のように書いてみます。
+<p>
+
+<pre>
+    record IsNTrans {c₁ c₂ ℓ c₁′ c₂′ ℓ′ : Level} (D : Category c₁ c₂ ℓ) (C : Category c₁′ c₂′ ℓ′)
+                     ( F G : Functor D C )
+                     (TMap : (A : Obj D) → Hom C (FObj F A) (FObj G A))
+                     : Set (suc (c₁ ⊔ c₂ ⊔ ℓ ⊔ c₁′ ⊔ c₂′ ⊔ ℓ′)) where
+      field
+        commute : {a b : Obj D} {f : Hom D a b}
+          → C [ C [ (  FMap G f ) o  ( TMap a ) ]  ≈ C [ (TMap b ) o  (FMap F f)  ] ]
+
+</pre>
+TMap が t(a) の t に相当します。
+<p>
+
+<pre>
+                     (TMap : (A : Obj D) → Hom C (FObj F A) (FObj G A))
+
+</pre>
+TMap は F(a) から F(b) への射を返すとういわけです。この→は写像で、TMap 
+<p>
+　　　一つの対象について、一つの射が対応する
+<p>
+という事を示しています。Hom C (FObj F A) (FObj G A)) はたくさんあるけど、そこから一つを選び出すわけです。例えば、Monoid では、対象は一つですが射はたくさんあります。
+<p>
+この等式  G(f)t(a) = t(b)F(f) は、どちらかといえば、
+<p>
+
+<pre>
+       ∀ G(f)t(a) = ∃ t(b)F(f)
+
+</pre>
+と読むべきで、<ul>左回りの射の結合に対して、右回りの射がただ一つ決まる</ul>と考えられます(実際には量化記号∀∃はありません)。εδ論法では「あるεに対してδが決まり」というものですが、「∃ε∀δ」と書く代わりに等式を使うわけです。面倒な εδ論法を可換図に置き換えていると見ることもできます。
+<p>
+<a href="../s05/lecture.html"> Category </a> では、
+
+<pre>
+     Functor は、List や Node という合成された型
+     Natural Transformation  は、List 型の形の変換
+
+</pre>
+と説明しています。List の形の変換は Haskell の関数そのものです。head や tail、flatten などです。これらが、自然変換なのは、
+<p>
+
+<pre>
+     Functor の fmap と順序を換えて良い
+
+</pre>
+からです。つまり、自然変換の可換性は、
+<p>
+
+<pre>
+    fmap という合成された型の変換と、自分で書いた関数の可換性
+
+</pre>
+でもあります。
+<p>
+t(a) のa は元の圏Aの対象で、t(a) 自体はFunctorの先の圏Bの射になっています。
+<p>
+
+<hr/>
+<h2><a name="content137">プログラミングから見た自然変換</a></h2>
+Functor はデータ型であり、その fmap はデータの構造を変えない、その中にある値の変換です。例えば、ファイルは行の集まりですが、その行は SJIS で書いてあるかも知れないし、UTF-8 で書いてあるかも知れません。SJIS から UTF-8 への変換はファイルに対する fmap (sjis-&gt;utf8) という形の変換です。例えば nkf -w は、そういう変換プログラムになります。
+<p>
+nkf によるSJISからUTF-8の漢字コードの変換と、grep の順序を換えても良わけです。
+<p>
+
+<pre>
+    nkf -w file | grep hoge  == grep hoge file | nkf -w
+
+</pre>
+みたいなものです。nkf は例えば、SJIS から UTF-8 にコード変換しますが、grep は検索する文字列が SJIS か UTF-8 を知る必要があります。つまり、grep (SJIS) とか grep (UTF-8) と書くべきです。
+<p>
+
+<pre>
+    nkf -w file | grep (UTF-8) hoge  == grep (SJIS) hoge file | nkf -w
+
+</pre>
+この引数が t(a) t(b) に相当します。nkf は A(SJIS) から B(UTF-8) に変換する Funtor であり、grep は指定された型を扱う1行を取り出すというデータの形の変換です。
+<p>
+
+<pre>
+                 nkf -w
+   File(SJIJ) ------------→ File(UTF-8)
+    |                           |
+    |grep (SJIS)                |grep (UTF-8)
+    |                           |
+    v                           v
+   Line(SJIS) ------------→ Line(UTF-8)
+                 nkf -w
+
+</pre>
+という可換性です。
+<p>
+これは、ファイルにはSJISであるかUTF-8であるかに関係ない構造があり、grep は、その構造にアクセスしていることを示してます。これは、nkf してから grep しても、grep してから nkf しても得られるものは同じ、つまり、同じプログラムだと思っても良いということです。
+<p>
+あるいは、UTF-8 のgrep を SJISの grep を nkf を使って実現することが可能だということでもあります。この図は UTF8 の grep を nkf を使って SJIS の grep に引っ張り出しているように見えます。自然変換は、このように、一つの射から同じ性質を持つ射を導くことに使うことができます。
+<p>
+
+<hr/>
+<h2><a name="content138"> 良く出てくる自然変換</a></h2>
+ここは飛ばしても良いです。後で出てくる自然変換を Agda で書いてみます。自然変換には二つの圏と二つのFunctorが関わりますが、その組み合わせにはいろいろあります。特に片方が identity Functor である場合が良く出てきます。
+<p>
+<a href="../s05/lecture.html"> Category </a> の例を使います。
+
+<pre>
+    record IsNTrans {c₁ c₂ ℓ c₁′ c₂′ ℓ′ : Level} (D : Category c₁ c₂ ℓ) (C : Category c₁′ c₂′ ℓ′)
+                     ( F G : Functor D C )
+                     (TMap : (A : Obj D) → Hom C (FObj F A) (FObj G A))
+                     : Set (suc (c₁ ⊔ c₂ ⊔ ℓ ⊔ c₁′ ⊔ c₂′ ⊔ ℓ′)) where
+      field
+        commute : {a b : Obj D} {f : Hom D a b}
+          → C [ C [ (  FMap G f ) o  ( TMap a ) ]  ≈ C [ (TMap b ) o  (FMap F f)  ] ]
+
+</pre>
+ですが Constructor としては、
+<p>
+
+<pre>
+    record NTrans {c₁ c₂ ℓ c₁′ c₂′ ℓ′ : Level} (domain : Category c₁ c₂ ℓ) (codomain : Category c₁′ c₂′ ℓ′)
+         (F G : Functor domain codomain )
+           : Set (suc (c₁ ⊔ c₂ ⊔ ℓ ⊔ c₁′ ⊔ c₂′ ⊔ ℓ′)) where
+      field
+        TMap :  (A : Obj domain) → Hom codomain (FObj F A) (FObj G A)
+        isNTrans : IsNTrans domain codomain F G TMap
+
+</pre>
+を使います。
+<p>
+まず、η : 1 -&gt; T を調べます。
+<p>
+
+<pre>
+     open import Category.Cat
+     postulate T : Functor A A 
+     postulate η : NTrans A A identityFunctor T 
+
+</pre>
+identityFunctor は圏の圏 Category.Cat で定義されています。しかし、ここではあまり深く考えません。
+<p>
+
+<pre>
+      record { FObj      = λ x → x
+             ; FMap      = λ x → x
+
+</pre>
+という定義だということだけを使います。自然変換の定義は以下の通りでした。
+<p>
+
+<pre>
+          C [ C [ (  FMap G f ) o  ( TMap μ a ) ]  ≈ C [ (TMap μ b ) o  (FMap F f)  ] ]
+
+</pre>
+record 外で呼ぶ時には、Tmap μ a と、μが入ります。FMap G は FMap T で、FMap F f は f なので、
+<p>
+
+<pre>
+          C [ C [ (  FMap T f ) o  ( TMap μ a ) ]  ≈ C [ (TMap μ b ) o  f  ] ]
+
+</pre>
+という形になります。自然変換の等式は様々な形で現れます。これを自分で見つけやすくするのが可換図の役割です。
+<p>
+
+<hr/>
+<h2><a name="content140">自然変換の組み合わせ</a></h2>
+Tη  という、Functor T と η の組み合わせを考えます。
+<p>
+
+<pre>
+          C [ C [ (  FMap T f ) o  ( TMap μ a ) ]  ≈ C [ (TMap μ b ) o  f  ] ]
+
+</pre>
+の TMap μ a を FMap T ( TMap μ a ) するわけです。
+<p>
+
+<pre>
+          C [ FMap T ( C [ (  FMap T f ) o  ( TMap μ a ) ] )  ≈ FMap T ( C [ (TMap μ b ) o  f  ] ) ]
+
+</pre>
+これに分配法則を使うと、
+<p>
+
+<pre>
+          C [ C [ FMap T (  FMap T f )) o  FMap T ( TMap μ a ) ]  ≈ C [ (FMap T (TMap μ b ) o  FMap T f  ] ) ]
+
+</pre>
+となります。これは、FMap T (TMap μ a ) が、FMap T f と FMap T (FMap T f) の自然変換になっているということです。FMap T (FMap T f ) はTを組み合わせた Functor で、T ○ T と書きます。この組み合わせも Cat.agda で定義されています。つまり、
+<p>
+
+<pre>
+     Tη : NTrans A A T ( T ○ T )
+
+</pre>
+ということです。これは、T と ηから新しい自然変換を得る演算だと考えることもできます。
+<p>
+逆に ηT を考えることもできます。今度は、TMap μ a の a に FObj T a 、f  に FMap T f を入れます。
+<p>
+
+<pre>
+          C [ C [ (  FMap T (FMap T f) ) o  ( TMap μ (FObj T a) ) ]  ≈ C [ (TMap μ (FObj T b) ) o  FMap T f  ] ]
+
+</pre>
+TMap μ (FObj T a) が自然変換になっていることがわかります。
+<p>
+
+<pre>
+     ηT : NTrans A A T ( T ○ T )
+
+</pre>
+Tη も ηT も同じような組み合わせに見えますが、組み合わせ方はまったく異なります。
+<p>
+
+<pre>
+     η : 1 -&gt; T
+
+</pre>
+があったら、
+<p>
+
+<pre>
+     Tη : T -&gt; ( T ○ T )
+     ηT : T -&gt; ( T ○ T )
+
+</pre>
+が定義できるというわけです。
+<p>
+自然変換の式では射の結合が出てくるので、結合する部分の Obj が対応する必要があります。
+<p>
+
+<pre>
+      a  -&gt; b -&gt; c
+
+</pre>
+でなければなりません。自然変換には Obj の引数があり、自然変換の等式では、その引数の値が変わります。これを合わせるのはしんどい作業ですが、合ってなければ Agda が文句を言ってくれるのが救いです。
+<p>
+この演算を Agda で定義することもできます。
+<p>
+
+<hr/>
+<h2><a name="content141">水平結合</a></h2>
+
+<pre>
+        
+
+</pre>
+自然変換同士を組み合わせることもできます。圏AからB、そしてCのような組み合わせは垂直結合と呼ばれれますが、水平結合と呼ばれる少し変わったものがあります。
+<p>
+
+<pre>
+     postulate ε : NTrans A A ( T ○ T ) identityFunctor
+
+</pre>
+があるとしましょう。TMap ε a は射なので、これに対してεの可換図を定義することができます。TMap ε a は、FObj T (FObj T a) から a への射です。
+<p>
+
+<pre>
+          C [ C [ f o  ( TMap ε a ) ]  ≈ C [ (TMap ε b ) o  (FMap T (FMap T  f))  ] ]
+
+</pre>
+の
+<pre>
+          f を TMap ε a に
+          a を FObj T (FObj T a) に
+          b を a に
+
+</pre>
+置き換えます。
+<p>
+
+<pre>
+          C [ C [ TMP ε a o  ( TMap ε (FObj T ( FObj T a)) ) ]  ≈ C [ (TMap ε a ) o  (FMap T (FMap T  (TMap ε a)))  ] ]
+
+</pre>
+これは、圏論の本では、
+<p>
+
+<pre>
+        ε o ε T T  =  ε o  T T ε
+
+</pre>
+などと書かれます。自然変換が二つ続くのは珍しい。
+<p>
+本に現れる自然変換の式では、
+<p>
+
+<pre>
+    εの直後のεTは、ε(T(a)) つまり、TMap ε (FObj T a)
+    εの直前のTεは、T(ε(a)) つまり、FMap T (TMap ε a)
+    o は射の結合
+
+</pre>
+だというわけです。Functor T は Obj(対象) と Hom(射)の二種類の写像を持ち、本ではそれを Polymorhphic に使うわけです。しかし、Agda は Monomorphic なので、FObj と FMap と名前を変えることになります。それは、それでわかりやすいわけです。
+<p>
+圏論の計算に慣れると、 ε o εTT  とかの式も当たり前に受け入れられるようになるのでしょう。
+<p>
+<a href="hom-reasoning.html"> Next : IdentityFunctor と Hom Reasoning </a>
+</div>
+<ol class="side" id="menu">
+自然変換
+<li><a href="#content134">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content135">  可換図</a>
+<li><a href="#content136">   * <a href="../s05/lecture.html"> Category </a> では、
+</a>
+<li><a href="#content137">  プログラミングから見た自然変換</a>
+<li><a href="#content138">   良く出てくる自然変換</a>
+<li><a href="#content139">   * <a href="../s05/lecture.html"> Category </a> の例を使います。
+</a>
+<li><a href="#content140">  自然変換の組み合わせ</a>
+<li><a href="#content141">  水平結合</a>
+<li><a href="#content142">   * <a href="hom-reasoning.html"> Next : IdentityFunctor と Hom Reasoning </a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Thu Aug 22 09:25:20 2013
+</body></html>

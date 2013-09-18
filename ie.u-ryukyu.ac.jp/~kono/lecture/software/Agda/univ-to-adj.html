@@ -1,0 +1,476 @@
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<head>
+<STYLE type="text/css">
+.main { width:100%; }
+.side { top:0px; width:0%; position:fixed; left:80%; display:none}
+</STYLE>
+<script type="text/javascript">
+function showElement(layer){
+    var myLayer = document.getElementById(layer);
+    var main = document.getElementById('mmm');
+    if(myLayer.style.display=="none"){
+        myLayer.style.width="20%";
+        main.style.width="80%";
+        myLayer.style.display="block";
+        myLayer.backgroundPosition="top";
+    } else { 
+        myLayer.style.width="0%";
+        main.style.width="100%";
+        myLayer.style.display="none";
+    }
+}
+</script>
+<title>Universal mapping から Adjoint functor を導く</title>
+</head>
+<body>
+<div class="main" id="mmm">
+<h1>Universal mapping から Adjoint functor を導く</h1>
+<a href="#" right="0px" onclick="javascript:showElement('menu')">
+<span>Menu</span>
+</a>
+
+<p>
+<a href="index.html"> top : Agda による圏論入門 </a>
+
+<hr/>
+<h2><a name="content155">普遍問題の解から随伴関手</a></h2>
+普遍問題の解から随伴関手を導くのは、随伴関手の役者が多いので量的に大変です。
+<p>
+
+<pre>
+        record IsUniversalMapping  {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                         ( U : Functor B A )
+                         ( F : Obj A → Obj B )
+                         ( η : (a : Obj A) → Hom A a ( FObj U (F a) ) )
+                         ( _* : { a : Obj A}{ b : Obj B} → ( Hom A a (FObj U b) ) →  Hom B (F a ) b )
+                         : Set (suc (c₁ ⊔ c₂ ⊔ ℓ ⊔ c₁' ⊔ c₂' ⊔ ℓ' )) where
+           field
+               universalMapping :   {a : Obj A} { b : Obj B } → { f : Hom A a (FObj U b) } →
+                             A [ A [ FMap U ( f * ) o  η a ]  ≈ f ]
+               uniquness :   {a : Obj A} { b : Obj B } → { f : Hom A a (FObj U b) } → { g :  Hom B (F a) b } →
+                             A [ A [ FMap U g o  η a ]  ≈ f ] → B [ f * ≈ g ]
+
+</pre>
+ですが、F とηが、そもそも関手と自然変換ではありません。そこから作っていく必要があります。そして、εを作ると道具立てがそろうので、随伴関手の二つの性質を証明するという手順です。かなり長い道のりです。
+<p>
+
+<hr/>
+<h2><a name="content156">Functor F</a></h2>
+FunctorF : {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+<pre>
+                 { U : Functor B A }
+                 { F : Obj A → Obj B }
+                 { η : (a : Obj A) → Hom A a ( FObj U (F a) ) } →
+       UniversalMapping A B U F η   → Functor A B
+
+</pre>
+
+FunctorF A B {U} {F} {η} um = record {
+<pre>
+              FObj = F;
+              FMap = myFMap ;
+              isFunctor = myIsFunctor
+       } where
+    myFMap : {a b : Obj A} → Hom A a b → Hom B (F a) (F b)
+    myFMap f = (_* um)  (A [  η (Category.cod A f )   o f ])
+
+</pre>
+F は対象の写像を定義しているので、射の写像を (η(b) o f)* と定義します。
+<p>
+
+<pre>
+    myIsFunctor : IsFunctor A B F myFMap
+    myIsFunctor =
+      record { ≈-cong   = lemma-cong
+             ; identity = lemma-id
+             ; distr    = lemma-distr
+             }
+
+</pre>
+あとは IsFunctor の三つの性質を証明します。まず、identity から。
+<p>
+F(id a) が id F(a) であること、つまり、(η(a) o (id a))* ≈ id (F(a)) であることを調べるわけですが、* が何かは定義されてません。あったとすれば、
+<p>
+
+<pre>
+         A [ A [ FMap U ( f * ) o  η a ]  ≈ f ]
+         A [ A [ FMap U g o  η a ]  ≈ f ] → B [ f * ≈ g ]
+
+</pre>
+だと、IsUniversalMapping record は主張しています。uniquness を使って * を消去するのが基本的な技術です。f に対して解 g があったとすると、g はほげほげを満たす、みたいな感じです。
+<p>
+
+<pre>
+    lemma-id {a} =   ( IsUniversalMapping.uniquness ( isUniversalMapping um ) ) lemma-id1
+
+</pre>
+とすると、
+<p>
+
+<pre>
+    lemma-id1 :  {a : Obj A} →  A [ A [ FMap U (id1 B (F a))  o  η a ]  ≈ (A [ (η a) o (id1 A a) ]) ]
+
+</pre>
+が証明するべきものだとわかります。両辺が η a であることはすぐにわかります。まとめると、
+<p>
+
+<pre>
+    lemma-id1 :  {a : Obj A} →  A [ A [ FMap U (id1 B (F a))  o  η a ]  ≈ (A [ (η a) o (id1 A a) ]) ]
+    lemma-id1 {a} = let open ≈-Reasoning (A) in
+       begin
+           FMap U (id1 B (F a))  o  η a
+       ≈⟨ ( car ( IsFunctor.identity ( isFunctor U )))  ⟩
+           id (FObj U ( F a )) o  η a
+       ≈⟨ idL  ⟩
+           η a
+       ≈⟨ sym idR  ⟩
+           η a o id a
+       ∎
+    lemma-id :  {a : Obj A} →  B [ ( (_* um) (A [ (η a) o (id1 A a)] )) ≈ (id1 B (F a)) ]
+    lemma-id {a} =   ( IsUniversalMapping.uniquness ( isUniversalMapping um ) ) lemma-id1
+
+</pre>
+です。次は、cong です。
+<p>
+
+<pre>
+    lemma-cong2 : (a b : Obj A) (f g : Hom A a b) → A [ f ≈ g ] →
+                A [ A [ FMap U ((_* um) (A [ η b  o  g ]) ) o  η a ] ≈  A [ η b  o  f ] ]
+    lemma-cong2 a b f g eq =  let open ≈-Reasoning (A) in
+       begin
+          ( FMap U ((_* um) (A [ η b  o  g ]) )) o  η a
+       ≈⟨  ( IsUniversalMapping.universalMapping ( isUniversalMapping um ))  ⟩
+          η b  o  g
+       ≈⟨ ( IsCategory.o-resp-≈ ( Category.isCategory A ) (sym eq) (refl-hom)  ) ⟩
+          η b  o  f
+       ∎
+    lemma-cong1 : (a b : Obj A) (f g : Hom A a b) → A [ f ≈ g ] → B [ (_* um) (A [ η b  o  f ] ) ≈  (_* um) (A [ η b  o  g ]) ]
+    lemma-cong1 a b f g eq = ( IsUniversalMapping.uniquness ( isUniversalMapping um ) ) ( lemma-cong2 a b f g eq )
+    lemma-cong :  {a b : Obj A} {f g : Hom A a b} → A [ f ≈ g ] → B [ myFMap f ≈ myFMap g ]
+    lemma-cong {a} {b} {f} {g} eq = lemma-cong1 a b f g eq
+
+</pre>
+同じ手法です。
+<p>
+最後に、分配則です。
+<p>
+
+<pre>
+    lemma-distr2 :  (a b c : Obj A) (f : Hom A a b) (g : Hom A b c) →
+            A [ A [ FMap U (B [(_* um) (A [ η c o g ]) o (_* um)( A [ η b  o f ]) ])  o  η a ] ≈ (A [ η c o A [ g o f ] ]) ]
+    lemma-distr2 a b c f g = let open ≈-Reasoning (A) in
+       begin
+           ( FMap U (B [(_* um) (A [ η c o g ]) o (_* um)( A [ η b  o f ]) ] ) )  o  η a
+       ≈⟨ car (distr U )  ⟩
+           (( FMap U ((_* um) (A [ η c o g ])) o ( FMap U ((_* um)( A [ η b  o f ])))) )   o  η a
+       ≈⟨ sym assoc ⟩
+           ( FMap U ((_* um) (A [ η c o g ])) o (( FMap U ((_* um)( A [ η b  o f ]))))   o  η a )
+       ≈⟨ cdr ( IsUniversalMapping.universalMapping ( isUniversalMapping um ))  ⟩
+           ( FMap U ((_* um) (A [ η c o g ])) o ( η b  o f) )
+       ≈⟨ assoc ⟩
+           ( FMap U ((_* um) (A [ η c o g ])) o  η b)  o f
+       ≈⟨ car ( IsUniversalMapping.universalMapping ( isUniversalMapping um ))  ⟩
+           (  η c o g )  o f
+       ≈⟨ sym assoc  ⟩
+            η c o ( g o f )
+       ∎
+    lemma-distr1 :  (a b c : Obj A) (f : Hom A a b) (g : Hom A b c) →
+            B [ (_* um) (A [ η c o A [ g o f ] ]) ≈ (B [(_* um) (A [ η c o g ]) o (_* um)( A [ η b  o f ]) ] )]
+    lemma-distr1 a b c f g =  ( IsUniversalMapping.uniquness ( isUniversalMapping um )) (lemma-distr2 a b c f g )
+    lemma-distr :  {a b c : Obj A} {f : Hom A a b} {g : Hom A b c} → B [ myFMap (A [ g o f ]) ≈ (B [ myFMap g o myFMap f ] )]
+    lemma-distr {a} {b} {c} {f} {g} = lemma-distr1 a b c f g
+
+</pre>
+uniqumess を使った後、二回続けて universalMapping  を使います。
+<p>
+これで、Functor になりました。
+<p>
+
+<hr/>
+<h2><a name="content157">ηの可換性</a></h2>
+ηは、まだ写像でしかないので可換性を確認して自然変換にする必要があります。
+<p>
+
+<pre>
+    nat-η : {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                     { U : Functor B A }
+                     { F : Obj A → Obj B }
+                     { η : (a : Obj A) → Hom A a ( FObj U (F a) ) } →
+           (um : UniversalMapping A B U F η )  →
+               NTrans  A A identityFunctor ( U ○ FunctorF A B um )
+    nat-η A B {U} {F} {η} um = record {
+                 TMap = η ; isNTrans = myIsNTrans
+           } where
+        F' : Functor A B
+        F' = FunctorF A B um
+        commute :  {a b : Obj A} {f : Hom A a b}
+          → A [ A [ (FMap U (FMap F' f))  o  ( η a ) ]  ≈ A [ (η b ) o f ] ]
+        commute {a} {b} {f} =   let open ≈-Reasoning (A) in
+           begin
+                (FMap U (FMap F' f))  o  ( η a )
+           ≈⟨⟩
+                (FMap U ((_* um)  (A [  η b  o f ])))   o  ( η a )
+           ≈⟨ (IsUniversalMapping.universalMapping ( isUniversalMapping um ))  ⟩
+                (η b ) o f
+           ∎
+        myIsNTrans : IsNTrans A A identityFunctor ( U ○  F' ) η
+        myIsNTrans = record { commute = commute }
+
+</pre>
+ηの可換性がidに対する解を一般のfに対する解に拡張するわけですが、ここでは逆にfに対する解から、可換性を導いています。両者は同じものなわけです。随伴関手の性質は、ηとεの可換性による部分が大きいので、自然変換を理解すると随伴関手のかなりの部分を理解したことになるわけです。
+<p>
+ηの可換図を書くと、そこには普遍問題がそのまま出てきています。
+<p>
+
+<pre>
+     UF(a)-----------------&gt; UFb 
+       ^      UF(f)           ^
+       |                      |
+       |                      |
+    η(a)                      η(b)
+       |                      |
+       |         f            | 
+       a  -----------------&gt;  b
+
+</pre>
+
+<hr/>
+<h2><a name="content158">自然変換εの構成</a></h2>
+
+<p>
+ここが一番の難所です。 ε(b) = ( id1 A (U(b)))* と定義しますが、この可換性を証明しなくてはなりません。
+<p>
+
+<pre>
+    nat-ε : {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                     { U : Functor B A }
+                     { F : Obj A → Obj B }
+                     { η : (a : Obj A) → Hom A a ( FObj U (F a) ) } →
+           (um : UniversalMapping A B U F η )  →
+               NTrans B B ( FunctorF A B um ○ U) identityFunctor
+    nat-ε A B {U} {F} {η} um = record {
+                 TMap = ε ; isNTrans = myIsNTrans
+           } where
+        F' : Functor A B
+        F' : Functor A B
+        F' = FunctorF A B um
+        ε : ( b : Obj B ) → Hom B ( FObj F' ( FObj U b) ) b
+        ε b = (_* um) ( id1 A (FObj U b))
+
+</pre>
+示すべき可換性は、以下のとおりです。
+<p>
+
+<pre>
+            FU(f)
+    FU(b) -------------&gt; FU(c)
+     |                  |
+     |                  |
+ ε(b)|                  | ε(c)
+     |                  |
+     v       f          v
+     b ---------------&gt; c
+
+</pre>
+いつもの通り、uniquness で _* um を消去しますが二つも入っています。この部分の可換図はかなり複雑です。
+<p>
+
+<pre>
+    commute : {a b : Obj B} {f : Hom B a b }
+      →  B [ B [ f o (ε a) ] ≈ B [(ε b) o (FMap F' (FMap U f)) ] ]
+    commute {a} {b} {f} = let open ≈-Reasoning (B) in
+       sym ( begin
+          ε b o (FMap F' (FMap U f))
+       ≈⟨⟩
+          ε b o ((_* um) (A [ η (FObj U b) o (FMap U f) ]))
+       ≈⟨⟩
+          ((_* um) ( id1 A (FObj U b))) o ((_* um) (A [ η (FObj U b) o (FMap U f) ]))
+       ≈⟨ sym ( ( IsUniversalMapping.uniquness ( isUniversalMapping um )  (lemma-nat1 a b f))) ⟩
+          (_* um) ( A [ FMap U f o id1 A (FObj U a) ] )
+       ≈⟨ (IsUniversalMapping.uniquness ( isUniversalMapping um )  (lemma-nat2 a b f)) ⟩
+          f o  ((_* um) ( id1 A (FObj U a)))
+       ≈⟨⟩
+          f o  (ε a)
+       ∎ )
+
+</pre>
+lemma-nat1 a b f と、lemma-nat2 a b f を片付ければ良いわけです。
+<p>
+
+<pre>
+    lemma-nat1 :  (a b : Obj B) (f : Hom B a b ) →
+             A [ A [ FMap U ( B [ (um *) (id1 A (FObj U b)) o ((um *) (A [ η (FObj U b) o FMap U f ])) ] )  o η (FObj U a) ]
+                 ≈ A [ FMap U f o id1 A (FObj U a) ] ]
+    lemma-nat1 a b f = let open ≈-Reasoning (A) in
+       begin
+          FMap U ( B [ (um *) (id1 A (FObj U b)) o ((um *) ( η (FObj U b) o FMap U f )) ] )  o η (FObj U a)
+       ≈⟨ car ( distr U  ) ⟩
+          ( FMap U  ((um *) (id1 A (FObj U b))) o FMap U ((um *) ( η (FObj U b) o FMap U f )) )  o η (FObj U a)
+       ≈⟨ sym assoc  ⟩
+           FMap U  ((um *) (id1 A (FObj U b))) o ( FMap U ((um *) ( η (FObj U b) o FMap U f )))  o η (FObj U a)
+       ≈⟨ cdr ((IsUniversalMapping.universalMapping ( isUniversalMapping um )) )  ⟩
+           FMap U  ((um *) (id1 A (FObj U b))) o ( η (FObj U b) o FMap U f )
+       ≈⟨ assoc  ⟩
+           (FMap U  ((um *) (id1 A (FObj U b))) o  η (FObj U b)) o FMap U f
+       ≈⟨ car ((IsUniversalMapping.universalMapping ( isUniversalMapping um )) ) ⟩
+           id1 A (FObj U b) o FMap U f
+       ≈⟨ idL ⟩
+            FMap U f
+       ≈⟨ sym idR ⟩
+          FMap U f o id (FObj U a)
+       ∎
+
+</pre>
+FunctorFの分配則の証明に似ています。
+<p>
+
+<pre>
+    lemma-nat2 : (a b : Obj B) (f : Hom B a b ) → A [ A [ FMap U ( B [ f o ((um *) (id1 A (FObj U a ))) ] ) o η (FObj U a) ]
+                                                        ≈ A [ FMap U f o id1 A (FObj U a) ] ]
+    lemma-nat2 a b f = let open ≈-Reasoning (A) in
+       begin
+          FMap U ( B [ f o ((um *) (id1 A (FObj U a ))) ])  o η (FObj U a)
+       ≈⟨ car ( distr U  ) ⟩
+          (FMap U f o FMap U ((um *) (id1 A (FObj U a ))))  o η (FObj U a)
+       ≈⟨ sym assoc  ⟩
+          FMap U f o ( FMap U ((um *) (id1 A (FObj U a )))  o η (FObj U a)  )
+       ≈⟨ cdr ( IsUniversalMapping.universalMapping ( isUniversalMapping um)) ⟩
+          FMap U f o id (FObj U a )
+       ∎
+
+</pre>
+lemma-nat2 の方が少し楽です。
+<p>
+
+<pre>
+    myIsNTrans : IsNTrans B B ( F' ○ U ) identityFunctor　ε
+    myIsNTrans = record { commute = commute }
+
+</pre>
+で、できあがりです。
+<p>
+lemma-nat1 は、U(ε(b)) o η(U(b)) = id(U(b) そのものです。
+<p>
+これで役者がそろいました。
+<p>
+
+<hr/>
+<h2><a name="content159">随伴関手の構成</a></h2>
+
+<pre>
+    UMAdjunction : {c₁ c₂ ℓ c₁' c₂' ℓ' : Level} (A : Category c₁ c₂ ℓ) (B : Category c₁' c₂' ℓ')
+                     ( U : Functor B A )
+                     ( F' : Obj A → Obj B )
+                     ( η' : (a : Obj A) → Hom A a ( FObj U (F' a) ) ) →
+           (um : UniversalMapping A B U F' η' )  →
+                  Adjunction A B U (FunctorF A B um) (nat-η A B um) (nat-ε A B  um)
+    UMAdjunction A B U F' η' um = record {
+               isAdjunction = record {
+                   adjoint1 = adjoint1 ;
+                   adjoint2 = adjoint2
+               }
+           } where
+              F : Functor A B
+              F = FunctorF A B um
+              η : NTrans A A identityFunctor ( U ○  F )
+              η = nat-η A B um
+              ε : NTrans B B  ( F ○  U ) identityFunctor
+              ε = nat-ε A B um
+
+</pre>
+と定義を書きます。adjoint1 と adjoint2 を証明すれば終わりです。
+<p>
+
+<pre>
+          adjoint1 :   { b : Obj B } →
+                     A [ A [ ( FMap U ( TMap ε b ))  o ( TMap η ( FObj U b )) ]  ≈ id1 A (FObj U b) ]
+          adjoint1 {b} = let open ≈-Reasoning (A) in
+             begin
+               FMap U ( TMap ε b )  o  TMap η ( FObj U b )
+             ≈⟨⟩
+               FMap U ((_* um) ( id1 A (FObj U b)))  o  η' ( FObj U b )
+             ≈⟨ IsUniversalMapping.universalMapping ( isUniversalMapping um )  ⟩
+               id (FObj U b)
+             ∎
+
+</pre>
+こちらは簡単です。ηの定義そのものが、η(U(b)) が (id (U(b)) に対する解ということになっているわけです。一体何回、IsUniversalMapping.universalMapping ( isUniversalMapping um) を使うのか。
+<p>
+最後の adjoint2 に取り掛かります。
+<p>
+
+<pre>
+          adjoint2 :   {a : Obj A} →
+                     B [ B [ ( TMap ε ( FObj F a ))  o ( FMap F ( TMap η a )) ]  ≈ id1 B (FObj F a) ]
+          adjoint2 {a} = let open ≈-Reasoning (B) in
+             begin
+                TMap ε ( FObj F a )  o  FMap F ( TMap η a )
+             ≈⟨⟩
+                ((_* um) ( id1 A (FObj U ( FObj F a ))))  o  (_* um)  (A [  η' (FObj U ( FObj F a ))   o ( η' a ) ])
+             ≈⟨ sym ( ( IsUniversalMapping.uniquness ( isUniversalMapping um )  (lemma-adj1 a))) ⟩
+                (_* um)( η' a )
+             ≈⟨  IsUniversalMapping.uniquness ( isUniversalMapping um )  (lemma-adj2 a) ⟩
+                id1 B (FObj F a)
+             ∎
+
+</pre>
+ここでも uniqness による除去を二回行う必要があります。
+<p>
+
+<pre>
+          lemma-adj1 : (a : Obj A) →
+             A [ A [ FMap U ((B [((_* um) ( id1 A (FObj U ( FObj F a )))) o (_* um) (A [  η' (FObj U ( FObj F a )) o ( η' a ) ]) ])) o η' a ]
+               ≈ (η' a) ]
+          lemma-adj1 a =  let open ≈-Reasoning (A) in
+             begin
+               FMap U ((B [((_* um) ( id1 A (FObj U ( FObj F a )))) o (_* um) (A [  η' (FObj U ( FObj F a )) o ( η' a ) ]) ])) o η' a
+             ≈⟨ car (distr U)  ⟩
+               (FMap U ((_* um) ( id1 A (FObj U ( FObj F a)))) o FMap U ((_* um) (A [  η' (FObj U ( FObj F a )) o ( η' a ) ]))) o η' a
+             ≈⟨ sym assoc ⟩
+               FMap U ((_* um) ( id1 A (FObj U ( FObj F a)))) o ( FMap U ((_* um) (A [  η' (FObj U ( FObj F a )) o ( η' a ) ])) o η' a )
+             ≈⟨ cdr (IsUniversalMapping.universalMapping ( isUniversalMapping um)) ⟩
+               FMap U ((_* um) ( id1 A (FObj U ( FObj F a)))) o ( η' (FObj U ( FObj F a )) o ( η' a ) )
+             ≈⟨ assoc ⟩
+               (FMap U ((_* um) ( id1 A (FObj U ( FObj F a)))) o ( η' (FObj U ( FObj F a )))) o ( η' a )
+             ≈⟨ car (IsUniversalMapping.universalMapping ( isUniversalMapping um)) ⟩
+                id (FObj U ( FObj F a)) o ( η' a )
+             ≈⟨ idL ⟩
+               η' a
+             ∎
+
+</pre>
+lemma-adj2 は、U の性質から証明できます。
+<p>
+
+<pre>
+          lemma-adj2 : (a : Obj A) → A [ A [ FMap U (id1 B (FObj F a)) o η' a ] ≈  η' a ]
+          lemma-adj2 a = let open ≈-Reasoning (A) in
+             begin
+               FMap U (id1 B (FObj F a)) o η' a
+             ≈⟨  car ( IsFunctor.identity ( isFunctor U))  ⟩
+               id (FObj U (FObj F a)) o η' a
+             ≈⟨ idL ⟩
+               η' a
+             ∎
+
+</pre>
+これで、証明できました。
+<p>
+<a href="homset.html"> Next : Hom Set Adjunction </a>
+</div>
+<ol class="side" id="menu">
+Universal mapping から Adjoint functor を導く
+<li><a href="#content154">   * <a href="index.html"> top : Agda による圏論入門 </a>
+</a>
+<li><a href="#content155">  普遍問題の解から随伴関手</a>
+<li><a href="#content156">  Functor F</a>
+<li><a href="#content157">  ηの可換性</a>
+<li><a href="#content158">  自然変換εの構成</a>
+<li><a href="#content159">  随伴関手の構成</a>
+<li><a href="#content160">   * <a href="homset.html"> Next : Hom Set Adjunction </a>
+</a>
+</ol>
+
+<hr/> Shinji KONO <kono@ie.u-ryukyu.ac.jp> /  Sun Aug 25 13:44:31 2013
+</body></html>
