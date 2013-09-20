@@ -43,11 +43,23 @@ record Mod3 (m : Nat) : Set where
     mod3 : (suc (suc (suc m))) ≡ m
   n : Nat
   n = m
+
 open Mod3
-Lemma1 : (x : Mod3 (suc (suc (suc (suc zero))))) (y : Mod3 (suc zero)) -> n x ≡ n y
+Lemma1 : {m : Nat} -> (x : Mod3 (suc (suc (suc m)))) (y : Mod3 m) -> n x ≡ n y
 Lemma1 x y = mod3 y
 
 postulate mx : Mod3 (suc zero)
 postulate my : Mod3 (suc (suc (suc (suc zero))))
 postulate mz : Mod3 (suc (suc (suc (suc (suc (suc (suc zero)))))))
 foo = Lemma1 my mx
+bar = Lemma1 mz my
+-- quz = Lemma1 mz mx -- Error!
+
+postulate nx : Mod3 zero
+postulate ny : Mod3 (suc (suc (suc zero)))
+postulate nz : Mod3 (suc (suc (suc (suc (suc (suc zero))))))
+foo' = Lemma1 ny nx
+bar' = Lemma1 nz ny
+-- quz' = Lemma1 nz nx --Error!
+
+
